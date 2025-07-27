@@ -4,7 +4,11 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sfpro: ['"SF Pro"', 'system-ui', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

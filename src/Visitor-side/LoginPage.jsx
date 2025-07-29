@@ -30,6 +30,10 @@ const LoginPage = () => {
     });
   };
 
+  const handleForgotPassword = () => {
+  navigate("/forgot-password");
+};
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle login logic here
@@ -87,10 +91,18 @@ const LoginPage = () => {
               {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
             </span>
           </div>
+<<<<<<< Updated upstream
           
           <div 
             onClick={handleForgotPassword}
             className="text-sm text-[#F6BE1E] font-semibold cursor-pointer hover:underline text-right">
+=======
+
+          <div
+            onClick={handleForgotPassword}
+            className="text-sm text-[#F6BE1E] font-semibold cursor-pointer hover:underline"
+          >
+>>>>>>> Stashed changes
             Forgot Password?
           </div>
 

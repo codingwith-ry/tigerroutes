@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './Visitor-side/LandingPage';
 import LoginPage from './Visitor-side/LoginPage';
 import RegisterPage from './Visitor-side/RegisterPage';
+import ForgotPassPage from './Visitor-side/ForgotPassPage';
+
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassPage />} />
+
         </Routes>
       </div>
     </Router>

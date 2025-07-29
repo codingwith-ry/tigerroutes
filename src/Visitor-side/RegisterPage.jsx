@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -14,10 +15,12 @@ const RegisterPage = () => {
     navigate("/");
   };
 
-  const handleSignUp = () => {
-    // Navigate to register page when you create it
-    // navigate("/register");
-    console.log("Navigate to register page");
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  const handleForgotPassword = () => {
+    console.log("Forgot password clicked");
   };
 
   const handleInputChange = (e) => {
@@ -40,23 +43,18 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
-      {/* Back button */}
-      <button
+    <div className="w-full min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
+      <img
+        src="/images/TIGER ROUTES.png"
+        alt="TigerRoutes Logo"
+        className="absolute top-5 left-6 h-8 cursor-pointer"
         onClick={handleBackToHome}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        <span className="text-sm">Back</span>
-      </button>
+      />
 
       <div className="w-full max-w-sm space-y-6">
-        {/* Logo */}
-        <div className="text-left">
-          <h1 className="text-2xl font-bold leading-tight text-black tracking-tight">
-            Welcome back
+        <div className="mt-8 mb-10 text-center">
+          <h1 className="text-3xl md:text-4xl font-medium leading-tight text-black tracking-tight">
+            Create an account
           </h1>
         </div>
 
@@ -85,12 +83,34 @@ const RegisterPage = () => {
               onClick={togglePasswordVisibility}
               className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600"
             >
-              {showPassword ? "🙈" : "👁️"}
+              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
             </span>
           </div>
-
-          <div className="text-sm text-[#F6BE1E] font-semibold cursor-pointer hover:underline">
-            Forgot Password?
+          
+          <div className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              id="privacyConsent"
+              required
+              className="mt-1 accent-[#F6BE1E] w-4 h-4"
+            />
+            <label htmlFor="privacyConsent" className="leading-snug">
+              I have read and accepted to the{" "}
+              <a
+                href="/privacy"
+                className="underline hover:text-[#F6BE1E] transition-colors"
+              >
+                Privacy Policy
+              </a>{" "}
+              and{" "}
+              <a 
+                href="/terms"
+                className="underline hover:text-[#F6BE1E] transition-colors"
+              >
+                Terms of Service
+              </a>
+              .
+            </label>
           </div>
 
           <button
@@ -118,12 +138,12 @@ const RegisterPage = () => {
 
           {/* Sign up */}
           <div className="text-center text-sm text-gray-700">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <span 
-              onClick={handleSignUp}
+              onClick={handleLogin}
               className="text-[#F6BE1E] font-semibold hover:underline cursor-pointer"
             >
-              Sign Up
+              Log in
             </span>
           </div>
         </form>

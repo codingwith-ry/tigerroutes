@@ -19,9 +19,7 @@ const Navbar = () => {
   };
 
   const handleRegisterClick = () => {
-    // You can add register route later
-    // navigate("/register");
-    console.log("Navigate to register page");
+    navigate("/register");
   };
 
   return (
@@ -45,7 +43,7 @@ const Navbar = () => {
             Log In
           </button>
             <button 
-             onClick={handleLoginClick} 
+             onClick={handleRegisterClick} 
              className="px-4 py-1 bg-yellow-400 text-white rounded-full text-sm"
              >
             Register

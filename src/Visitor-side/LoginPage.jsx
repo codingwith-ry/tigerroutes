@@ -19,9 +19,9 @@ const LoginPage = () => {
     navigate("/register");
   };
 
-  const handleForgotPassword = () => {
-    console.log("Forgot password clicked");
-  };
+const handleForgotPassword = () => {
+  navigate("/forgot-password");
+};
 
   const handleInputChange = (e) => {
     setFormData({

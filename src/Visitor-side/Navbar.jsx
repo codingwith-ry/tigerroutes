@@ -44,9 +44,13 @@ const Navbar = () => {
           >
             Log In
           </button>
-<button className="px-4 py-1 bg-yellow-400 text-white rounded-full text-sm">
+            <button 
+             onClick={handleLoginClick} 
+             className="px-4 py-1 bg-yellow-400 text-white rounded-full text-sm"
+             >
             Register
           </button>
+          
         </div>
       </div>
     </nav>

@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "./Navbar";
 import HeroSection from "./HeroSection";
 import FeaturesSection from "./FeaturesSection";
+import Testimonials from "./Testimonials";
 import FloatingChatButton from "./FloatingChatButton";
 import CTA from "./CTA";
 import Footer from "./Footer";
@@ -12,6 +13,7 @@ const LandingPage = () => {
       <Navbar />
       <HeroSection />
       <FeaturesSection />
+      <Testimonials />
       <FloatingChatButton />
       <CTA />
       <Footer />

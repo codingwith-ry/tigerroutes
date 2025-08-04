@@ -3,6 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './Visitor-side/LandingPage';
 import LoginPage from './Visitor-side/LoginPage';
 import RegisterPage from './Visitor-side/RegisterPage';
+import ForgotPassword from './Visitor-side/ForgotPassword';
+import OtpCodePage from "./Visitor-side/OtpCodePage";
+import ResetPassword from "./Visitor-side/ResetPassword";
+
+
 
 function App() {
   return (
@@ -12,6 +17,11 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/otp" element={<OtpCodePage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+
         </Routes>
       </div>
     </Router>

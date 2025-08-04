@@ -6,6 +6,7 @@ import RegisterPage from './Visitor-side/RegisterPage';
 import ForgotPassword from './Visitor-side/ForgotPassword';
 import OtpCodePage from "./Visitor-side/OtpCodePage";
 import ResetPassword from "./Visitor-side/ResetPassword";
+import AdminLogin from "./Admin-side/AdminLogin";
 
 
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/otp" element={<OtpCodePage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
 
 
         </Routes>

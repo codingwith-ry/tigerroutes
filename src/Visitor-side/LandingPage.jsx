@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./Navbar";
 import HeroSection from "./HeroSection";
+import About from "./About";
 import FeaturesSection from "./FeaturesSection";
 import Testimonials from "./Testimonials";
 import FloatingChatButton from "./FloatingChatButton";
@@ -12,6 +13,7 @@ const LandingPage = () => {
     <div className="w-full min-h-screen bg-[#fefce9] font-sans">
       <Navbar />
       <HeroSection />
+      <About />
       <FeaturesSection />
       <Testimonials />
       <FloatingChatButton />

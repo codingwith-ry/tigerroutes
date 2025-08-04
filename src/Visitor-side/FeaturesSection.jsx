@@ -17,7 +17,7 @@ const features = [
     title: "Get Personalized Recommendations",
     description:
       "Receive your top 10 UST program recommendations - 5 aligned with your current track and 5 cross-track options that might surprise you with perfect matches.",
-    icon: "/3D Elements/Recommendations.png"
+    icon: "/3D Elements/Recommendations.png",
   },
   {
     title: "Explore Your Future",
@@ -29,20 +29,20 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="bg-[#fefce9] py-8 px-6 font-sfpro">
-      <h2 className="text-center text-sm text-gray-500 tracking-widest font-bold">FEATURES</h2>
-      <h3 className="text-center text-3xl md:text-4xl font-black mt-2 mb-10">How TigerRoutes Works?</h3>
+    <section className="bg-[#fefce9] py-16 px-8 md:px-16 font-sfpro">
+      <h2 className="text-center text-base text-gray-600 tracking-widest font-bold mb-2">FEATURES</h2>
+      <h3 className="text-center text-4xl md:text-5xl font-extrabold mb-14 leading-tight">How TigerRoutes Works?</h3>
 
-      <div className="flex flex-col gap-12 max-w-2xl mx-auto">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-20">
         {features.map((feat, idx) => (
           <div
             key={idx}
-            className={`flex gap-6 items-center ${idx % 2 === 1 ? "flex-row-reverse" : ""}`}
+            className="flex flex-col md:flex-row items-start gap-8"
           >
-            <img src={feat.icon} alt={feat.title} className="w-40 h-40 flex-shrink-0" />
-            <div>
-              <h4 className="text-xl font-semibold mb-2">{feat.title}</h4>
-              <p className="text-gray-700">{feat.description}</p>
+            <img src={feat.icon} alt={feat.title} className="w-48 h-48 object-contain" />
+            <div className="flex-1">
+              <h4 className="text-2xl font-semibold mb-3">{feat.title}</h4>
+              <p className="text-lg text-gray-700 leading-relaxed">{feat.description}</p>
             </div>
           </div>
         ))}

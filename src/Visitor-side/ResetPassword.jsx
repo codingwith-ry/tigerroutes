@@ -89,12 +89,13 @@ const ResetPasswordPage = () => {
             </span>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-yellow-400 text-white py-3 rounded-full font-semibold hover:bg-yellow-500 transition"
-          >
-            Continue
-          </button>
+        <button
+          type="button"
+          onClick={() => navigate("/login")}
+          className="w-full bg-yellow-400 text-white py-3 rounded-full font-semibold hover:bg-yellow-500 transition"
+        >
+          Continue
+        </button>
 
         <div className="text-center text-sm mt-10 p-4">
             <span

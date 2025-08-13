@@ -7,6 +7,8 @@ import ForgotPassword from './Visitor-side/ForgotPassword';
 import OtpCodePage from "./Visitor-side/OtpCodePage";
 import ResetPassword from "./Visitor-side/ResetPassword";
 import AdminLogin from "./Admin-side/AdminLogin";
+import Error from "./Visitor-side/Error";
+import AssessmentWelcome from "./Visitor-side/AssessmentWelcome";
 
 
 
@@ -22,8 +24,8 @@ function App() {
           <Route path="/otp" element={<OtpCodePage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-
-
+          <Route path="/error" element={<Error />} />
+          <Route path="/assessment" element={<AssessmentWelcome />} />
         </Routes>
       </div>
     </Router>

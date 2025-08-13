@@ -23,6 +23,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Norican';
+  src: url('../public/fonts/Norican-Regular.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   font-family: 'SF Pro', 'SF Pro Display', sans-serif;
 }

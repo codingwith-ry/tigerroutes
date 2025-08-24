@@ -8,7 +8,8 @@ import OtpCodePage from "./Visitor-side/OtpCodePage";
 import ResetPassword from "./Visitor-side/ResetPassword";
 import AdminLogin from "./Admin-side/AdminLogin";
 import Error from "./Visitor-side/Error";
-import AssessmentWelcome from "./Visitor-side/AssessmentWelcome";
+import AssessmentWelcome from "./User-side/AssessmentWelcome";
+import UserHomepage from "./User-side/UserHomepage";
 
 
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/error" element={<Error />} />
           <Route path="/assessment" element={<AssessmentWelcome />} />
+          <Route path="home" element={<UserHomepage />} />
         </Routes>
       </div>
     </Router>

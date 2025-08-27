@@ -10,6 +10,7 @@ import AdminLogin from "./Admin-side/AdminLogin";
 import Error from "./Visitor-side/Error";
 import AssessmentWelcome from "./User-side/AssessmentWelcome";
 import UserHomepage from "./User-side/UserHomepage";
+import UserResults from "./User-side/UserResults";
 
 
 
@@ -28,6 +29,7 @@ function App() {
           <Route path="/error" element={<Error />} />
           <Route path="/assessment" element={<AssessmentWelcome />} />
           <Route path="home" element={<UserHomepage />} />
+          <Route path="/results" element={<UserResults />} />
         </Routes>
       </div>
     </Router>

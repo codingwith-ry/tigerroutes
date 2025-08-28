@@ -1,12 +1,12 @@
 import React from "react";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+import UserNavbar from "./UserNavbar";
+import Footer from "../Visitor-side/Footer";
 
 const AssessmentPage = () => {
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       {/* Navbar */}
-      <Navbar />
+      <UserNavbar />
 
       {/* Main Content */}
       <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">

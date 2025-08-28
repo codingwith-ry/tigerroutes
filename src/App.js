@@ -12,6 +12,7 @@ import AssessmentWelcome from "./User-side/AssessmentWelcome";
 import UserHomepage from "./User-side/UserHomepage";
 import UserResults from "./User-side/UserResults";
 import UserResultsHistory from "./User-side/UserResultsHistory";
+import ProfilePage from "./User-side/ProfilePage";
 
 
 
@@ -32,6 +33,7 @@ function App() {
           <Route path="home" element={<UserHomepage />} />
           <Route path="/results" element={<UserResults />} />
           <Route path="/results-history" element={<UserResultsHistory />} />
+          <Route path="/profile-page" element={<ProfilePage />} />
         </Routes>
       </div>
     </Router>

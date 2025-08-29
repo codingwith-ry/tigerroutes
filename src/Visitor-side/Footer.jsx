@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -7,35 +8,37 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
         {/* Left: Logo + Text */}
         <div className="text-center md:text-left">
-          <h2 className="text-3xl font-extrabold leading-tight">
-            TIGER<br />ROUTES
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed max-w-xs mx-auto md:mx-0">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          <img 
+            src="/images/TIGER ROUTES-BLACK.png"
+            alt="TigerRoutes Logo"
+            className="h-12 mx-auto md:mx-0"
+          />
+          <p className="mt-3 text-sm leading-relaxed max-w-xs text-left">
+            Your AI Career Navigator for Thomasian Senior High School Students. TigerRoutes helps students discover UST academic programs that fit their skills, interests, and personality through psychometric assessments and personalized recommendations.
           </p>
         </div>
 
         {/* Center: Subscription Form */}
-        <div className="text-center md:text-left">
-          <h3 className="text-lg font-semibold mb-3">Be Informed. Subscribe.</h3>
-          <form className="flex items-center justify-center md:justify-start bg-white rounded-full overflow-hidden shadow max-w-sm mx-auto md:mx-0">
+        <div className="text-center">
+          <h3 className="text-2xl font-semibold mb-3">Be Informed. Subscribe.</h3>
+          <form className="flex items-center justify-center md:justify-start bg-white rounded-full shadow max-w-md mx-auto md:mx-0 overflow-hidden">
             <input
               type="email"
               placeholder="Your Email"
-              className="flex-grow px-4 py-2 text-black text-sm outline-none"
+              className="flex-grow px-5 py-4 text-black text-base outline-none"
             />
             <button
               type="submit"
               aria-label="Subscribe"
-              className="bg-black text-white px-5 py-2 text-sm font-semibold hover:bg-gray-900 transition-all"
+              className="bg-[#F6BE1E] text-white w-11 h-11 flex items-center justify-center rounded-full hover:bg-yellow-500 transition-all mr-1.5"
             >
-              ➜
+              <ArrowRight className="text-white" size={22} strokeWidth={3} />
             </button>
           </form>
         </div>
 
         {/* Right: QR Code */}
-        <div className="text-center md:text-right">
+        <div className="text-center">
           <h4 className="text-base font-semibold mb-3">Send us your feedback</h4>
           <img
             src="/assets/qr-feedback.png"

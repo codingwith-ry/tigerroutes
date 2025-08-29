@@ -100,7 +100,7 @@ const UserResultsHistory = () => {
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Total Assessments */}
-          <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between">
+          <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between border border-black">
             <div>
               <p className="text-gray-600 text-sm">Total Assessments</p>
               <h3 className="text-4xl font-extrabold">{stats.totalAssessments}</h3>
@@ -111,7 +111,7 @@ const UserResultsHistory = () => {
           </div>
 
           {/* Average Satisfaction */}
-          <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between">
+          <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between border border-black">
             <div>
               <p className="text-gray-600 text-sm">Average Satisfaction</p>
               <h3 className="text-4xl font-extrabold">{stats.avgSatisfaction}</h3>
@@ -122,7 +122,7 @@ const UserResultsHistory = () => {
           </div>
 
           {/* Counselor Replies */}
-          <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between">
+          <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between border border-black">
             <div>
               <p className="text-gray-600 text-sm">Counselor Replies</p>
               <h3 className="text-4xl font-extrabold">{stats.counselorReplies}</h3>
@@ -134,7 +134,7 @@ const UserResultsHistory = () => {
         </div>
 
         {/* Assessment History */}
-        <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-white p-6 rounded-xl shadow border border-black">
           <h3 className="text-xl font-bold mb-4">Assessment History</h3>
 
           {/* Desktop Table */}

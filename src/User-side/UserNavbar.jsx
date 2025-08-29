@@ -71,10 +71,10 @@ const UserNavbar = () => {
               className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-gray-100 transition"
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
-              <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-gray-300 font-bold flex items-center justify-center">
                 JD
               </div>
-              <span className="text-sm">Juan Dela Cruz</span>
+              <span className="text-sm font-bold">Juan Dela Cruz</span>
               <FiChevronDown className="text-gray-600" />
             </button>
 
@@ -137,10 +137,10 @@ const UserNavbar = () => {
                 className="flex items-center gap-2 px-6 py-3 w-full rounded-full hover:bg-gray-100 transition"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
               >
-                <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-gray-300 font-bold flex items-center justify-center">
                   JD
                 </div>
-                <span className="text-sm">Juan Dela Cruz</span>
+                <span className="text-sm fonot-bold">Juan Dela Cruz</span>
                 <FiChevronDown className="text-gray-600" />
               </button>
 

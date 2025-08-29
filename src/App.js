@@ -33,7 +33,7 @@ function App() {
           <Route path="home" element={<UserHomepage />} />
           <Route path="/results" element={<UserResults />} />
           <Route path="/results-history" element={<UserResultsHistory />} />
-          <Route path="/profile-page" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>
     </Router>

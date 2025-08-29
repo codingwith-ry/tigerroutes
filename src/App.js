@@ -13,6 +13,9 @@ import UserHomepage from "./User-side/UserHomepage";
 import UserResults from "./User-side/UserResults";
 import UserResultsHistory from "./User-side/UserResultsHistory";
 import ProfilePage from "./User-side/ProfilePage";
+import NoResultPage from "./User-side/NoResultPage";
+import AssessmentPage from "./User-side/AssessmentPage";
+
 
 
 
@@ -34,6 +37,9 @@ function App() {
           <Route path="/results" element={<UserResults />} />
           <Route path="/results-history" element={<UserResultsHistory />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/noresult" element={<NoResultPage />} />
+          <Route path="/assessment-test" element={<AssessmentPage />} />
+
         </Routes>
       </div>
     </Router>

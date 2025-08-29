@@ -1,16 +1,15 @@
 import React from "react";
 import UserNavbar from "./UserNavbar";
+import { UserCircle2 } from "lucide-react";
+import { SquarePen } from 'lucide-react';
 import Footer from "../Visitor-side/Footer";
 
 const AssessmentPage = () => {
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
-      {/* Navbar */}
       <UserNavbar />
 
-      {/* Main Content */}
       <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
-        {/* Page Title */}
         <h1 className="sf-pro text-center text-gray-500 text-lg sm:text-xl md:text-2xl font-bold tracking-wide uppercase">
           Assessment Test
         </h1>
@@ -24,19 +23,19 @@ const AssessmentPage = () => {
 
         <div className="space-y-6">
           {/* Profile Section */}
-<div
-  className="bg-white rounded-lg shadow p-5 border border-black"
-  style={{ fontFamily: "SF Pro" }}
->
+  <div
+    className="bg-white rounded-lg shadow p-5 border border-black"
+    style={{ fontFamily: "SF Pro" }}
+  >
   <div className="flex flex-col sm:flex-row items-start sm:items-center">
     {/* Profile Icon */}
-    <div className="mr-0 sm:mr-2 mb-2 sm:mb-0">
-      <img
-        src="3D Elements/ProfileIcon.png"
-        alt="Profile Icon"
-        className="h-10 w-10"
-      />
-    </div>
+<div className="mr-0 sm:mr-2 mb-2 sm:mb-0">
+                <UserCircle2
+                  size={40}
+                  stroke="#FB9724" // kulay ng outline
+                  strokeWidth={2}
+                />
+              </div>
 
     {/* Profile Info */}
     <div className="w-full">
@@ -83,19 +82,15 @@ const AssessmentPage = () => {
       </div>
     </div>
 
-    {/* Edit Button */}
-    <button
-      type="button"
-      className="ml-auto mt-3 sm:mt-0 hover:opacity-80"
-    >
-      <img
-        src="3D Elements/EditIcon.png"
-        alt="Edit"
-        className="w-5 h-5"
-      />
-    </button>
-  </div>
-</div>
+        {/* Edit Button */}
+        <button
+          type="button"
+          className="ml-auto mt-3 sm:mt-0 p-1 hover:bg-[#FFF7E6] transition"
+        >
+          <SquarePen className="w-6 h-6 text-[#FBBF24]" />
+        </button>
+          </div>
+        </div>
 
 
           {/* RIASEC Test */}

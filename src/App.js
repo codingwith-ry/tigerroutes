@@ -13,7 +13,14 @@ import UserHomepage from "./User-side/UserHomepage";
 import UserResults from "./User-side/UserResults";
 import UserResultsHistory from "./User-side/UserResultsHistory";
 import ProfilePage from "./User-side/ProfilePage";
+<<<<<<< HEAD
 import AdminDashboard from './Admin-side/AdminDashboard';
+=======
+import NoResultPage from "./User-side/NoResultPage";
+import AssessmentPage from "./User-side/AssessmentPage";
+
+
+>>>>>>> 125946bdf4c8522b9fed951fc19e4fea1b2efb8e
 
 
 function App() {
@@ -33,8 +40,14 @@ function App() {
           <Route path="/results" element={<UserResults />} />
           <Route path="/results-history" element={<UserResultsHistory />} />
           <Route path="/profile" element={<ProfilePage />} />
+<<<<<<< HEAD
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+=======
+          <Route path="/noresult" element={<NoResultPage />} />
+          <Route path="/assessment-test" element={<AssessmentPage />} />
+
+>>>>>>> 125946bdf4c8522b9fed951fc19e4fea1b2efb8e
         </Routes>
       </div>
     </Router>

@@ -1,6 +1,12 @@
 import React from "react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
+import { User } from "lucide-react";
+import { GraduationCap } from "lucide-react";
+import { BookOpenText } from "lucide-react"; // Import open-book icon
+import { Star } from "lucide-react"; // Import open-book icon
+
+
 
 const ProfilePage = () => {
   return (
@@ -9,12 +15,8 @@ const ProfilePage = () => {
 
     <main className="w-full max-w-4xl mx-auto mt-24 mb-14 border border-black rounded-lg">        
         <div className="bg-[#FB9724] text-white rounded-t-lg p-4 shadow-md">
-            <h2 className="font-semibold text-lg sm:text-xl flex items-center gap-4">
-            <img 
-                src="3D Elements/cap.png" 
-                alt="icon" 
-                className="w-8 h-8 object-contain" 
-            />
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800 text-white">
+            <GraduationCap className="w-8 h-8 text-white" />
             Academic Profile
             </h2> 
             <p className="text-sm opacity-90">
@@ -27,7 +29,7 @@ const ProfilePage = () => {
         {/* Personal Information */}
         <div className="bg-[#FFF9F3] rounded-lg p-5 shadow-sm space-y-4">
             <h3 className="flex items-center space-x-4 text-lg font-semibold text-gray-700">
-            <img src="3D Elements/profile2.png" alt="icon" className="w-6 h-6" />
+            <User className="w-6 h-6 text-[#FB9724]" />
             <span>Personal Information</span>
             </h3>
 
@@ -65,7 +67,7 @@ const ProfilePage = () => {
         {/* Academic Information */}
         <div className="bg-[#FFF9F3] rounded-lg p-5 shadow-sm space-y-4">
             <h3 className="flex items-center space-x-4 text-lg font-semibold text-gray-700">
-            <img src="3D Elements/academic.png" alt="icon" className="w-6 h-6" />
+          <BookOpenText className="w-6 h-6 text-[#FB9724]" />
             <span>Academic Information</span>
             </h3>
 
@@ -115,7 +117,7 @@ const ProfilePage = () => {
         {/* Semester Grades */}
             <div className="bg-[#FFF9F3] rounded-lg p-5 shadow-sm space-y-4">
             <h3 className="flex items-center space-x-4 text-lg font-semibold text-gray-700">
-                <img src="3D Elements/grades.png" alt="icon" className="w-6 h-6" />
+          <Star className="w-6 h-6 text-[#FB9724]" />
                 <span>Semester Grades</span>
             </h3>
 

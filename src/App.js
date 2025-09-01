@@ -13,7 +13,7 @@ import UserHomepage from "./User-side/UserHomepage";
 import UserResults from "./User-side/UserResults";
 import UserResultsHistory from "./User-side/UserResultsHistory";
 import ProfilePage from "./User-side/ProfilePage";
-
+import AdminDashboard from './Admin-side/AdminDashboard';
 
 
 function App() {
@@ -27,13 +27,14 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/otp" element={<OtpCodePage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/error" element={<Error />} />
           <Route path="/assessment" element={<AssessmentWelcome />} />
           <Route path="home" element={<UserHomepage />} />
           <Route path="/results" element={<UserResults />} />
           <Route path="/results-history" element={<UserResultsHistory />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>

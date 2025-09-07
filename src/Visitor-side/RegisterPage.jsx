@@ -3,7 +3,12 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
+
+
 const RegisterPage = () => {
+
+  const [emailError, setEmailError] = useState('');
+  
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,16 +25,37 @@ const RegisterPage = () => {
   };
 
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setFormData({
+    ...formData,
+    [name]: value
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle login logic here
+  if (name === 'email') {
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    setEmailError(emailRegex.test(value) ? '' : 'Please enter a valid email address.');
+  }
+};
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();   
+    try{
+      const res = await fetch ('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Registration Successful!');
+        navigate('/login');
+      } else {
+        alert(data.error || 'Registration Failed');
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
     console.log("Login submitted:", formData);
     // After successful login, you might want to navigate somewhere
     // navigate("/dashboard");
@@ -38,6 +64,7 @@ const RegisterPage = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+  
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
@@ -66,6 +93,11 @@ const RegisterPage = () => {
             required
             className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
           />
+        {emailError && (
+          <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
+            {emailError}
+          </div>
+        )}          
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -113,6 +145,7 @@ const RegisterPage = () => {
           <button
             type="submit"
             className="w-full bg-[#F6BE1E] text-white py-3 rounded-full font-semibold hover:bg-yellow-400 transition"
+            id="register-button"
           >
             Continue
           </button>

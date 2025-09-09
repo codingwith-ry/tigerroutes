@@ -16,6 +16,8 @@ import NoResultPage from "./User-side/NoResultPage";
 import AssessmentPage from "./User-side/AssessmentPage";
 import AdminDashboard from './Admin-side/AdminDashboard';
 import AdminLogin from "./Admin-side/AdminLogin";
+import AssessmentBigFive from "./User-side/AssessmentBigFive";
+import AssessmentRIASEC from "./User-side/AssessmentRIASEC";
 
 
 
@@ -40,6 +42,9 @@ function App() {
           <Route path="/assessment-test" element={<AssessmentPage />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/assessmentBigFive" element={<AssessmentBigFive />} />
+          <Route path="/assessmentRIASEC" element={<AssessmentRIASEC />} />
+
 
         </Routes>
       </div>

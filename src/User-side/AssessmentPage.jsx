@@ -4,7 +4,7 @@ import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 
 const AssessmentPage = () => {
-  const [activeStep, setActiveStep] = useState("RIASEC");
+  const [activeStep] = useState("RIASEC");
 
   const getStepClass = (step) =>
     activeStep === step ? "text-[#FB9724]" : "text-gray-600";
@@ -69,12 +69,12 @@ const AssessmentPage = () => {
         <div className="flex flex-col space-y-2 items-center">
         {["Dislike", "Slightly Dislike", "Neither", "Slightly Enjoy", "Enjoy"].map(
             (label, idx) => (
-        <button
-        key={idx}
-        className="w-60 bg-[#FFE49E] text-black font-medium rounded-full shadow border-2 border-[#FB9724] hover:bg-[#FFD96A] transition"
-        >
-        {label}
-      </button>
+          <button
+          key={idx}
+          className="w-60 bg-[#FFE49E] text-black font-medium rounded-full shadow border-2 border-[#FB9724] hover:bg-[#FFD96A] transition"
+          >
+          {label}
+        </button>
             )
         )}
         </div>

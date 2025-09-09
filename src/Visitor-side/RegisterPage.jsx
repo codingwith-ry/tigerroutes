@@ -12,9 +12,11 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword:''
   });
 
   const handleBackToHome = () => {
@@ -88,8 +90,18 @@ const handleInputChange = (e) => {
           {/* Add Name input field */}
           <input
             type="text"
-            name="name"
-            placeholder="Full Name"
+            name="firstName"
+            placeholder="First Name"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+            className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
+          />
+
+          <input
+            type="text"
+            name="lastName"
+            placeholder="Last Name"
             value={formData.name}
             onChange={handleInputChange}
             required
@@ -122,6 +134,24 @@ const handleInputChange = (e) => {
               className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
             />
             <span 
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+            </span>
+          </div>
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
+            />
+            <span
               onClick={togglePasswordVisibility}
               className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600"
             >

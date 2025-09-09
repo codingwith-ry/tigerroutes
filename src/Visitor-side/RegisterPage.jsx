@@ -12,6 +12,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: ''
   });
@@ -84,6 +85,18 @@ const handleInputChange = (e) => {
 
         {/* Form */}
         <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* Add Name input field */}
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+            className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
+          />
+
+          {/* Existing email input */}
           <input
             type="email"
             name="email"

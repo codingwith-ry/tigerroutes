@@ -44,8 +44,6 @@ function App() {
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/assessmentBigFive" element={<AssessmentBigFive />} />
           <Route path="/assessmentRIASEC" element={<AssessmentRIASEC />} />
-
-
         </Routes>
       </div>
     </Router>

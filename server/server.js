@@ -21,13 +21,13 @@ const db = mysql.createConnection({
 
 // Register endpoint
 app.post('/api/register', (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { name, email, password } = req.body;
+    if (name, !email || !password) {
         return res.status(400).json({error: 'Please fill in all fields'});
     }
     db.query(
         'INSERT into tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
-        ["placeholder", email, password],
+        [name, email, password],
         (err, result) => {
             if (err) return res.status(500).json({error: err.message});
             res.json({success:true, id: result.insertId});

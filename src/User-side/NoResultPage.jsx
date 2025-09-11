@@ -2,10 +2,10 @@ import React from "react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { useNavigate } from "react-router-dom";
-
+import { FiBookOpen } from "react-icons/fi"; // Add this import
 
 const NoResultsPage = () => {
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -20,13 +20,9 @@ const navigate = useNavigate();
           </h1>
 
           <div className="text-center">
-            {/* Icon */}
+            {/* Replace img with Icon */}
             <div className="flex justify-center mb-6">
-              <img
-                src="3D Elements/chart.png"
-                alt="No Results"
-                className="h-20 w-20 opacity-80"
-              />
+              <FiBookOpen className="w-20 h-20 text-gray-400" />
             </div>
 
             {/* Message */}
@@ -37,7 +33,7 @@ const navigate = useNavigate();
 
             {/* Button */}
             <div className="mt-6">
-                            <button
+              <button
                 onClick={() => navigate("/assessment")} // 🔑 direct route
                 className="bg-[#FBBF24] text-white px-10 py-3 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)]"
               >

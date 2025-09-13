@@ -138,7 +138,7 @@ const AssessmentPage = () => {
             </div>
 
             {/* Three Feature Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-7">
               <div className="bg-yellow-100 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
                 <h4 className="text-yellow-700 font-semibold text-base mb-2">
                   Scientifically Based
@@ -174,7 +174,7 @@ const AssessmentPage = () => {
                 window.scrollTo(0, 0); // scroll to top
                 navigate("../AssessmentRIASEC");
               }}
-              className="bg-[#FB9724] text-white px-10 py-3 rounded-xl text-base font-semibold shadow-lg hover:bg-[#f2851b] transition transform hover:scale-105"
+              className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
             >
               Begin Assessment
             </button>

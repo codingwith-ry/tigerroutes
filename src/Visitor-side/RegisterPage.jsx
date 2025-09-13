@@ -155,6 +155,9 @@ const handleInputChange = (e) => {
       const user = JSON.parse(jsonPayload);
       const { email, name } = user;
 
+      sessionStorage.setItem('user', JSON.stringify({ name, email}));
+
+
       //Send to backend for registration/login
       fetch('http://localhost:5000/api/google-auth', {
         method: 'POST',
@@ -169,7 +172,7 @@ const handleInputChange = (e) => {
               title: data.isNew ? 'Account Created!' : 'Welcome Back!',
               text: "Logged in as " + email,
             });
-            handleLogin();
+            navigate('/home');
           } else {
             Swal.fire({
               icon: 'error',

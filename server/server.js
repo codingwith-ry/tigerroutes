@@ -39,6 +39,27 @@ app.post('/api/register', (req, res) => {
     )
 })
 
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password required'});
+    }
+    db.query(
+        'SELECT * FROM tbl_studentaccounts WHERE email = ? AND password = ?',
+        [email, password],
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message});
+            if (results.length > 0) {
+                // User found
+                res.json({ success: true, user: results[0]});
+            } else {
+                // No match
+                res.json({ success: false, error: 'Invalid email or password' });
+            }
+        }
+    )
+})
+
 //token verification using Google API
 async function verify(token) {
     const ticket = await client.verifyIdToken({

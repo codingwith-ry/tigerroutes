@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "google-auth-library": "^10.3.0",
     "lucide-react": "^0.542.0",
     "mysql2": "^3.14.5",
     "react": "^19.1.0",
@@ -21,7 +22,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon server/server.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

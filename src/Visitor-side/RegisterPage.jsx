@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import Swal from 'sweetalert2';
+import { useEffect } from "react"; 
 
 
 
 const RegisterPage = () => {
 
   const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -39,22 +42,76 @@ const handleInputChange = (e) => {
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
     setEmailError(emailRegex.test(value) ? '' : 'Please enter a valid email address.');
   }
+
+  if (name === 'password' || name === 'confirmPassword') {
+    setPasswordError(
+      name === 'password' && value !== formData.confirmPassword && formData.confirmPassword
+        ? 'Passwords do not match.'
+        : name === 'confirmPassword' && value !== formData.password && formData.password
+        ? 'Passwords do not match.'
+        : ''
+    )
+  }
 };
 
   const handleSubmit = async (e) => {
     e.preventDefault();   
+
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Name fields required',
+      text: 'Please enter both your first and last name.',
+    });
+    return;
+  }
+
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Password Mismatch',
+        text: 'Please ensure both password fields match.',
+      })
+      return;
+    }else {
+      setPasswordError('');
+    }
+
+    if (emailError || passwordError) {
+      return;
+    }
+
+       const first = formData.firstName.trim();
+    const last = formData.lastName.trim();
+    const fullName = first + ' ' + last;
+    const emailTrimmed = formData.email.trim();
+    const payload = {
+      name: fullName,
+      email: emailTrimmed,
+      password: formData.password
+    }
+
     try{
       const res = await fetch ('http://localhost:5000/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
-        alert('Registration Successful!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Registration Successful!',
+          text: 'You can now log in.',
+        });
         navigate('/login');
       } else {
-        alert(data.error || 'Registration Failed');
+        Swal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: data.error || 'An error occurred.',
+        });
       }
     } catch (error) {
       alert('Error: ' + error.message);
@@ -62,11 +119,69 @@ const handleInputChange = (e) => {
     console.log("Login submitted:", formData);
     // After successful login, you might want to navigate somewhere
     // navigate("/dashboard");
+
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  useEffect(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
+        callback: handleGoogleResponse,
+      });
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignInDiv"),
+        { theme: "outline",  size: "large"}
+      );
+    }
+  }, []);
+
+  function handleGoogleResponse(response) {
+    // Decode JWT to get user info
+    const jwt = response.credential;
+    const base64Url = jwt.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join('')
+      );
+      const user = JSON.parse(jsonPayload);
+      const { email, name } = user;
+
+      sessionStorage.setItem('user', JSON.stringify({ name, email}));
+
+
+      //Send to backend for registration/login
+      fetch('http://localhost:5000/api/google-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: data.isNew ? 'Account Created!' : 'Welcome Back!',
+              text: "Logged in as " + email,
+            });
+            navigate('/home');
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Google Sign-In Failed',
+              text: data.error || 'An error occurred.',
+            });
+          }
+        });
+  }
   
 
   return (
@@ -92,7 +207,7 @@ const handleInputChange = (e) => {
             type="text"
             name="firstName"
             placeholder="First Name"
-            value={formData.name}
+            value={formData.firstName}
             onChange={handleInputChange}
             required
             className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
@@ -102,7 +217,7 @@ const handleInputChange = (e) => {
             type="text"
             name="lastName"
             placeholder="Last Name"
-            value={formData.name}
+            value={formData.lastName}
             onChange={handleInputChange}
             required
             className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
@@ -133,6 +248,11 @@ const handleInputChange = (e) => {
               required
               className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
             />
+            {passwordError && (
+              <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
+                {passwordError}
+              </div>
+            )}
             <span 
               onClick={togglePasswordVisibility}
               className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600"
@@ -204,6 +324,7 @@ const handleInputChange = (e) => {
           <button
             type="button"
             className="w-full border border-gray-300 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+            id="googleSignInDiv"
           >
             <FcGoogle size={20} />
             <span className="text-sm font-medium text-gray-700">Continue with Google</span>

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import Swal from 'sweetalert2';
+import { useEffect } from "react"; 
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -30,10 +32,37 @@ const handleForgotPassword = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login submitted:", formData);
+    const payload = {
+      email: formData.email,
+      password: formData.password
+    };
+    try {
+      const res = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        const user = data.user;
+        sessionStorage.setItem('user', JSON.stringify(user));
+        navigate('/home');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: data.error || 'Invalid Credentials',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message,
+      })
+    }
     // After successful login, you might want to navigate somewhere
     // navigate("/dashboard");
   };
@@ -41,6 +70,63 @@ const handleForgotPassword = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  useEffect(() => {
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
+        callback: handleGoogleResponse,
+      });
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignInDiv"),
+        { theme: "outline",  size: "large"}
+      );
+    }
+  }, []);
+
+  function handleGoogleResponse(response) {
+    // Decode JWT to get user info
+    const jwt = response.credential;
+    const base64Url = jwt.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join('')
+      );
+      const user = JSON.parse(jsonPayload);
+      const { email, name } = user;
+
+      sessionStorage.setItem('user', JSON.stringify({ name, email}));
+
+
+      //Send to backend for registration/login
+      fetch('http://localhost:5000/api/google-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: data.isNew ? 'Account Created!' : 'Welcome Back!',
+              text: "Logged in as " + email,
+            });
+            navigate('/home');
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Google Sign-In Failed',
+              text: data.error || 'An error occurred.',
+            });
+          }
+        });
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
@@ -112,6 +198,7 @@ const handleForgotPassword = () => {
           <button
             type="button"
             className="w-full border border-gray-300 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+            id="googleSignInDiv"
           >
             <FcGoogle size={20} />
             <span className="text-sm font-medium text-gray-700">Continue with Google</span>

@@ -1,8 +1,30 @@
 import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useNavigate } from "react-router-dom"; // Add this import
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
+  const navigate = useNavigate(); // Add navigation hook
+
+  // Add form handler
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Add your authentication logic here
+    // For now, we'll just redirect
+    navigate('/admin/dashboard'); // Redirects to dashboard
+  };
+
+  // Add input handler
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   return (
     <div className="flex flex-col lg:flex-row h-screen w-full font-sfpro bg-[#fffbe9] text-gray-900">
@@ -36,17 +58,23 @@ const AdminLogin = () => {
             </p>
           </div>
 
-          <form className="space-y-4 font-sfpro">
+          <form className="space-y-4 font-sfpro" onSubmit={handleSubmit}>
             <input
               type="text"
+              name="username"
               placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
               className="w-full px-4 py-3 rounded-full border bg-white border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#fbc562] font-sfpro"
               autoComplete="username"
             />
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
                 placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
                 className="w-full px-4 py-3 rounded-full border bg-white border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#fbc562] font-sfpro"
                 autoComplete="current-password"
               />

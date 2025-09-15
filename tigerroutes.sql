@@ -19,6 +19,20 @@
 CREATE DATABASE IF NOT EXISTS `tigerroutesdb` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
 USE `tigerroutesdb`;
 
+-- Dumping structure for table tigerroutesdb.tbl_staffaccounts
+CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
+  `staffAccount_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(128) NOT NULL,
+  `password` varchar(128) DEFAULT NULL,
+  `staffRole_ID` int(11) DEFAULT NULL,
+  `staffProfile_ID` int(11) DEFAULT NULL,
+  `status` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`staffAccount_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table tigerroutesdb.tbl_studentaccounts
 CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
   `studentAccount_ID` int(11) NOT NULL AUTO_INCREMENT,
@@ -27,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
   `password` varchar(128) NOT NULL DEFAULT '',
   `studentProfile_ID` int(11) DEFAULT NULL,
   PRIMARY KEY (`studentAccount_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 

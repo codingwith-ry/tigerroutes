@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const ForgotPassPage = () => {
   const navigate = useNavigate();
@@ -13,10 +14,38 @@ const ForgotPassPage = () => {
     navigate("/login");
   };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
-  console.log("Password reset requested for:", email);
-  navigate("/otp"); // Route to OTP page after email is submitted
+  sessionStorage.setItem('resetEmail', email);
+
+  try {
+    const res = await fetch("http://localhost:5000/api/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      Swal.fire({
+        icon: "info",
+        title: "Check your email",
+        text: "If your email is registered, you will receive a password reset link.",
+      });
+      navigate("/otp");
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: data.error || "Something went wrong,",
+      });
+    }
+  } catch ( error ) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message || "Something went wrong.",
+    });
+  }
 };
 
 

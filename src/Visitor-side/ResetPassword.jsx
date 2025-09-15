@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-
+import Swal from "sweetalert2";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -9,20 +9,39 @@ const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const email = sessionStorage.getItem('resetEmail');
 
   const handleBackToLogin = () => {
     navigate("/login");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    console.log("New password submitted:", password);
-    // Add your password reset logic here
+    const res = await fetch('http://localhost:5000/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Password Reset Succesful!',
+        text: 'You can now log in with your new password.',
+      });
+      navigate('/login');
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error || 'Password reset failed.',
+      });
+    }
   };
 
   return (
@@ -90,8 +109,7 @@ const ResetPasswordPage = () => {
           </div>
 
         <button
-          type="button"
-          onClick={() => navigate("/login")}
+          type="submit"
           className="w-full bg-yellow-400 text-white py-3 rounded-full font-semibold hover:bg-yellow-500 transition"
         >
           Continue

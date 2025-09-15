@@ -60,6 +60,73 @@ app.post('/api/login', (req, res) => {
     )
 })
 
+//reset password and mailers
+const nodemailer=require('nodemailer');
+const resetCodes = {};
+app.post('/api/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    //Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 10 * 60 * 1000;
+    resetCodes[email] = { code, expires };
+
+    //Nodemailer transporter
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'dominicxandy.adino.cics@ust.edu.ph', //change this email
+            pass: 'fdvp mbeg iold wmfe'//put password here
+        }
+    });
+
+    const mailOptions = {
+        from: 'dominicxandy.adino.cics@ust.edu.ph',
+        to: email,
+        subject: 'TigerRoutes Password Reset',
+        html: `
+        <p>Your password reset code is: <b>${code}</b></p>
+        <p>Or click <a href="http://localhost:3000/otp?email=${encodeURIComponent(email)}&code=${code}">here</a> to enter your code.</p>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to send email.' });
+    }
+});
+
+app.post('/api/verify-reset', (req, res) => {
+    const { email, code } = req.body;
+    const entry = resetCodes[email];
+    if (!entry) return res.status(400).json({ error: 'No reset code found.' });
+    if (Date.now() > entry.expires) return res.status(400).json({ error: 'Code expired.' });
+    if (entry.code !== code) return res.status(400).json({ error: 'Invalid Code.'});
+    delete resetCodes[email];
+    res.json({ success: true });
+})
+
+app.post('/api/reset-password', (req,res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and new password required'});
+    }
+    db.query(
+        'UPDATE tbl_studentaccounts SET password = ? WHERE email = ?',
+        [password, email],
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message});
+            if (results.affectedRows === 0 ) {
+                return res.status(404).json({ error: 'Account not found.'});
+            }
+            res.json({ success: true });
+        }
+    )
+})
+
 //token verification using Google API
 async function verify(token) {
     const ticket = await client.verifyIdToken({

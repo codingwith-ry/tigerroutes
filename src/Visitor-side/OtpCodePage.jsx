@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 const OtpCodePage = () => {
   const navigate = useNavigate();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const email = sessionStorage.getItem('resetEmail');
 
   const handleChange = (e, index) => {
     const value = e.target.value;
@@ -40,13 +41,39 @@ const handleResend = () => {
     navigate("/login");
   };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   const enteredCode = otp.join("");
 
 if (enteredCode.length === 6) {
-  console.log("Entered OTP:", enteredCode);
-  navigate("/reset-password");
+  try {
+    const res = await fetch('http://localhost:5000/api/verify-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code: enteredCode})
+    });
+    const data = await res.json();
+    if (data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'OTP Verified!',
+        text: "You may now reset your password.",
+      });
+      navigate("/reset-password");
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid OTP',
+        text: data.error || 'The OTP you entered is incorrect. Please try again.',
+      });
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message,
+    });
+  }
 } else {
   Swal.fire({
     icon: "warning",

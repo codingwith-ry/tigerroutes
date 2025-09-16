@@ -45,6 +45,17 @@ CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table tigerroutesdb.tbl_studentprofiles
+CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
+  `studentProfile_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `strand_ID` int(11) NOT NULL,
+  `gradeLevel` tinyint(4) DEFAULT NULL,
+  `studentGrades_ID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`studentProfile_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;

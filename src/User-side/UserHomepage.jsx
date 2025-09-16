@@ -7,6 +7,7 @@ import Footer from "../Visitor-side/Footer";
 
 const UserHomepage = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(sessionStorage.getItem('user'));
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -21,7 +22,9 @@ const UserHomepage = () => {
           {/* Welcome */}
           <div className="bg-white p-6 rounded-xl shadow">
             <h2 className="text-3xl font-black">
-              Welcome back, <span className="text-yellow-600">Juan!</span>
+              Welcome back, <span className="text-yellow-600">
+                {user?.name ? user.name.split(' ')[0] : "Lebron"}
+              </span>
             </h2>
             <p className="mt-2 text-gray-700">Let’s continue your career discovery journey.</p>
             <h3 className="mt-4 font-bold">Complete your career assessment</h3>

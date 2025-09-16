@@ -12,6 +12,8 @@ const UserNavbar = () => {
 
   const profileRef = useRef(null); // Ref for desktop dropdown
   const mobileProfileRef = useRef(null); // Ref for mobile dropdown
+  const user = JSON.parse(sessionStorage.getItem('user'));
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -72,9 +74,10 @@ const UserNavbar = () => {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
               <div className="w-9 h-9 rounded-full bg-gray-300 font-bold flex items-center justify-center">
-                JD
+                {user?.name
+                ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase(): 'xD'}
               </div>
-              <span className="text-sm font-bold">Juan Dela Cruz</span>
+              <span className="text-sm font-bold">{user?.name || "User"}</span>
               <FiChevronDown className="text-gray-600" />
             </button>
 

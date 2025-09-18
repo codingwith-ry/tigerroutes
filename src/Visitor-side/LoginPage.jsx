@@ -10,7 +10,8 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    id: ''
   });
 
   const handleBackToHome = () => {
@@ -36,7 +37,8 @@ const handleForgotPassword = () => {
     e.preventDefault();
     const payload = {
       email: formData.email,
-      password: formData.password
+      password: formData.password,
+      id: formData.id
     };
     try {
       const res = await fetch('http://localhost:5000/api/login', {
@@ -47,7 +49,12 @@ const handleForgotPassword = () => {
       const data = await res.json();
       if (data.success) {
         const user = data.user;
-        sessionStorage.setItem('user', JSON.stringify(user));
+        const userToStore = {
+          name: user.name,
+          email: user.email,
+          studentAccount_ID: user.studentAccount_ID,
+        }
+        sessionStorage.setItem('user', JSON.stringify(userToStore));
         navigate('/home');
       } else {
         Swal.fire({
@@ -100,7 +107,13 @@ const handleForgotPassword = () => {
       const user = JSON.parse(jsonPayload);
       const { email, name } = user;
 
-      sessionStorage.setItem('user', JSON.stringify({ name, email}));
+      // const userToStore = {
+      //   name: user.name,
+      //   email: user.email,
+      //   studentAccount_ID: user.studentAccount_ID,
+      // }
+
+      // sessionStorage.setItem('user', JSON.stringify(userToStore));
 
 
       //Send to backend for registration/login
@@ -112,6 +125,7 @@ const handleForgotPassword = () => {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
+            sessionStorage.setItem('user', JSON.stringify(data.user));
             Swal.fire({
               icon: 'success',
               title: data.isNew ? 'Account Created!' : 'Welcome Back!',

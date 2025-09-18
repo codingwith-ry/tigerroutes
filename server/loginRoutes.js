@@ -135,14 +135,22 @@ module.exports = (db) => {
             (err, results) => {
                 if (err) return res.status(500).json({ error: err.message });
                 if (results.length > 0) {
-                    return res.json({ success: true, isNew: false});
+                    return res.json({ success: true, isNew: false, user: results[0]});
                 } else {
                     db.query(
                         'INSERT INTO tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
                         [name, email, ''],
                         (err2, result2) => {
                             if (err2) return res.status(500).json({ error: err2.message });
-                            return res.json({ success: true, isNew: true});
+
+                            db.query(
+                                'SELECT * FROM tbl_studentaccounts WHERE email = ?',
+                                [email],
+                                (err3, newResults) => {
+                                    if (err3) return res.status(500).json({ error: err3.message });
+                                    return res.json({ success: true, isNew: true, user: newResults[0]});
+                                }
+                            )
                         }
                     );
                 }

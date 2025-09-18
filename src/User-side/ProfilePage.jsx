@@ -5,10 +5,42 @@ import { User } from "lucide-react";
 import { GraduationCap } from "lucide-react";
 import { BookOpenText } from "lucide-react"; // Import open-book icon
 import { Star } from "lucide-react"; // Import open-book icon
+import { useEffect } from "react"; 
+import { useState } from "react";
 
 
 
 const ProfilePage = () => {
+    const [strands, setStrands] = useState([]);
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        fetchStrands();
+        fetchUserData();
+    }, []);
+
+    function fetchStrands() {
+        fetch('http://localhost:5000/api/strands')
+        .then(res => res.json())
+        .then(data => setStrands(data));
+    }
+
+    function fetchUserData() {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (user && user.studentAccount_ID) {
+            fetch(`http://localhost:5000/api/student/${user.studentAccount_ID}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.name) {
+                    const nameParts = data.name.trim().split(' ');
+                    setFirstName(nameParts.slice(0, -1).join(' '));
+                    setLastName(nameParts.slice(-1)[0]);
+                }
+            })
+        }
+    }
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
@@ -40,6 +72,8 @@ const ProfilePage = () => {
                 <input
                 type="text"
                 placeholder="Enter first name"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
             </div>
@@ -48,6 +82,8 @@ const ProfilePage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                 <input
                 type="text"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
                 placeholder="Enter last name"
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
@@ -72,20 +108,19 @@ const ProfilePage = () => {
             </h3>
 
             <div>   
-                <label className="block text-sm font-medium text-gray-700 mb-1">Strand</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1" id="strand">Strand/Track</label>
                     <select defaultValue=""className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-400">
                     <option value="" disabled hidden>Select Strand</option>
-                    <option className="text-gray-700">Science, Technology, Engineering, and Mathematics (STEM)</option>
-                    <option className="text-gray-700">Accountancy and Business Management Strand (ABM)</option>
-                    <option className="text-gray-700">Humanities and Social Sciences Strand (HUMSS)</option>
-                    <option className="text-gray-700">General Academic Strand - Health-Allied (GAS)</option>
-                    <option className="text-gray-700">Music, Arts, and Design</option>
-                    <option className="text-gray-700">Physical Education and Sports Track</option>
+                    {strands.map(strand => (
+                        <option key={strand.strand_ID} className="text-gray-700" value={strand.strand_ID}>
+                            {strand.strandName}
+                        </option>
+                    ))}
                 </select>
             </div>
 
 
-            <div>
+            {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Track</label>
                 <select defaultValue=""className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-400">
                 <option value="" disabled hidden>Select Track</option>
@@ -93,7 +128,7 @@ const ProfilePage = () => {
                 <option className="text-gray-700">Engineering</option>
                 <option className="text-gray-700">Medical</option>
                 </select>
-            </div>
+            </div> */}
 
 
             <div>

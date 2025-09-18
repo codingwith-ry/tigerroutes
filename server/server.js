@@ -27,6 +27,9 @@ const db = mysql.createConnection({
 const loginRoutes = require('./loginRoutes.js')(db); 
 app.use('/api', loginRoutes);
 
+//importing all profile routes
+const profileRoutes = require('./profileRoutes.js')(db);
+app.use('/api', profileRoutes);
 
 app.listen(PORT, () => {
     console.log('Server is running on port', PORT)

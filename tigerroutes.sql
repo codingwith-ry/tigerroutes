@@ -33,6 +33,15 @@ CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table tigerroutesdb.tbl_strands
+CREATE TABLE IF NOT EXISTS `tbl_strands` (
+  `strand_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `strandName` varchar(64) NOT NULL,
+  PRIMARY KEY (`strand_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table tigerroutesdb.tbl_studentaccounts
 CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
   `studentAccount_ID` int(11) NOT NULL AUTO_INCREMENT,

@@ -1,0 +1,41 @@
+{
+    "choices": [
+        {"choice": "Disagree", "value": 1},
+        {"choice": "Slightly Disagree", "value": 2},
+        {"choice": "Neutral", "value": 3},
+        {"choice": "Slightly Agree", "value": 4},
+        {"choice": "Agree", "value": 5}
+    ],
+    "questions": [
+        {"question": "Tends to be quiet.", "domain": "Extraversion", "reversed": true},
+        {"question": "Is compassionate, has a soft heart.", "domain": "Agreeableness", "reversed": false},
+        {"question": "Tends to be disorganized.", "domain": "Conscientiousness", "reversed": true},
+        {"question": "Worries a lot.", "domain": "Negative Emotionality", "reversed": false},
+        {"question": "Is fascinated by art, music, or literature.", "domain": "Open-Mindedness", "reversed": false},
+        {"question": "Is dominant, acts as a leader.", "domain": "Extraversion", "reversed": false},
+        {"question": "Is sometimes rude to others.", "domain": "Agreeableness", "reversed": true},
+        {"question": "Has difficulty getting started on tasks.", "domain": "Conscientiousness", "reversed": true},
+        {"question": "Tends to feel depressed, blue.", "domain": "Negative Emotionality", "reversed": false},
+        {"question": "Has little interest in abstract ideas.", "domain": "Open-Mindedness", "reversed": true},
+        {"question": "Is full of energy.", "domain": "Extraversion", "reversed": false},
+        {"question": "Assumes the best about people.", "domain": "Agreeableness", "reversed": false},
+        {"question": "Is reliable, can always be counted on.", "domain": "Conscientiousness", "reversed": false},
+        {"question": "Is emotionally stable, not easily upset.", "domain": "Negative Emotionality", "reversed": true},
+        {"question": "Is original, comes up with new ideas.", "domain": "Open-Mindedness", "reversed": false},
+        {"question": "Is outgoing, sociable.", "domain": "Extraversion", "reversed": false},
+        {"question": "Can be cold and uncaring.", "domain": "Agreeableness", "reversed": true},
+        {"question": "Keeps things neat and tidy.", "domain": "Conscientiousness", "reversed": false},
+        {"question": "Is relaxed, handles stress well.", "domain": "Negative Emotionality", "reversed": true},
+        {"question": "Has few artistic interests.", "domain": "Open-Mindedness", "reversed": true},
+        {"question": "Prefers to have others take charge.", "domain": "Extraversion", "reversed": true},
+        {"question": "Is respectful, treats others with respect.", "domain": "Agreeableness", "reversed": false},
+        {"question": "Is persistent, works until the task is finished.", "domain": "Conscientiousness", "reversed": false},
+        {"question": "Feels secure, comfortable with self.", "domain": "Negative Emotionality", "reversed": false},
+        {"question": "Is complex, a deep thinker.", "domain": "Open-Mindedness", "reversed": false},
+        {"question": "Is less active than other people.", "domain": "Extraversion", "reversed": true},
+        {"question": "Tends to find fault with others.", "domain": "Agreeableness", "reversed": true},
+        {"question": "Can be somewhat careless.", "domain": "Conscientiousness", "reversed": true},
+        {"question": "Is temperamental, gets emotional easily.", "domain": "Negative Emotionality", "reversed": false},
+        {"question": "Has little creativity.", "domain": "Open-Mindedness", "reversed": true}
+    ]
+}

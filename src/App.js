@@ -21,7 +21,9 @@ import AdminLogin from "./Admin-side/AdminLogin";
 import AdminAssessment from "./Admin-side/AdminAssessment";
 import AdminCounselors from "./Admin-side/AdminCounselors";
 import AdminStudentProfile from './Admin-side/AdminStudentProfile';
-
+import PrivacyPolicy from './Visitor-side/PrivacyPolicy';
+import TermsOfService from './Visitor-side/TermsOfService';
+import CookiesModal from './Visitor-side/CookiesModal';
 
 function App() {
   return (
@@ -49,6 +51,9 @@ function App() {
           <Route path="/admin/assessment" element={<AdminAssessment />} />
           <Route path="/admin/counselors" element={<AdminCounselors />} />
           <Route path="/admin/assessment/:id" element={<AdminStudentProfile />} /> 
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/cookies-settings" element={<CookiesModal />} />
         </Routes>
       </div>
     </Router>

@@ -3,8 +3,10 @@ import React from "react";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import { FileCheck, Calendar, BarChart2, Users, Target, Star, Activity, Eye, TrendingUp } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
+import { useNavigate } from "react-router-dom";
 
 const AdminAssessment = () => {
+  const navigate = useNavigate();
   // Mock Data
   const stats = {
     totalStudents: 12,
@@ -234,8 +236,8 @@ const AdminAssessment = () => {
                       </td>
                       <td className="px-6 py-4">
                         <button
-                          className="flex items-center text-sm text-red-600 hover:text-red-800 font-medium"
-                          onClick={() => {/* Add your preview handler here */}}
+                          className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          onClick={() => navigate(`/admin/assessment/${student.id}`)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           Preview
@@ -283,7 +285,7 @@ const AdminAssessment = () => {
                       <Eye className="w-4 h-4 mr-2" />
                       <button
                         className="font-medium hover:text-blue-800"
-                        onClick={() => {/* Add preview handler here */}}
+                        onClick={() => navigate(`/admin/assessment/${student.id}`)}
                       >
                         Preview
                       </button>

@@ -4,7 +4,6 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 
 const AssessmentBigFive = () => {
-  // Navigation to Big Five Test Page
   const navigate = useNavigate();
 
   const handleBigFiveTest = () => {
@@ -47,7 +46,7 @@ const AssessmentBigFive = () => {
               patterns and make more intentional choices in their lives.
             </p>
             <div className="flex justify-center mt-5">
-              <button onclick={handleBigFiveTest} className="mt-4 bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base">
+              <button onClick={handleBigFiveTest} className="mt-4 bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base">
                 Take the Test
               </button>
             </div>

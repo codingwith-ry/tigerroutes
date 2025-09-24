@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { HiMenu, HiX } from "react-icons/hi";
 import { FiChevronDown } from "react-icons/fi";
+import Swal from "sweetalert2";
 
 const UserNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -98,9 +99,40 @@ const UserNavbar = () => {
                 <button
                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                   onClick={() => {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    navigate("/");
+                    Swal.fire({
+                      icon: "warning",
+                      title: "Logout",
+                      text: "Are you sure you want to log out?",
+                      showCancelButton: true,
+                      confirmButtonText: "Yes, Logout",
+                      cancelButtonText: "Cancel",
+                      customClass: {
+                        popup: "rounded-xl",
+                        confirmButton:
+                          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 mr-2", // margin-right
+                        cancelButton:
+                          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 ml-2", // margin-left
+                      },
+                      buttonsStyling: false,
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        navigate("/");
+                        Swal.fire({
+                          icon: "success",
+                          title: "Logged Out",
+                          text: "You have been successfully logged out.",
+                          confirmButtonText: "OK",
+                          customClass: {
+                            popup: "rounded-xl",
+                            confirmButton:
+                              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+                          },
+                          buttonsStyling: false,
+                        });
+                      }
+                    });
                   }}
                 >
                   Logout

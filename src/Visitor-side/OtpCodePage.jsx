@@ -45,49 +45,73 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   const enteredCode = otp.join("");
 
-if (enteredCode.length === 6) {
-  try {
-    const res = await fetch('http://localhost:5000/api/verify-reset', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code: enteredCode})
-    });
-    const data = await res.json();
-    if (data.success) {
-      Swal.fire({
-        icon: 'success',
-        title: 'OTP Verified!',
-        text: "You may now reset your password.",
+  if (enteredCode.length === 6) {
+    try {
+      const res = await fetch("http://localhost:5000/api/verify-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: enteredCode }),
       });
-      navigate("/reset-password");
-    } else {
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "OTP Verified!",
+          text: "You may now reset your password.",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton:
+              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          },
+          buttonsStyling: false,
+        });
+        navigate("/reset-password");
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid OTP",
+          text:
+            data.error ||
+            "The OTP you entered is incorrect. Please try again.",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton:
+              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          },
+          buttonsStyling: false,
+        });
+      }
+    } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Invalid OTP',
-        text: data.error || 'The OTP you entered is incorrect. Please try again.',
+        icon: "error",
+        title: "Error",
+        text: error.message,
+        confirmButtonText: "OK",
+        customClass: {
+          popup: "rounded-xl",
+          confirmButton:
+            "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+        },
+        buttonsStyling: false,
       });
     }
-  } catch (error) {
+  } else {
     Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: error.message,
+      icon: "warning",
+      title: "Incomplete OTP",
+      text: "Please enter the complete 6-digit OTP.",
+      confirmButtonText: "OK",
+      customClass: {
+        popup: "rounded-xl",
+        confirmButton:
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+      },
+      buttonsStyling: false,
     });
   }
-} else {
-  Swal.fire({
-    icon: "warning",
-    title: "Incomplete OTP",
-    text: "Please enter the complete 6-digit OTP.",
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "rounded-xl",
-      confirmButton: "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
-    },
-    buttonsStyling: false,
-  });
-}
-
 };
 
   return (

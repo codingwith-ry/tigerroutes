@@ -1,14 +1,15 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
+import Swal from "sweetalert2";
 
 const AssessmentRIASECPage = () => {
   const navigate = useNavigate();
 
   const handleBigFiveTest = () => {
-    navigate('/assessmentBigFive');
+    navigate("/assessmentBigFive");
   };
 
   const [activeStep] = useState("RIASEC");
@@ -22,7 +23,7 @@ const AssessmentRIASECPage = () => {
     A: 0, // Artistic
     S: 0, // Social
     E: 0, // Enterprising
-    C: 0  // Conventional
+    C: 0, // Conventional
   });
 
   const calculateScores = (newAnswers) => {
@@ -33,7 +34,6 @@ const AssessmentRIASECPage = () => {
       const answer = newAnswers[index];
       if (answer !== undefined) {
         const trait = question.trait;
-        // Only add to score if answer is 1 (Like)
         if (answer === 1) {
           traitScores[trait] += 1;
         }
@@ -41,77 +41,94 @@ const AssessmentRIASECPage = () => {
       }
     });
 
-    // Calculate percentage for each trait
-    Object.keys(traitScores).forEach(trait => {
+    Object.keys(traitScores).forEach((trait) => {
       if (traitCounts[trait] > 0) {
-        // Convert to percentage: (total likes / total questions) * 100
-        traitScores[trait] = Math.round((traitScores[trait] / traitCounts[trait]) * 100);
+        traitScores[trait] = Math.round(
+          (traitScores[trait] / traitCounts[trait]) * 100
+        );
       }
     });
 
     return traitScores;
   };
 
-  // Load questions from JSON
   useEffect(() => {
-    fetch('/RIASEC&BigFive/RIASEC.json')
-      .then(response => response.json())
-      .then(data => {
+    fetch("/RIASEC&BigFive/RIASEC.json")
+      .then((response) => response.json())
+      .then((data) => {
         setQuestions(data.questions);
         setChoices(data.choices);
       })
-      .catch(error => console.error('Error loading questions:', error));
+      .catch((error) => console.error("Error loading questions:", error));
   }, []);
 
   const handleAnswer = (value) => {
     const newAnswers = {
       ...answers,
-      [currentQuestionIndex]: value
+      [currentQuestionIndex]: value,
     };
     setAnswers(newAnswers);
-    
-    // Calculate and update scores
+
     const newScores = calculateScores(newAnswers);
     setScores(newScores);
-    
-    // Move to next question or finish test
+
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
+
   const handleTestComplete = (finalScores) => {
-  // Convert scores to the format needed for your scoring engine
     const riasecResults = {
-      Realistic: Math.round(finalScores.R),    // Convert to 0-100 scale
+      Realistic: Math.round(finalScores.R),
       Investigative: Math.round(finalScores.I),
       Artistic: Math.round(finalScores.A),
       Social: Math.round(finalScores.S),
       Enterprising: Math.round(finalScores.E),
-      Conventional: Math.round(finalScores.C)
+      Conventional: Math.round(finalScores.C),
     };
 
-    localStorage.setItem('riasecAnswers', JSON.stringify(answers));
+    localStorage.setItem("riasecAnswers", JSON.stringify(answers));
+    localStorage.setItem("riasecResults", JSON.stringify(riasecResults));
 
-    // Store results in localStorage
-    localStorage.setItem('riasecResults', JSON.stringify(riasecResults));
-  }
+    Swal.fire({
+      title: "Congratulations!",
+      text: "You are done answering the RIASEC section. Are you sure you want to proceed to Big Five?",
+      icon: "success",
+      showCancelButton: true,
+      cancelButtonText: "Cancel",
+      confirmButtonText: "Proceed to Big Five",
+      reverseButtons: true,
+      customClass: {
+        popup: "rounded-xl",
+        title: "text-green-500 font-bold",
+        confirmButton:
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2",
+        cancelButton:
+          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleBigFiveTest();
+      }
+    });
+  };
 
   const areAllQuestionsAnswered = () => {
     return Object.keys(answers).length === questions.length;
   };
-
 
   const getStepClass = (step) =>
     activeStep === step ? "text-[#FB9724]" : "text-gray-600";
@@ -146,21 +163,33 @@ const AssessmentRIASECPage = () => {
         <div className="bg-white rounded-lg shadow border border-black w-full max-w-3xl p-6">
           <div className="flex justify-between items-center text-sm mb-6">
             <div className="flex items-center space-x-4">
-              <div className={`flex items-center space-x-1 ${getStepClass("RIASEC")}`}>
+              <div
+                className={`flex items-center space-x-1 ${getStepClass(
+                  "RIASEC"
+                )}`}
+              >
                 <BookOpen size={16} color={getIconColor("RIASEC")} />
                 <span className="font-medium">RIASEC</span>
               </div>
 
               <span className="text-gray-400">{">"}</span>
 
-              <div className={`flex items-center space-x-1 ${getStepClass("Big Five")}`}>
+              <div
+                className={`flex items-center space-x-1 ${getStepClass(
+                  "Big Five"
+                )}`}
+              >
                 <Brain size={16} color={getIconColor("Big Five")} />
                 <span className="font-medium">Big Five</span>
               </div>
 
               <span className="text-gray-400">{">"}</span>
 
-              <div className={`flex items-center space-x-1 ${getStepClass("Results")}`}>
+              <div
+                className={`flex items-center space-x-1 ${getStepClass(
+                  "Results"
+                )}`}
+              >
                 <FileText size={16} color={getIconColor("Results")} />
                 <span className="font-medium">Results</span>
               </div>
@@ -180,9 +209,11 @@ const AssessmentRIASECPage = () => {
               <button
                 key={idx}
                 className={`w-60 text-black font-medium rounded-full shadow border-2 transition
-                  ${answers[currentQuestionIndex] === idx + 1 
-                    ? 'bg-[#FFD96A] border-[#FB9724]' 
-                    : 'bg-[#FFE49E] border-[#FB9724] hover:bg-[#FFD96A]'}`}
+                  ${
+                    answers[currentQuestionIndex] === idx + 1
+                      ? "bg-[#FFD96A] border-[#FB9724]"
+                      : "bg-[#FFE49E] border-[#FB9724] hover:bg-[#FFD96A]"
+                  }`}
                 onClick={() => handleAnswer(idx + 1)}
               >
                 {label}
@@ -191,8 +222,10 @@ const AssessmentRIASECPage = () => {
           </div>
 
           <div className="mt-10 flex justify-between">
-            <button 
-              className={`text-sm font-medium ${currentQuestionIndex === 0 ? 'invisible' : ''}`}
+            <button
+              className={`text-sm font-medium ${
+                currentQuestionIndex === 0 ? "invisible" : ""
+              }`}
               onClick={handleBack}
             >
               <span className="text-[#FBBF24]">{"<"}</span>{" "}
@@ -201,19 +234,23 @@ const AssessmentRIASECPage = () => {
               </span>
             </button>
 
-            {areAllQuestionsAnswered() && currentQuestionIndex === questions.length - 1 ? (
-              <button 
+            {areAllQuestionsAnswered() &&
+            currentQuestionIndex === questions.length - 1 ? (
+              <button
                 className="text-sm font-medium bg-[#FB9724] text-white px-6 py-2 rounded-full hover:bg-[#FBBF24] transition-colors"
-                onClick={() =>{ handleTestComplete(scores); handleBigFiveTest();}}
+                onClick={() => {
+                  handleTestComplete(scores);
+                }}
               >
-                Proceed to Big Five
+                Finish RIASEC
               </button>
             ) : (
-              <button 
+              <button
                 className={`text-sm font-medium ${
-                  !answers[currentQuestionIndex] || currentQuestionIndex === questions.length - 1 
-                    ? 'invisible' 
-                    : ''
+                  !answers[currentQuestionIndex] ||
+                  currentQuestionIndex === questions.length - 1
+                    ? "invisible"
+                    : ""
                 }`}
                 onClick={handleNext}
               >

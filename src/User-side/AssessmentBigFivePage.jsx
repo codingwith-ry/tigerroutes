@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
+import Swal from "sweetalert2";
+
 
 const AssessmentBigFivePage = () => {
   const navigate = useNavigate();
@@ -120,6 +122,33 @@ const AssessmentBigFivePage = () => {
   const getIconColor = (step) =>
     activeStep === step ? "#FB9724" : "currentColor";
 
+    const showCompletionAlert = (scores, handleTestComplete, handleResults) => {
+    Swal.fire({
+      title: "Congratulations!",
+      text: "You are done answering the Big Five section. Are you sure you want to view your results?",
+      icon: "success",
+      showCancelButton: true,
+      cancelButtonText: "Cancel",
+      confirmButtonText: "View Results",
+      reverseButtons: true,
+      customClass: {
+        popup: "rounded-xl",
+        title: "text-green-500 font-bold",
+        cancelButton:
+          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2",
+        confirmButton:
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleTestComplete(scores);
+        handleResults();
+      }
+    });
+  };
+
+
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
@@ -203,11 +232,11 @@ const AssessmentBigFivePage = () => {
             {areAllQuestionsAnswered() && currentQuestionIndex === questions.length - 1 ? (
               <button 
                 className="text-sm font-medium bg-[#FB9724] text-white px-6 py-2 rounded-full hover:bg-[#FBBF24] transition-colors"
-                onClick={() => { handleTestComplete(scores); handleResults(); }}
+                onClick={() => showCompletionAlert(scores, handleTestComplete, handleResults)}
               >
                 View Results
               </button>
-            ) : (
+              ) : (
               <button 
                 className={`text-sm font-medium ${
                   !answers[currentQuestionIndex] || currentQuestionIndex === questions.length - 1 

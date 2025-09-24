@@ -7,8 +7,7 @@ import { BookOpenText } from "lucide-react"; // Import open-book icon
 import { Star } from "lucide-react"; // Import open-book icon
 import { useEffect } from "react"; 
 import { useState } from "react";
-
-
+import Swal from "sweetalert2";
 
 const ProfilePage = () => {
     const [strands, setStrands] = useState([]);
@@ -207,11 +206,29 @@ const ProfilePage = () => {
             </button>
 
             <button
-                type="submit"
-                className="px-6 py-2 text-sm bg-[#FBBF24] text-white rounded-md shadow-md"
-            >
-                Save Profile
-            </button>
+  type="submit"
+  className="px-6 py-2 text-sm bg-[#FBBF24] text-white rounded-md shadow-md"
+  onClick={(e) => {
+    e.preventDefault(); // para hindi agad mag-refresh yung form (kung may form ka)
+    
+    // simulate success (dito pwede mo palitan depende sa response ng API mo)
+    Swal.fire({
+      icon: "success",
+      title: "Profile Saved",
+      text: "Your profile has been successfully updated.",
+      confirmButtonText: "OK",
+      customClass: {
+        popup: "rounded-xl",
+        confirmButton:
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+      },
+      buttonsStyling: false,
+    });
+  }}
+>
+  Save Profile
+</button>
+
             </div>
         </form>
     </main>

@@ -14,40 +14,80 @@ const ForgotPassPage = () => {
     navigate("/login");
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  sessionStorage.setItem('resetEmail', email);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:5000/api/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    const data = await res.json();
-    if (data.success) {
+    // ✅ Check kung empty ang email
+    if (!email.trim()) {
       Swal.fire({
-        icon: "info",
-        title: "Check your email",
-        text: "If your email is registered, you will receive a password reset link.",
+        icon: "warning",
+        title: "Missing Field",
+        text: "Please enter your email address before continuing.",
+        confirmButtonText: "OK",
+        customClass: {
+          popup: "rounded-xl",
+          confirmButton:
+            "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+        },
+        buttonsStyling: false,
       });
-      navigate("/otp");
-    } else {
+      return;
+    }
+
+    sessionStorage.setItem("resetEmail", email);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire({
+          icon: "info",
+          title: "Check Your Email",
+          text: "If your email is registered, you will receive a password reset link.",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton:
+              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          },
+          buttonsStyling: false,
+        });
+        navigate("/otp");
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.error || "Something went wrong.",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton:
+              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          },
+          buttonsStyling: false,
+        });
+      }
+    } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: data.error || "Something went wrong,",
+        text: error.message || "Something went wrong.",
+        confirmButtonText: "OK",
+        customClass: {
+          popup: "rounded-xl",
+          confirmButton:
+            "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+        },
+        buttonsStyling: false,
       });
     }
-  } catch ( error ) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: error.message || "Something went wrong.",
-    });
-  }
-};
-
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
@@ -61,8 +101,8 @@ const handleSubmit = async (e) => {
 
       <div className="w-full max-w-sm space-y-6">
         {/* Heading */}
-<div className="text-center text-sm mt-1">
-             <img
+        <div className="text-center text-sm mt-1">
+          <img
             src="/3D Elements/Forgot.png"
             alt="Forgot Icon"
             className="mx-auto w-60 h-60 mb-1"
@@ -77,14 +117,13 @@ const handleSubmit = async (e) => {
         </div>
 
         {/* Form */}
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <input
             type="email"
             name="email"
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
             className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
@@ -95,7 +134,7 @@ const handleSubmit = async (e) => {
             Continue
           </button>
 
-        <div className="text-center text-sm mt-10 p-4">
+          <div className="text-center text-sm mt-10 p-4">
             <span
               onClick={handleBackToLogin}
               className="text-yellow-400 font-semibold cursor-pointer hover:underline"
@@ -104,7 +143,6 @@ const handleSubmit = async (e) => {
             </span>
           </div>
         </form>
-
       </div>
     </div>
   );

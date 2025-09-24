@@ -1,8 +1,15 @@
-import React from "react";
+import React, { use } from "react";
+import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 
 const AssessmentBigFive = () => {
+  // Navigation to Big Five Test Page
+  const navigate = useNavigate();
+
+  const handleBigFiveTest = () => {
+    navigate('/assessment/test/BigFive');
+  }
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
@@ -40,7 +47,7 @@ const AssessmentBigFive = () => {
               patterns and make more intentional choices in their lives.
             </p>
             <div className="flex justify-center mt-5">
-              <button className="mt-4 bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base">
+              <button onclick={handleBigFiveTest} className="mt-4 bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base">
                 Take the Test
               </button>
             </div>

@@ -51,12 +51,12 @@ def calculate_alignment(student_data, program_data):
 
 # --- Example Student Input ---
 student_example = {
-    "riasec": {"Investigative": 85, "Realistic": 70, "Conventional": 60,
-               "Artistic": 50, "Social": 65, "Enterprising": 55},
+    "riasec": {"Investigative": 67, "Realistic": 57, "Conventional": 75,
+               "Artistic": 29, "Social": 71, "Enterprising": 57},
     "bigfive": {"Openness": 80, "Conscientiousness": 85, "Extraversion": 60,
                 "Agreeableness": 70, "Neuroticism": 30},
-    "grades": {"math_performance": 88, "science_performance": 82,
-               "english_performance": 85, "overall_gen_ave": 86},
+    "grades": {"math_performance": 89, "science_performance": 89,
+               "english_performance": 88, "overall_gen_ave": 94},
     "strand": "STEM"
 }
 

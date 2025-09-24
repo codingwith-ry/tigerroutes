@@ -13,7 +13,7 @@ import UserResults from "./User-side/UserResults";
 import UserResultsHistory from "./User-side/UserResultsHistory";
 import ProfilePage from "./User-side/ProfilePage";
 import NoResultPage from "./User-side/NoResultPage";
-import AssessmentPage from "./User-side/AssessmentPage";
+import AssessmentRIASECPage from "./User-side/AssessmentRIASECPage";
 import AssessmentBigFive from "./User-side/AssessmentBigFive";
 import AssessmentRIASEC from "./User-side/AssessmentRIASEC";
 import AdminDashboard from './Admin-side/AdminDashboard';
@@ -43,7 +43,7 @@ function App() {
           <Route path="/results-history" element={<UserResultsHistory />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/noresult" element={<NoResultPage />} />
-          <Route path="/assessment-test" element={<AssessmentPage />} />
+          <Route path="/assessment/test/RIASEC" element={<AssessmentRIASECPage />} />
           <Route path="/assessmentBigFive" element={<AssessmentBigFive />} />
           <Route path="/assessmentRIASEC" element={<AssessmentRIASEC />} />
           <Route path="/admin" element={<AdminLogin />} />

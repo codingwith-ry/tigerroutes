@@ -104,14 +104,15 @@ const UserNavbar = () => {
                       title: "Logout",
                       text: "Are you sure you want to log out?",
                       showCancelButton: true,
-                      confirmButtonText: "Yes, Logout",
+                      confirmButtonText: "Log Out",
                       cancelButtonText: "Cancel",
+                      reverseButtons: true,
                       customClass: {
                         popup: "rounded-xl",
                         confirmButton:
-                          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 mr-2", // margin-right
+                          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2", // margin-right
                         cancelButton:
-                          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 ml-2", // margin-left
+                          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2", // margin-left
                       },
                       buttonsStyling: false,
                     }).then((result) => {
@@ -127,7 +128,7 @@ const UserNavbar = () => {
                           customClass: {
                             popup: "rounded-xl",
                             confirmButton:
-                              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+                              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
                           },
                           buttonsStyling: false,
                         });

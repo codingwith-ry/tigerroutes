@@ -135,9 +135,9 @@ const AssessmentBigFivePage = () => {
         popup: "rounded-xl",
         title: "text-green-500 font-bold",
         cancelButton:
-          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2",
+          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2 w-32",
         confirmButton:
-          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2",
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2 w-32",
       },
       buttonsStyling: false,
     }).then((result) => {

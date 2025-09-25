@@ -220,7 +220,7 @@ const ProfilePage = () => {
       customClass: {
         popup: "rounded-xl",
         confirmButton:
-          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
       },
       buttonsStyling: false,
     });

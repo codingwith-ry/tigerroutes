@@ -108,7 +108,7 @@ const AssessmentRIASECPage = () => {
       icon: "success",
       showCancelButton: true,
       cancelButtonText: "Cancel",
-      confirmButtonText: "Proceed to Big Five",
+      confirmButtonText: "Proceed",
       reverseButtons: true,
       customClass: {
         popup: "rounded-xl",

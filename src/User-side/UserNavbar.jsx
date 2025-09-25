@@ -50,8 +50,7 @@ const UserNavbar = () => {
         <img
           src="/images/TIGER ROUTES.png"
           alt="TigerRoutes Logo"
-          className="h-8 cursor-pointer"
-          onClick={() => navigate("/")}
+          className="h-8"
         />
 
         {/* Desktop Menu */}

@@ -4,12 +4,19 @@ const cors = require('cors');
 const mysql = require('mysql2');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 app.use(express.json());
 const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// JWT and Cookie Parser
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 //Google Stuffs
 const { OAuth2Client } = require('google-auth-library');

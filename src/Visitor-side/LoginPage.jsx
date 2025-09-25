@@ -70,8 +70,6 @@ const handleForgotPassword = () => {
         text: error.message,
       })
     }
-    // After successful login, you might want to navigate somewhere
-    // navigate("/dashboard");
   };
 
   const togglePasswordVisibility = () => {

@@ -7,13 +7,18 @@ import { BookOpenText } from "lucide-react"; // Import open-book icon
 import { Star } from "lucide-react"; // Import open-book icon
 import { useEffect } from "react"; 
 import { useState } from "react";
-import Swal from "sweetalert2";
+
+
 
 const ProfilePage = () => {
     const [strands, setStrands] = useState([]);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
+
+    //Using session storage value for email as it doesn't need to be edited.
+    const storedUser = JSON.parse(sessionStorage.getItem('user'));
+    const storedEmail = storedUser?.email || '';
+    const [email] = useState(storedEmail);
 
     useEffect(() => {
         fetchStrands();
@@ -40,6 +45,42 @@ const ProfilePage = () => {
             })
         }
     }
+
+    // PUT request for the whole form.
+    function handleSaveProfile(e) {
+        e.preventDefault();
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user || !user.studentAccount_ID) return;
+
+        // Send PUT request to update student first and last name.
+        fetch(`http://localhost:5000/api/student/${user.studentAccount_ID}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                firstName,
+                lastName
+            })
+        })
+         .then(res => res.json())
+         .then(data => {
+            if(data.success) {
+                const user = JSON.parse(sessionStorage.getItem('user'));
+                user.name = firstName + ' ' + lastName;
+
+                const localUser = localStorage.getItem('user');
+                if (localUser) {
+                    const parsedLocalUser = JSON.parse(localUser);
+                    parsedLocalUser.name = firstName + ' ' + lastName;
+                    localStorage.setItem('user', JSON.stringify(parsedLocalUser));
+                }
+                sessionStorage.setItem('user', JSON.stringify(user));
+                alert('Profile updated successfully');
+            } else {
+                alert('Failed to update profile.');
+            }
+         });
+    }
+
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
@@ -56,7 +97,9 @@ const ProfilePage = () => {
         </div>
 
         {/* Form */}
-        <form className="bg-white border border-gray-200 rounded-b-lg shadow-md p-6 space-y-8">
+        <form className="bg-white border border-gray-200 rounded-b-lg shadow-md p-6 space-y-8"
+        onSubmit={handleSaveProfile}
+        >
         {/* Personal Information */}
         <div className="bg-[#FFF9F3] rounded-lg p-5 shadow-sm space-y-4">
             <h3 className="flex items-center space-x-4 text-lg font-semibold text-gray-700">
@@ -93,6 +136,10 @@ const ProfilePage = () => {
                 <input
                 type="email"
                 placeholder="Enter email address"
+                value={email}
+                readOnly
+                tabIndex={-1}
+                style={{ pointerEvents: "none", backgroundColor: "#f3f4f6", color: "#6b7280" }}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
             </div>  
@@ -206,29 +253,11 @@ const ProfilePage = () => {
             </button>
 
             <button
-  type="submit"
-  className="px-6 py-2 text-sm bg-[#FBBF24] text-white rounded-md shadow-md"
-  onClick={(e) => {
-    e.preventDefault(); // para hindi agad mag-refresh yung form (kung may form ka)
-    
-    // simulate success (dito pwede mo palitan depende sa response ng API mo)
-    Swal.fire({
-      icon: "success",
-      title: "Profile Saved",
-      text: "Your profile has been successfully updated.",
-      confirmButtonText: "OK",
-      customClass: {
-        popup: "rounded-xl",
-        confirmButton:
-          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
-      },
-      buttonsStyling: false,
-    });
-  }}
->
-  Save Profile
-</button>
-
+                type="submit"
+                className="px-6 py-2 text-sm bg-[#FBBF24] text-white rounded-md shadow-md"
+            >
+                Save Profile
+            </button>
             </div>
         </form>
     </main>

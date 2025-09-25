@@ -2,6 +2,8 @@
 const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const secret = 'greenP1ace'
 
 module.exports = (db) => {
     const router = express.Router();
@@ -37,6 +39,20 @@ module.exports = (db) => {
                 if (err) return res.status(500).json({ error: err.message});
                 if (results.length > 0) {
                     // User found
+                    const user = results[0];
+                    // Generate JWT token
+                    const token = jwt.sign(
+                        { id: user.studentAccount_ID, email: user.email },
+                        secret,
+                        { expiresIn: '1h' }
+                    );
+                    // set httpOnly cookie
+                    res.cookie('token', token, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production', // true for https, false for http
+                        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+                        maxAge: 7 * 24 * 60 * 60 * 1000
+                    });
                     res.json({ success: true, user: results[0]});
                 } else {
                     // No match
@@ -157,6 +173,8 @@ module.exports = (db) => {
             }
         );
     });
+
+
 
 
     //Admin Stuffs Here:

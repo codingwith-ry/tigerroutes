@@ -13,7 +13,10 @@ const UserNavbar = () => {
 
   const profileRef = useRef(null); // Ref for desktop dropdown
   const mobileProfileRef = useRef(null); // Ref for mobile dropdown
-  const user = JSON.parse(sessionStorage.getItem('user'));
+  const user = 
+    JSON.parse(localStorage.getItem('user')) ||
+    JSON.parse(sessionStorage.getItem('user')) ||
+    null;
 
 
   // Close dropdown when clicking outside
@@ -38,6 +41,27 @@ const UserNavbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+  if (!user) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Not Logged In',
+      text: 'You must be logged in to access this page. Redirecting to home...',
+      timer: 5000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      customClass: {
+        popup: 'rounded-xl',
+      },
+    });
+    setTimeout(() => {
+      navigate('/');
+    }, 5000);
+  }
+}, [user, navigate]);
+
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -51,7 +75,8 @@ const UserNavbar = () => {
           src="/images/TIGER ROUTES.png"
           alt="TigerRoutes Logo"
           className="h-8 cursor-pointer"
-          onClick={() => navigate("/")}
+          onClick={user ? undefined: () => navigate("/")}
+          style={user ? { cursor: "not-allowed" } : {}}
         />
 
         {/* Desktop Menu */}

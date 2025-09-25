@@ -74,9 +74,7 @@ const UserNavbar = () => {
         <img
           src="/images/TIGER ROUTES.png"
           alt="TigerRoutes Logo"
-          className="h-8 cursor-pointer"
-          onClick={user ? undefined: () => navigate("/")}
-          style={user ? { cursor: "not-allowed" } : {}}
+          className="h-8"
         />
 
         {/* Desktop Menu */}

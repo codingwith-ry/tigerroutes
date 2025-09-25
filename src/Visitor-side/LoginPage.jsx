@@ -13,6 +13,8 @@ const LoginPage = () => {
     password: '',
     id: ''
   });
+  
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleBackToHome = () => {
     navigate("/");
@@ -188,10 +190,24 @@ const handleForgotPassword = () => {
             </span>
           </div>
           
-          <div 
-            onClick={handleForgotPassword}
-            className="text-sm text-[#F6BE1E] font-semibold cursor-pointer hover:underline text-right">
-            Forgot Password?
+          {/* Add Remember Me checkbox */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-[#F6BE1E] border-gray-300 rounded focus:ring-[#F6BE1E]"
+              />
+              <span className="ml-2 text-sm font-semibold text-gray-600">Remember me</span>
+            </label>
+            
+            <div 
+              onClick={handleForgotPassword}
+              className="text-sm text-[#F6BE1E] font-semibold cursor-pointer hover:underline"
+            >
+              Forgot Password?
+            </div>
           </div>
 
           <button

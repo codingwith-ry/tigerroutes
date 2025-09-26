@@ -40,11 +40,13 @@ const handleForgotPassword = () => {
     const payload = {
       email: formData.email,
       password: formData.password,
-      id: formData.id
+      id: formData.id,
+      rememberMe: rememberMe
     };
     try {
       const res = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });

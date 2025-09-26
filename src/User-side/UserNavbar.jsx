@@ -14,9 +14,10 @@ const UserNavbar = () => {
   const profileRef = useRef(null); // Ref for desktop dropdown
   const mobileProfileRef = useRef(null); // Ref for mobile dropdown
   const user = 
-    JSON.parse(localStorage.getItem('user')) ||
     JSON.parse(sessionStorage.getItem('user')) ||
     null;
+
+  const [loadingUser, setLoadingUser] = useState(true);
 
 
   // Close dropdown when clicking outside
@@ -43,24 +44,59 @@ const UserNavbar = () => {
 
   useEffect(() => {
   if (!user) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Not Logged In',
-      text: 'You must be logged in to access this page. Redirecting to home...',
-      timer: 5000,
-      timerProgressBar: true,
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: {
-        popup: 'rounded-xl',
-      },
+    setLoadingUser(true);
+    fetch('http://localhost:5000/api/me', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.user) {
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+        setLoadingUser(false);
+      } else {
+        setLoadingUser(false);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Not Logged In',
+          text: 'You must be logged in to access this page. Redirecting to home...',
+          timer: 5000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          customClass: { popup: 'rounded-xl' },
+        });
+        setTimeout(() => {
+          navigate('/');
+        }, 5000);
+      }
+    })
+    .catch(() => {
+      setLoadingUser(false);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not Logged In',
+        text: 'You must be logged in to access this page. Redirecting to home...',
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: { popup: 'rounded-xl' },
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 5000);
     });
-    setTimeout(() => {
-      navigate('/');
-    }, 5000);
+  } else {
+    setLoadingUser(false);
   }
 }, [user, navigate]);
+
+if (loadingUser) {
+  return <div>Loading...</div>;
+}
 
   const isActive = (path) => location.pathname === path;
 
@@ -140,21 +176,27 @@ const UserNavbar = () => {
                       buttonsStyling: false,
                     }).then((result) => {
                       if (result.isConfirmed) {
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        navigate("/");
-                        Swal.fire({
-                          icon: "success",
-                          title: "Logged Out",
-                          text: "You have been successfully logged out.",
-                          confirmButtonText: "OK",
-                          customClass: {
-                            popup: "rounded-xl",
-                            confirmButton:
-                              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
-                          },
-                          buttonsStyling: false,
-                        });
+                        // Clear cookies
+                        fetch('http://localhost:5000/api/logout', {
+                          method: 'POST',
+                          credentials: 'include'
+                        }).finally(() => {
+                          localStorage.clear();
+                          sessionStorage.clear();
+                          navigate("/");
+                          Swal.fire({
+                            icon: "success",
+                            title: "Logged Out",
+                            text: "You have been successfully logged out.",
+                            confirmButtonText: "OK",
+                            customClass: {
+                              popup: "rounded-xl",
+                              confirmButton:
+                                "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
+                            },
+                            buttonsStyling: false,
+                          });
+                        })
                       }
                     });
                   }}

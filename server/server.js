@@ -11,8 +11,8 @@ app.use(cors({
 app.use(express.json());
 const PORT = 5000;
 
-app.use(cors());
-app.use(express.json());
+// app.use(cors());
+// app.use(express.json());
 
 // JWT and Cookie Parser
 const cookieParser = require('cookie-parser');

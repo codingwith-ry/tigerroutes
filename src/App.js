@@ -58,6 +58,8 @@ function App() {
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookies-settings" element={<CookiesModal />} />
           <Route path="/admin/preview" element={<AdminPreviewCounselor />} />
+          <Route path="/admin/preview/:counselorName" element={<AdminPreviewCounselor />} />
+
        
         </Routes>
       </div>

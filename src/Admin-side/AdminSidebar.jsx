@@ -23,9 +23,7 @@ const AdminSidebar = () => {
       path: "/admin/counselors",
       label: "Manage Counselors",
       icon: <Users className="mr-3 w-5 h-5" />,
-      children: [
-      "/admin/preview", // child routes
-    ],
+      children: ["/admin/preview"], // any preview route
     },
   ];
 
@@ -52,6 +50,15 @@ const AdminSidebar = () => {
         navigate("/");
       }
     });
+  };
+
+  const isLinkActive = (link) => {
+    if (location.pathname === link.path) return true;
+    // check if current route starts with any child route
+    if (link.children) {
+      return link.children.some((child) => location.pathname.startsWith(child));
+    }
+    return false;
   };
 
   return (
@@ -89,9 +96,7 @@ const AdminSidebar = () => {
         {/* Navigation */}
         <nav className="flex flex-col flex-grow px-4 gap-2 mt-4">
           {links.map((link) => {
-            const isActive =
-              location.pathname === link.path ||
-              (link.children && link.children.includes(location.pathname));
+            const active = isLinkActive(link);
 
             return (
               <button
@@ -101,7 +106,7 @@ const AdminSidebar = () => {
                   setIsOpen(false);
                 }}
                 className={`flex items-center w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? "bg-yellow-100 text-yellow-600" : "hover:bg-gray-100"
+                  active ? "bg-yellow-100 text-yellow-600" : "hover:bg-gray-100"
                 }`}
               >
                 {link.icon} {link.label}

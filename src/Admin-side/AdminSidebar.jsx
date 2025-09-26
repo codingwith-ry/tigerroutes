@@ -23,6 +23,9 @@ const AdminSidebar = () => {
       path: "/admin/counselors",
       label: "Manage Counselors",
       icon: <Users className="mr-3 w-5 h-5" />,
+      children: [
+      "/admin/preview", // child routes
+    ],
     },
   ];
 
@@ -85,22 +88,26 @@ const AdminSidebar = () => {
 
         {/* Navigation */}
         <nav className="flex flex-col flex-grow px-4 gap-2 mt-4">
-          {links.map((link) => (
-            <button
-              key={link.path}
-              onClick={() => {
-                navigate(link.path);
-                setIsOpen(false);
-              }}
-              className={`flex items-center w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === link.path
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              {link.icon} {link.label}
-            </button>
-          ))}
+          {links.map((link) => {
+            const isActive =
+              location.pathname === link.path ||
+              (link.children && link.children.includes(location.pathname));
+
+            return (
+              <button
+                key={link.path}
+                onClick={() => {
+                  navigate(link.path);
+                  setIsOpen(false);
+                }}
+                className={`flex items-center w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive ? "bg-yellow-100 text-yellow-600" : "hover:bg-gray-100"
+                }`}
+              >
+                {link.icon} {link.label}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Logout button */}

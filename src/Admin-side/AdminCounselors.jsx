@@ -34,14 +34,16 @@ const AdminCounselors = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b">
-          <h1 className="text-2xl sm:text-4xl font-semibold">Manage Counselors</h1>
-          <div className="flex items-center space-x-3 mt-2 sm:mt-0">
-            <span className="text-sm text-gray-600">Welcome back, Admin User!</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center font-semibold">
-              AU
-            </div>
-          </div>
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b"> 
+          <div> 
+            <h1 className="text-2xl sm:text-4xl font-semibold">Manage Counselors</h1> 
+            <p className="text-sm text-gray-500">Control access. Assign roles. Track activity.</p> 
+          </div> 
+          
+          <div className="flex items-center space-x-3 mt-2 sm:mt-0"> 
+            <span className="text-sm text-gray-600">Welcome back, Admin User!</span> 
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center font-semibold"> AU </div>
+          </div> 
         </header>
 
         {/* Content */}

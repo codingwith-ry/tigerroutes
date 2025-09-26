@@ -52,21 +52,20 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    // Confirmation before changing password
-    const confirmChange = await Swal.fire({
+    await Swal.fire({
       icon: "success",
-  title: "Password Changed!",
-  text: "You have successfully changed your password. Redirecting to landing page...",
-  timer: 3000,
-  timerProgressBar: true,
-  showConfirmButton: false,
-  customClass: {
-    popup: "rounded-xl",
-    title: "text-green-600",
-  },
-}).then(() => {
-  navigate("/"); // diretso landing page after 3s
-});
+      title: "Password Changed!",
+      text: "You have successfully changed your password. Redirecting to landing page...",
+      timer: 3000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      customClass: {
+        popup: "rounded-xl",
+        title: "text-green-600",
+      },
+    }).then(() => {
+      navigate("/"); // diretso landing page after 3s
+    });
 
     // Submit new password
     const res = await fetch("http://localhost:5000/api/reset-password", {

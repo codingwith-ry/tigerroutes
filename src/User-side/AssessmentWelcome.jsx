@@ -3,9 +3,17 @@ import UserNavbar from "./UserNavbar";
 import { UserCircle2, SquarePen, BookOpen, Brain, FileText } from "lucide-react";
 import Footer from "../Visitor-side/Footer";
 import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from 'uuid';
 
 const AssessmentPage = () => {
   const navigate = useNavigate();
+
+  const startAssessment = () => {
+    const assessmentId = uuidv4(); // Generate unique ID
+    localStorage.setItem('currentAssessmentId', assessmentId); // Store for reference
+    window.scrollTo(0, 0);
+    navigate(`/assessmentRIASEC/${assessmentId}`);
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -172,7 +180,7 @@ const AssessmentPage = () => {
               <button
               onClick={() => {
                 window.scrollTo(0, 0); // scroll to top
-                navigate("../AssessmentRIASEC");
+                startAssessment(); // start assessment
               }}
               className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
             >

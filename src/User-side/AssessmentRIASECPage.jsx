@@ -5,10 +5,19 @@ import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 
 const AssessmentRIASECPage = () => {
+  useEffect(() => {
+    document.title = "Assessment | RIASEC"; // text shown on the browser tab
+
+    // optional: cleanup or restore old title
+    return () => {
+      document.title = "Default Title";
+    };
+  }, []);
+
   const navigate = useNavigate();
 
   const handleBigFiveTest = () => {
-    navigate('/assessmentBigFive');
+    navigate('/assessmentBigFive/' + localStorage.getItem('currentAssessmentId'));
   };
 
   const [activeStep] = useState("RIASEC");
@@ -136,10 +145,10 @@ const AssessmentRIASECPage = () => {
             Test Instructions
           </h2>
           <p className="text-sm" style={{ color: "#4285F4" }}>
-            The test consists of 48 tasks that you will have to rate by how much
-            you would enjoy performing each on a scale of (1) dislike (2)
-            slightly dislike (3) neither (4) slightly enjoy (5) enjoy. The test
-            will take most five to ten minutes to complete.
+            The test consists of questions about different activities that you will 
+            rate as either "Like" or "Dislike" based on your preferences. Your honest 
+            responses will help identify your career interests. The test will take 
+            approximately five to ten minutes to complete.
           </p>
         </div>
 

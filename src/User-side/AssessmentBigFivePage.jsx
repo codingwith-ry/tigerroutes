@@ -5,10 +5,16 @@ import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 
 const AssessmentBigFivePage = () => {
+    useEffect(() => {
+        document.title = "Assessment | Big Five";
+        return () => {
+        document.title = "Default Title";
+        };
+    }, []);
   const navigate = useNavigate();
 
   const handleResults = () => {
-    navigate('/assessment-results');
+    navigate('/assessment/results/' + localStorage.getItem('currentAssessmentId'));
   };
 
   const [activeStep] = useState("Big Five");
@@ -17,9 +23,9 @@ const AssessmentBigFivePage = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({
-    Extraversion: 0,
-    Agreeableness: 0,
-    Conscientiousness: 0,
+    "Extraversion": 0,
+    "Agreeableness": 0,
+    "Conscientiousness": 0,
     "Negative Emotionality": 0,
     "Open-Mindedness": 0
   });

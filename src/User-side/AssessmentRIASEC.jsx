@@ -1,13 +1,23 @@
 import React from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 
 const AssessmentRIASEC = () => {
+
+  useEffect(() => {
+      document.title = "Assessment | RIASEC"; // text shown on the browser tab
+      // optional: cleanup or restore old title
+      return () => {
+      document.title = "Default Title";
+    };
+  }, []);
+
   const navigate = useNavigate();
 
   const handleStartTest = () => {
-    navigate('/assessment/test/RIASEC');
+    navigate('/assessment/test/RIASEC/' + localStorage.getItem('currentAssessmentId'));
   };
 
   return (

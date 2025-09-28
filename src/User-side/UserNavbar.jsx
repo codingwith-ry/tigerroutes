@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { HiMenu, HiX } from "react-icons/hi";
 import { FiChevronDown } from "react-icons/fi";
+import Swal from "sweetalert2";
 
 const UserNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -12,7 +13,11 @@ const UserNavbar = () => {
 
   const profileRef = useRef(null); // Ref for desktop dropdown
   const mobileProfileRef = useRef(null); // Ref for mobile dropdown
-  const user = JSON.parse(sessionStorage.getItem('user'));
+  const user = 
+    JSON.parse(sessionStorage.getItem('user')) ||
+    null;
+
+  const [loadingUser, setLoadingUser] = useState(true);
 
 
   // Close dropdown when clicking outside
@@ -37,6 +42,62 @@ const UserNavbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+  if (!user) {
+    setLoadingUser(true);
+    fetch('http://localhost:5000/api/me', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.user) {
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+        setLoadingUser(false);
+      } else {
+        setLoadingUser(false);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Not Logged In',
+          text: 'You must be logged in to access this page. Redirecting to home...',
+          timer: 5000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          customClass: { popup: 'rounded-xl' },
+        });
+        setTimeout(() => {
+          navigate('/');
+        }, 5000);
+      }
+    })
+    .catch(() => {
+      setLoadingUser(false);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Not Logged In',
+        text: 'You must be logged in to access this page. Redirecting to home...',
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: { popup: 'rounded-xl' },
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 5000);
+    });
+  } else {
+    setLoadingUser(false);
+  }
+}, [user, navigate]);
+
+if (loadingUser) {
+  return <div>Loading...</div>;
+}
+
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -49,8 +110,7 @@ const UserNavbar = () => {
         <img
           src="/images/TIGER ROUTES.png"
           alt="TigerRoutes Logo"
-          className="h-8 cursor-pointer"
-          onClick={() => navigate("/")}
+          className="h-8"
         />
 
         {/* Desktop Menu */}
@@ -98,9 +158,47 @@ const UserNavbar = () => {
                 <button
                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                   onClick={() => {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    navigate("/");
+                    Swal.fire({
+                      icon: "warning",
+                      title: "Logout",
+                      text: "Are you sure you want to log out?",
+                      showCancelButton: true,
+                      confirmButtonText: "Log Out",
+                      cancelButtonText: "Cancel",
+                      reverseButtons: true,
+                      customClass: {
+                        popup: "rounded-xl",
+                        confirmButton:
+                          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2", // margin-right
+                        cancelButton:
+                          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2", // margin-left
+                      },
+                      buttonsStyling: false,
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        // Clear cookies
+                        fetch('http://localhost:5000/api/logout', {
+                          method: 'POST',
+                          credentials: 'include'
+                        }).finally(() => {
+                          localStorage.clear();
+                          sessionStorage.clear();
+                          navigate("/");
+                          Swal.fire({
+                            icon: "success",
+                            title: "Logged Out",
+                            text: "You have been successfully logged out.",
+                            confirmButtonText: "OK",
+                            customClass: {
+                              popup: "rounded-xl",
+                              confirmButton:
+                                "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
+                            },
+                            buttonsStyling: false,
+                          });
+                        })
+                      }
+                    });
                   }}
                 >
                   Logout

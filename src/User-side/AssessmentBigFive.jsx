@@ -12,7 +12,6 @@ const AssessmentBigFive = () => {
           document.title = "Default Title";
           };
       }, []);
-  // Navigation to Big Five Test Page
   const navigate = useNavigate();
 
   const handleBigFiveTest = () => {

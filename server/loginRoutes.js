@@ -2,6 +2,8 @@
 const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const secret = 'greenP1ace'
 
 module.exports = (db) => {
     const router = express.Router();
@@ -36,8 +38,24 @@ module.exports = (db) => {
             (err, results) => {
                 if (err) return res.status(500).json({ error: err.message});
                 if (results.length > 0) {
-                    // User found
-                    res.json({ success: true, user: results[0]});
+                    const user = results[0];
+                    const token = jwt.sign(
+                        { id: user.studentAccount_ID, email: user.email },
+                        secret,
+                        { expiresIn: '1h' }
+                    );
+
+                    const cookieMaxAge = req.body.rememberMe
+                        ? 30 * 24 * 60 * 60 * 1000
+                        : 7 * 24 * 60 * 60 * 1000;
+
+                        res.cookie('tigerToken', token, {
+                            httpOnly: true,
+                            secure: false,      // false because you're on localhost without HTTPS
+                            sameSite: 'lax',    // lax is safe for dev
+                            maxAge: cookieMaxAge
+                        });
+                    res.json({ success: true, user: results[0] });
                 } else {
                     // No match
                     res.json({ success: false, error: 'Invalid email or password' });
@@ -157,6 +175,41 @@ module.exports = (db) => {
             }
         );
     });
+
+    router.get('/me', (req, res) => {
+        const token = req.cookies.tigerToken;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        try {
+            const decoded = jwt.verify(token, secret);
+            db.query(
+                'SELECT * FROM tbl_studentaccounts WHERE studentAccount_ID = ?',
+                [decoded.id],
+                (err, results) => {
+                    if (err) return res.status(500).json({ error: err.message });
+                    if (results.length > 0) {
+                        res.json({ user: results[0] });
+                    } else {
+                        res.status(404).json({ error: 'User not found' });
+                    }
+                }
+            )
+        } catch (err) {
+            res.status(401).json({ error: 'Invalid token' });
+        }
+    })
+
+
+
+    router.post('/logout', (req, res) => {
+        res.clearCookie('tigerToken', {
+            httpOnly: true,
+            secure: false, //match cookie settings
+            sameSite: 'lax'
+        });
+        res.json({ success: true });
+    })
+
+
 
 
     //Admin Stuffs Here:

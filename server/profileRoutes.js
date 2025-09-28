@@ -24,5 +24,21 @@ module.exports = (db) => {
             }
         })
     })
+
+    router.put('/student/:id', (req, res) => {
+        const { id } = req.params;
+        const { firstName, lastName } = req.body;
+        const fullName = firstName + ' ' + lastName;
+        db.query(
+            'UPDATE tbl_studentaccounts SET name = ? WHERE studentAccount_ID = ?',
+            [fullName, id],
+            (err, result) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
+            }
+        );
+    });
+
+    
     return router;
 }

@@ -26,6 +26,7 @@ import AdminStudentProfile from './Admin-side/AdminStudentProfile';
 import PrivacyPolicy from './Visitor-side/PrivacyPolicy';
 import TermsOfService from './Visitor-side/TermsOfService';
 import CookiesModal from './Visitor-side/CookiesModal';
+import AdminPreviewCounselor from "./Admin-side/AdminPreviewCounselor";
 
 function App() {
   return (
@@ -58,6 +59,10 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookies-settings" element={<CookiesModal />} />
+          <Route path="/admin/preview" element={<AdminPreviewCounselor />} />
+          <Route path="/admin/preview/:counselorName" element={<AdminPreviewCounselor />} />
+
+       
         </Routes>
       </div>
     </Router>

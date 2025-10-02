@@ -65,6 +65,94 @@ CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table tigerroutesdb.tbl_bigfiveresults
+CREATE TABLE IF NOT EXISTS `tbl_bigfiveresults` (
+  `bigFiveResult_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `openness` decimal(5,2) NOT NULL,
+  `conscientiousness` decimal(5,2) NOT NULL,
+  `artistic` decimal(5,2) NOT NULL,
+  `extraversion` decimal(5,2) NOT NULL,
+  `agreeableness` decimal(5,2) NOT NULL,
+  `neuroticism` decimal(5,2) NOT NULL,
+  PRIMARY KEY (`bigFiveResult_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_bigfiveresults: ~0 rows (approximately)
+
+-- Dumping structure for table tigerroutesdb.tbl_counselornotes
+CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
+  `counselorNote_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `studentAssessment_ID` int(11) NOT NULL,
+  `staffAccount_ID` int(11) NOT NULL,
+  `counselorNotes` text DEFAULT NULL,
+  PRIMARY KEY (`counselorNote_ID`),
+  KEY `studentAssessment_ID` (`studentAssessment_ID`),
+  KEY `staffAccount_ID` (`staffAccount_ID`),
+  CONSTRAINT `tbl_counselornotes_ibfk_1` FOREIGN KEY (`studentAssessment_ID`) REFERENCES `tbl_studentassessments` (`studentAssessment_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `tbl_counselornotes_ibfk_2` FOREIGN KEY (`staffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_counselornotes: ~0 rows (approximately)
+
+-- Dumping structure for table tigerroutesdb.tbl_programs
+CREATE TABLE IF NOT EXISTS `tbl_programs` (
+  `program_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `programName` varchar(255) NOT NULL,
+  `programDescription` text DEFAULT NULL,
+  `careerPaths` text DEFAULT NULL,
+  `programUSTlink` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`program_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_programs: ~0 rows (approximately)
+
+-- Dumping structure for table tigerroutesdb.tbl_recommendations
+CREATE TABLE IF NOT EXISTS `tbl_recommendations` (
+  `recommendation_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `studentAssessment_ID` int(11) NOT NULL,
+  `program_ID` int(11) NOT NULL,
+  `alignmentScore` decimal(5,2) NOT NULL,
+  PRIMARY KEY (`recommendation_ID`),
+  KEY `studentAssessment_ID` (`studentAssessment_ID`),
+  KEY `program_ID` (`program_ID`),
+  CONSTRAINT `tbl_recommendations_ibfk_1` FOREIGN KEY (`studentAssessment_ID`) REFERENCES `tbl_studentassessments` (`studentAssessment_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `tbl_recommendations_ibfk_2` FOREIGN KEY (`program_ID`) REFERENCES `tbl_programs` (`program_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_recommendations: ~0 rows (approximately)
+
+-- Dumping structure for table tigerroutesdb.tbl_riasecresults
+CREATE TABLE IF NOT EXISTS `tbl_riasecresults` (
+  `riasecResult_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `realistic` decimal(5,2) NOT NULL,
+  `investigative` decimal(5,2) NOT NULL,
+  `artistic` decimal(5,2) NOT NULL,
+  `social` decimal(5,2) NOT NULL,
+  `enterprising` decimal(5,2) NOT NULL,
+  `conventional` decimal(5,2) NOT NULL,
+  PRIMARY KEY (`riasecResult_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_riasecresults: ~0 rows (approximately)
+
+-- Dumping structure for table tigerroutesdb.tbl_studentassessments
+CREATE TABLE IF NOT EXISTS `tbl_studentassessments` (
+  `studentAssessment_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `studentAccount_ID` int(11) NOT NULL,
+  `riasecResult_ID` int(11) NOT NULL,
+  `bigFiveResult_ID` int(11) NOT NULL,
+  `rating` decimal(3,2) DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`studentAssessment_ID`),
+  KEY `studentAccount_ID` (`studentAccount_ID`),
+  KEY `riasecResult_ID` (`riasecResult_ID`),
+  KEY `bigFiveResult_ID` (`bigFiveResult_ID`),
+  CONSTRAINT `tbl_studentassessments_ibfk_1` FOREIGN KEY (`studentAccount_ID`) REFERENCES `tbl_studentaccounts` (`studentAccount_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `tbl_studentassessments_ibfk_2` FOREIGN KEY (`riasecResult_ID`) REFERENCES `tbl_riasecresults` (`riasecResult_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `tbl_studentassessments_ibfk_3` FOREIGN KEY (`bigFiveResult_ID`) REFERENCES `tbl_bigfiveresults` (`bigFiveResult_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;

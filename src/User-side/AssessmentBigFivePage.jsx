@@ -16,7 +16,31 @@ const AssessmentBigFivePage = () => {
   const navigate = useNavigate();
 
   const handleResults = () => {
-    navigate('/assessment/results/' + localStorage.getItem('currentAssessmentId'));
+    fetch('/api/assessment/complete/' + localStorage.getItem('currentAssessmentId'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        riasecResults: JSON.parse(localStorage.getItem('riasecResults')),
+        bigFiveResults: JSON.parse(localStorage.getItem('bigFiveResults'))
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        navigate('/assessment/results/' + localStorage.getItem('currentAssessmentId'));
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'There was an error saving your results. Please try again.'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
   };
 
   const [activeStep] = useState("Big Five");

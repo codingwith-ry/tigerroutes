@@ -34,9 +34,9 @@ const AssessmentBigFivePage = () => {
 
   const calculateScores = (newAnswers) => {
     const domainScores = {
-      Extraversion: 0,
-      Agreeableness: 0,
-      Conscientiousness: 0,
+      "Extraversion": 0,
+      "Agreeableness": 0,
+      "Conscientiousness": 0,
       "Negative Emotionality": 0,
       "Open-Mindedness": 0
     };

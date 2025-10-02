@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 const AssessmentRIASECPage = () => {
   useEffect(() => {
     document.title = "Assessment | RIASEC"; // text shown on the browser tab
+    // set current assessment ID in local storage
 
     // optional: cleanup or restore old title
     return () => {
@@ -247,9 +248,7 @@ const AssessmentRIASECPage = () => {
             currentQuestionIndex === questions.length - 1 ? (
               <button
                 className="text-sm font-medium bg-[#FB9724] text-white px-6 py-2 rounded-full hover:bg-[#FBBF24] transition-colors"
-                onClick={() => {
-                  handleTestComplete(scores);
-                }}
+                onClick={() => handleTestComplete(scores)}
               >
                 Finish RIASEC
               </button>

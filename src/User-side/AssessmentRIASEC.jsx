@@ -8,7 +8,6 @@ const AssessmentRIASEC = () => {
 
   useEffect(() => {
       document.title = "Assessment | RIASEC"; // text shown on the browser tab
-      // optional: cleanup or restore old title
       return () => {
       document.title = "Default Title";
     };

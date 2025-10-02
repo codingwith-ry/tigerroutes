@@ -38,6 +38,10 @@ app.use('/api', loginRoutes);
 const profileRoutes = require('./profileRoutes.js')(db);
 app.use('/api', profileRoutes);
 
+//importing all assessment routes
+const assessmentRoutes = require('./assessmentRoutes.js')(db);
+app.use('/api', assessmentRoutes);
+
 app.listen(PORT, () => {
     console.log('Server is running on port', PORT)
 })

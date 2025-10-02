@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import UserNavbar from "./UserNavbar";
 import { UserCircle2, SquarePen, BookOpen, Brain, FileText } from "lucide-react";
 import Footer from "../Visitor-side/Footer";
@@ -7,6 +7,33 @@ import { v4 as uuidv4 } from 'uuid';
 
 const AssessmentPage = () => {
   const navigate = useNavigate();
+  useEffect(() => {
+      document.title = "Assessment | Overview";
+      if(localStorage.getItem('riasecAnswers') && localStorage.getItem('riasecResults')){
+          localStorage.removeItem('riasecAnswers');
+          localStorage.removeItem('riasecResults');
+        }else if(localStorage.getItem('riasecAnswers')){
+          localStorage.removeItem('riasecAnswers');
+        }else{
+          localStorage.removeItem('riasecResults');
+        }
+    
+        if(localStorage.getItem('bigFiveAnswers') && localStorage.getItem('bigFiveResults')){
+          localStorage.removeItem('bigFiveAnswers');
+          localStorage.removeItem('bigFiveResults');
+        }else if(localStorage.getItem('bigFiveAnswers')){
+          localStorage.removeItem('bigFiveAnswers');
+        }else{
+          localStorage.removeItem('bigFiveResults');
+        }
+
+        if(localStorage.getItem('currentAssessmentId')){
+          localStorage.removeItem('currentAssessmentId');
+        }
+      return () => {
+      document.title = "Default Title";
+    };
+  }, []);
 
   const startAssessment = () => {
     const assessmentId = uuidv4(); // Generate unique ID

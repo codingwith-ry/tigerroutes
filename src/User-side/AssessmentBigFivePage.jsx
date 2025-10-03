@@ -16,12 +16,14 @@ const AssessmentBigFivePage = () => {
   const navigate = useNavigate();
 
   const handleResults = () => {
-    fetch('/api/assessment/complete/' + localStorage.getItem('currentAssessmentId'), {
+
+    fetch('http://localhost:5000/api/assessment/complete/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID,
         riasecResults: JSON.parse(localStorage.getItem('riasecResults')),
         bigFiveResults: JSON.parse(localStorage.getItem('bigFiveResults'))
       })

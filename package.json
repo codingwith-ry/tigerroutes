@@ -26,8 +26,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "nodemon server/server.js",
-    "start": "react-scripts start",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:node\" \"npm run dev:python\"",
+    "dev:node": "cd server && nodemon server.js",
+    "dev:python": "cd server && python -m uvicorn scoringengine:app --reload --port 8000",
+    "dev:frontend": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -51,6 +53,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
     "tailwindcss": "^3.4.17"
   }

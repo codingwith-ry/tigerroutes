@@ -29,12 +29,25 @@ CREATE TABLE IF NOT EXISTS `tbl_bigfiveresults` (
   `agreeableness` int NOT NULL DEFAULT (0),
   `neuroticism` int NOT NULL DEFAULT (0),
   PRIMARY KEY (`bigFiveResult_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_bigfiveresults: ~2 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_bigfiveresults: ~15 rows (approximately)
 INSERT INTO `tbl_bigfiveresults` (`bigFiveResult_ID`, `openness`, `conscientiousness`, `artistic`, `extraversion`, `agreeableness`, `neuroticism`) VALUES
 	(1, 57, 67, 0, 80, 50, 60),
-	(2, 47, 47, 0, 57, 77, 73);
+	(2, 47, 47, 0, 57, 77, 73),
+	(3, 60, 50, 0, 50, 47, 53),
+	(4, 57, 70, 0, 60, 70, 60),
+	(5, 73, 43, 0, 53, 50, 83),
+	(6, 73, 43, 0, 53, 50, 83),
+	(7, 53, 63, 0, 57, 63, 70),
+	(8, 50, 50, 0, 83, 53, 70),
+	(9, 87, 50, 0, 70, 47, 90),
+	(10, 57, 60, 0, 57, 50, 73),
+	(11, 57, 53, 0, 67, 53, 73),
+	(12, 73, 53, 0, 67, 43, 73),
+	(13, 73, 53, 0, 67, 43, 73),
+	(14, 70, 67, 0, 60, 63, 77),
+	(15, 43, 50, 0, 57, 67, 70);
 
 -- Dumping structure for table tigerroutesdb.tbl_counselornotes
 CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
@@ -88,12 +101,25 @@ CREATE TABLE IF NOT EXISTS `tbl_riasecresults` (
   `enterprising` int NOT NULL DEFAULT (0),
   `conventional` int NOT NULL DEFAULT (0),
   PRIMARY KEY (`riasecResult_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_riasecresults: ~2 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_riasecresults: ~15 rows (approximately)
 INSERT INTO `tbl_riasecresults` (`riasecResult_ID`, `realistic`, `investigative`, `artistic`, `social`, `enterprising`, `conventional`) VALUES
 	(1, 100, 100, 100, 100, 100, 100),
-	(2, 100, 100, 100, 100, 100, 100);
+	(2, 100, 100, 100, 100, 100, 100),
+	(3, 100, 100, 100, 100, 100, 100),
+	(4, 86, 83, 71, 57, 57, 50),
+	(5, 100, 100, 100, 100, 100, 100),
+	(6, 100, 100, 100, 100, 100, 100),
+	(7, 57, 100, 86, 86, 43, 63),
+	(8, 57, 50, 71, 57, 86, 75),
+	(9, 100, 100, 86, 100, 100, 100),
+	(10, 86, 100, 86, 86, 86, 63),
+	(11, 100, 100, 100, 100, 100, 100),
+	(12, 100, 83, 71, 86, 100, 100),
+	(13, 100, 83, 71, 86, 100, 100),
+	(14, 57, 83, 71, 86, 57, 88),
+	(15, 71, 83, 86, 86, 100, 100);
 
 -- Dumping structure for table tigerroutesdb.tbl_staffaccounts
 CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
@@ -116,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `tbl_strands` (
   PRIMARY KEY (`strand_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_strands: ~0 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_strands: ~4 rows (approximately)
 INSERT INTO `tbl_strands` (`strand_ID`, `strandName`) VALUES
 	(7, 'STEM'),
 	(8, 'ABM'),
@@ -133,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
   PRIMARY KEY (`studentAccount_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_studentaccounts: ~0 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_studentaccounts: ~1 rows (approximately)
 INSERT INTO `tbl_studentaccounts` (`studentAccount_ID`, `name`, `email`, `password`, `studentProfile_ID`) VALUES
 	(8, 'RYAN REGULACION', 'ryan.regulacion.cics@ust.edu.ph', '', NULL);
 
@@ -155,8 +181,19 @@ CREATE TABLE IF NOT EXISTS `tbl_studentassessments` (
   CONSTRAINT `tbl_studentassessments_ibfk_3` FOREIGN KEY (`bigFiveResult_ID`) REFERENCES `tbl_bigfiveresults` (`bigFiveResult_ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_studentassessments: ~1 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_studentassessments: ~12 rows (approximately)
 INSERT INTO `tbl_studentassessments` (`studentAssessment_ID`, `studentAccount_ID`, `riasecResult_ID`, `bigFiveResult_ID`, `rating`, `feedback`, `date`) VALUES
+	('05dced9d-7b38-492d-94ca-8efd8dcac8e7', 8, 4, 4, NULL, NULL, '2025-10-04 06:31:04'),
+	('1dc2a9d2-bc45-4cf7-b6f1-9a57ab5b1ba5', 8, 14, 14, NULL, NULL, '2025-10-04 07:51:12'),
+	('28b31700-8901-46b2-b398-811e95083dd3', 8, 10, 10, NULL, NULL, '2025-10-04 07:43:02'),
+	('344133cb-a796-45d4-8454-e1598039142f', 8, 3, 3, NULL, NULL, '2025-10-04 06:09:57'),
+	('4bbf0a39-74ba-4c87-ac1c-59ccb29f0f86', 8, 11, 11, NULL, NULL, '2025-10-04 07:48:42'),
+	('6a04eb54-124c-4c54-b55f-4dc8502d2baa', 8, 8, 8, NULL, NULL, '2025-10-04 07:35:39'),
+	('778a812e-7079-4e36-aed8-2920e8608688', 8, 9, 9, NULL, NULL, '2025-10-04 07:39:33'),
+	('8cfe2fe1-1879-48ce-8fd4-978d0a2dd48f', 8, 12, 12, NULL, NULL, '2025-10-04 07:50:11'),
+	('d918cb6b-d3da-4dcf-92f6-60c26295bc98', 8, 15, 15, NULL, NULL, '2025-10-04 07:53:52'),
+	('e0a8424b-dbe0-4021-9418-2da141863805', 8, 7, 7, NULL, NULL, '2025-10-04 07:33:29'),
+	('f5d2464f-e7ca-4094-9714-a8df381aa90c', 8, 5, 5, NULL, NULL, '2025-10-04 07:29:48'),
 	('fcc71539-2404-4f95-96e6-88fe1068302d', 8, 2, 2, NULL, NULL, '2025-10-04 03:31:54');
 
 -- Dumping structure for table tigerroutesdb.tbl_studentprofiles

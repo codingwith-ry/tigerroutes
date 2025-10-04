@@ -1,15 +1,7 @@
 import React from "react";
 import AdminSidebar from "./AdminSidebar";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  BookOpen,
-  Clock,
-  ChevronRight,
-  Dot,
-  MessageSquareText,
-} from "lucide-react";
+import AdminHeader from "./AdminHeader";
+import { Mail, Phone, MapPin, BookOpen, Clock, Dot, MessageSquareText } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const CounselorPreview = () => {
@@ -34,29 +26,7 @@ const CounselorPreview = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-semibold">Manage Counselors</h1>
-            <p className="text-sm text-gray-400 flex items-center gap-1">
-              <button
-                onClick={() => navigate("/admin/counselors")}
-                className="hover:underline text-gray-400"
-              >
-                Counselors
-              </button>
-              <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-semibold">
-                {decodeURIComponent(counselorName)}
-              </span>
-            </p>
-          </div>
-          <div className="flex items-center space-x-3 mt-2 sm:mt-0">
-            <span className="text-sm text-gray-600">Welcome back, Admin User!</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center font-semibold">
-              AU
-            </div>
-          </div>
-        </header>
+        <AdminHeader title="Manage Counselors" />
 
         {/* Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">

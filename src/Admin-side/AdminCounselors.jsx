@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
+import AdminHeader from "./AdminHeader";
 import { Search, Edit, Eye, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CounselorModal from "./CounselorModal";
@@ -48,17 +49,9 @@ const AdminCounselors = () => {
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b">
-          <h1 className="text-2xl sm:text-4xl font-semibold">Manage Counselors</h1>
-          <div className="flex items-center space-x-3 mt-2 sm:mt-0">
-            <span className="text-sm text-gray-600">Welcome back, Admin User!</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center font-semibold">AU</div>
-          </div>
-        </header>
-
+        <AdminHeader title="Manage Counselors" />
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           <div className="bg-white rounded-xl p-6 shadow border border-gray-200">
             {/* Search + Add */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">

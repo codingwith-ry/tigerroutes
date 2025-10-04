@@ -2,6 +2,7 @@ import React from "react";
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { FileCheck, Calendar, BarChart2, Users } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
+import AdminHeader from "./AdminHeader";
 
 const AdminDashboard = () => {
   // Mock Data
@@ -104,19 +105,8 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex justify-between items-start sm:items-center p-4 sm:p-6 border-b">
-          <h1 className="text-2xl sm:text-4xl font-semibold mb-2 sm:mb-0">Overview</h1>
-          <div className="flex items-center space-x-3">
-            <span className="text-xs sm:text-sm text-gray-600 sm:inline">Welcome back, Admin User!</span>
-            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm sm:text-base">
-              AU
-            </div>
-          </div>
-        </header>
+        <AdminHeader title="Dashboard Overview" />
 
         {/* Dashboard Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">

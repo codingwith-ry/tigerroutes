@@ -1,8 +1,9 @@
+import { FileCheck, Calendar, BarChart2, Users, Target, Star, Activity, Eye, TrendingUp, Bell } from "lucide-react";
 import { useState } from "react";
 import React from "react";
 import { FaStar, FaRegStar } from "react-icons/fa";
-import { FileCheck, Calendar, BarChart2, Users, Target, Star, Activity, Eye, TrendingUp } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
+import AdminHeader from './AdminHeader';
 import { useNavigate } from "react-router-dom";
 
 const AdminAssessment = () => {
@@ -114,20 +115,8 @@ const AdminAssessment = () => {
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex justify-between items-start sm:items-center p-4 sm:p-6 border-b">
-          <h1 className="text-2xl sm:text-4xl font-semibold mb-2 sm:mb-0">Student Assessments</h1>
-          <div className="flex items-center space-x-3">
-            <span className="text-xs sm:text-sm text-gray-600 sm:inline">Welcome back, Admin User!</span>
-            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm sm:text-base">
-              AU
-            </div>
-          </div>
-        </header>
-
+        <AdminHeader title="Student Assessments" />
         {/* Dashboard Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           {/* ✅ Stats Grid */}

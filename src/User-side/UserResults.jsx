@@ -1,10 +1,85 @@
 // src/pages/AssessmentResults.jsx
-import React from "react";
-import { FiDownload, FiStar, FiCheckCircle, FiFileText } from "react-icons/fi";
+import React, { useState } from "react";
+import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX } from "react-icons/fi";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 
 const UserResults = () => {
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState('');
+
+  const handleSubmitRating = () => {
+    // Add your rating submission logic here
+    console.log({ rating, feedback });
+    setIsRatingModalOpen(false);
+    setRating(0);
+    setFeedback('');
+  };
+
+  const RatingModal = () => {
+    if (!isRatingModalOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl max-w-md w-full p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold">Rate Your Experience</h3>
+            <button 
+              onClick={() => setIsRatingModalOpen(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <FiX size={24} />
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-gray-600 mb-4">How satisfied are you with your assessment results?</p>
+            <div className="flex gap-2 justify-center mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className={`text-2xl ${
+                    star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                  } hover:text-yellow-400 transition-colors`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Share your thoughts about the assessment..."
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-300 focus:border-transparent min-h-[100px] resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setIsRatingModalOpen(false)}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmitRating}
+              disabled={!rating}
+              className={`px-6 py-2 rounded-lg font-medium ${
+                rating
+                  ? 'bg-yellow-400 hover:bg-yellow-500 text-white'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#FFFCED] flex flex-col">
       
@@ -179,7 +254,10 @@ const UserResults = () => {
           <p className="text-sm text-gray-500">Download your report and share your feedback!</p>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-lg text-blue-700">
+            <button 
+              onClick={() => setIsRatingModalOpen(true)}
+              className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-lg text-blue-700"
+            >
               <FiStar className="text-base"/> Rate Experience
             </button>
             <button className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg">
@@ -189,6 +267,9 @@ const UserResults = () => {
         </div>
       </main>
         <Footer />
+
+      {/* Add the Rating Modal */}
+      <RatingModal />
     </div>
   );
 };

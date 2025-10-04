@@ -32,7 +32,7 @@ const AssessmentBigFivePage = () => {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        navigate('/assessment/results/' + localStorage.getItem('currentAssessmentId'));
+        console.log('Success:', data.programRecommendations);
       } else {
         Swal.fire({
           icon: 'error',

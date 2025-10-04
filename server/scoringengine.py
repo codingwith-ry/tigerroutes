@@ -23,14 +23,13 @@ program_profiles = load_program_profiles()
 class StudentData(BaseModel):
     riasec: dict
     bigfive: dict
-    grades: dict
-    strand: str
 
 
 # -------------------------------
 # Scoring Function
 # -------------------------------
 def calculate_alignment(student_data, program_data):
+    # --- RIASEC ---
     riasec_score, riasec_max = 0.0, 0.0
     for trait, req in program_data.get("riasec_requirements", {}).items():
         riasec_max += req["weight"]
@@ -40,6 +39,7 @@ def calculate_alignment(student_data, program_data):
             riasec_score += req["weight"]
     riasec_final = (riasec_score / riasec_max) * 100 if riasec_max > 0 else 0
 
+    # --- Big Five ---
     bigfive_score, bigfive_max = 0.0, 0.0
     for trait, req in program_data.get("bigfive_requirements", {}).items():
         bigfive_max += req["weight"]
@@ -49,19 +49,34 @@ def calculate_alignment(student_data, program_data):
             bigfive_score += req["weight"]
     bigfive_final = (bigfive_score / bigfive_max) * 100 if bigfive_max > 0 else 0
 
+    # --- Static Academic Data ---
+    static_grades = {
+        "math_performance": 90,
+        "science_performance": 94,
+        "english_performance": 95,
+        "overall_gen_ave": 94,
+    }
+
     acad_score, acad_max = 0.0, 0.0
     for subject, req in program_data.get("academic_requirements", {}).items():
         acad_max += req["weight"]
-        student_val = student_data["grades"].get(subject, 0)
+        student_val = static_grades.get(subject, 0)
         if student_val >= req["minimum"]:
             acad_score += req["weight"]
     acad_final = (acad_score / acad_max) * 100 if acad_max > 0 else 0
 
-    strand = student_data["strand"]
+    # --- Static Strand ---
+    strand = "STEM"
     track_pref = program_data.get("track_preferences", {}).get(strand, 0)
-    track_final = track_pref  
+    track_final = track_pref  # already in 0–100 range
 
-    total_score = (riasec_final * 0.40) + (bigfive_final * 0.30) + (acad_final * 0.20) + (track_final * 0.10)
+    # --- Weighted Total ---
+    total_score = (
+        (riasec_final * 0.40)
+        + (bigfive_final * 0.30)
+        + (acad_final * 0.20)
+        + (track_final * 0.10)
+    )
 
     return round(total_score, 2), {
         "RIASEC": round(riasec_final, 2),
@@ -77,16 +92,24 @@ def calculate_alignment(student_data, program_data):
 @app.post("/score")
 def score_student(student: StudentData):
     results = {}
+
+    # Convert BaseModel to dictionary
+    student_data = {
+        "riasec": student.riasec,
+        "bigfive": student.bigfive,
+    }
+
     for program, profile in program_profiles.items():
-        total, breakdown = calculate_alignment(student.dict(), profile)
+        total, breakdown = calculate_alignment(student_data, profile)
         results[program] = {"score": total, "breakdown": breakdown}
 
     # Separate track-aligned vs cross-track
+    strand = "STEM"  # static for now
     track_aligned = {
         p: d
         for p, d in results.items()
-        if student.strand in program_profiles[p]["track_preferences"]
-        and program_profiles[p]["track_preferences"][student.strand] >= 80
+        if strand in program_profiles[p]["track_preferences"]
+        and program_profiles[p]["track_preferences"][strand] >= 80
     }
     cross_track = {p: d for p, d in results.items() if p not in track_aligned}
 
@@ -98,5 +121,4 @@ def score_student(student: StudentData):
         "track_aligned": track_sorted,
         "cross_track": cross_sorted,
     }
-
-# To run the server, use: uvicorn server.scoringengine:app --reload
+# To run: uvicorn scoringengine:app --reload

@@ -26,7 +26,7 @@ const client = new OAuth2Client();
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root', // change if needed
-    password: '', // change if needed
+    password: 'none', // change if needed
     database: 'tigerroutesdb'
 });
 

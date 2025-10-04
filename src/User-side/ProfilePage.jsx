@@ -14,6 +14,14 @@ const ProfilePage = () => {
     const [strands, setStrands] = useState([]);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [selectedStrand, setSelectedStrand] = useState('');
+    const [yearLevel, setYearLevel] = useState('');
+    const [schoolYear, setSchoolYear] = useState('');
+    const [generalAverage, setGeneralAverage] = useState('');
+    const [mathGrade, setMathGrade] = useState('');
+    const [scienceGrade, setScienceGrade] = useState('');
+    const [englishGrade, setEnglishGrade] = useState('');
+
 
     //Using session storage value for email as it doesn't need to be edited.
     const storedUser = JSON.parse(sessionStorage.getItem('user'));
@@ -34,7 +42,8 @@ const ProfilePage = () => {
     function fetchUserData() {
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (user && user.studentAccount_ID) {
-            fetch(`http://localhost:5000/api/student/${user.studentAccount_ID}`)
+            // Change from /api/student/ to /api/student-profile/
+            fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`)
             .then(res => res.json())
             .then(data => {
                 if(data.name) {
@@ -42,7 +51,18 @@ const ProfilePage = () => {
                     setFirstName(nameParts.slice(0, -1).join(' '));
                     setLastName(nameParts.slice(-1)[0]);
                 }
+                
+                // Populate existing profile data
+                if (data.strand_ID) {
+                    setSelectedStrand(data.strand_ID.toString());
+                }
+                if (data.gradeLevel) {
+                    setYearLevel(data.gradeLevel === 11 ? 'Grade 11' : data.gradeLevel === 12 ? 'Grade 12' : '');
+                }
             })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
         }
     }
 
@@ -52,33 +72,38 @@ const ProfilePage = () => {
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (!user || !user.studentAccount_ID) return;
 
-        // Send PUT request to update student first and last name.
-        fetch(`http://localhost:5000/api/student/${user.studentAccount_ID}`, {
+        const profileData = {
+            firstName,
+            lastName,
+            strand_ID: selectedStrand,
+            gradeLevel: yearLevel === 'Grade 11' ? 11 : yearLevel === 'Grade 12' ? 12 : null,
+            schoolYear,
+            generalAverage,
+            mathGrade,
+            scienceGrade,
+            englishGrade
+        };
+
+        fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                firstName,
-                lastName
-            })
+            body: JSON.stringify(profileData)
         })
-         .then(res => res.json())
-         .then(data => {
+        .then(res => res.json())
+        .then(data => {
             if(data.success) {
                 const user = JSON.parse(sessionStorage.getItem('user'));
                 user.name = firstName + ' ' + lastName;
-
-                const localUser = localStorage.getItem('user');
-                if (localUser) {
-                    const parsedLocalUser = JSON.parse(localUser);
-                    parsedLocalUser.name = firstName + ' ' + lastName;
-                    localStorage.setItem('user', JSON.stringify(parsedLocalUser));
-                }
                 sessionStorage.setItem('user', JSON.stringify(user));
                 alert('Profile updated successfully');
             } else {
-                alert('Failed to update profile.');
+                alert('Failed to update profile: ' + (data.error || 'Unknown error'));
             }
-         });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update profile.');
+        });
     }
 
   return (
@@ -155,7 +180,10 @@ const ProfilePage = () => {
 
             <div>   
                 <label className="block text-sm font-medium text-gray-700 mb-1" id="strand">Strand/Track</label>
-                    <select defaultValue=""className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-400">
+        <select 
+            value={selectedStrand}
+            onChange={e => setSelectedStrand(e.target.value)}
+            className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
                     <option value="" disabled hidden>Select Strand</option>
                     {strands.map(strand => (
                         <option key={strand.strand_ID} className="text-gray-700" value={strand.strand_ID}>
@@ -179,7 +207,10 @@ const ProfilePage = () => {
 
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Year Level</label>
-                <select defaultValue="" className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-400">
+            <select 
+                value={yearLevel}
+                onChange={e => setYearLevel(e.target.value)}
+                className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
                     <option value="" disabled hidden>Select Year</option>
                     <option className="text-gray-700">Grade 11</option>
                     <option className="text-gray-700">Grade 12</option>

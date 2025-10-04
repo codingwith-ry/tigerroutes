@@ -16,7 +16,7 @@ module.exports = (db) => {
 
     router.post('/assessment/complete', (req, res) => {
         console.log("Assessment completion endpoint hit");
-        const { studentAccount_ID, riasecResults, bigFiveResults } = req.body;
+        const { studentAssessment_ID, studentAccount_ID, riasecResults, bigFiveResults } = req.body;
 
         const riasecQuery = `
             INSERT INTO tbl_riasecresults 
@@ -66,12 +66,32 @@ module.exports = (db) => {
 
                         console.log("Big Five insertId:", bigFiveResult.insertId);
 
-                        res.status(200).json({
-                            success: true,
-                            riasecInsertId: riasecResult.insertId,
-                            bigFiveInsertId: bigFiveResult.insertId,
-                            message: 'Assessment results saved successfully'
-                        });
+                        assessmentQuery = `INSERT INTO tbl_studentassessments (studentAssessment_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID, date) VALUES(?, ?, ?, ?, ?)`;
+                        db.query(
+                            assessmentQuery,
+                            [
+                                studentAssessment_ID,
+                                studentAccount_ID,
+                                riasecResult.insertId,
+                                bigFiveResult.insertId,
+                                timestamp = new Date()
+                            ],
+                            (err, assessmentResult) => {
+                                if (err) {
+                                    console.error('Error inserting Student Assessment record:', err);
+                                    return res.status(500).json({ message: 'Error inserting Student Assessment record' });
+                                }
+                                console.log("Student Assessment insertId:", assessmentResult.insertId);
+                                res.status(200).json({
+                                    success: true,
+                                    riasecInsertId: riasecResult.insertId,
+                                    bigFiveInsertId: bigFiveResult.insertId,
+                                    message: 'Assessment results saved successfully'
+                                });
+                            }
+                        );
+
+                        
                     }
                 );
             }

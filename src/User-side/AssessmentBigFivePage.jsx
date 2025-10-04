@@ -23,6 +23,7 @@ const AssessmentBigFivePage = () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        studentAssessment_ID: localStorage.getItem('currentAssessmentId'),
         studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID,
         riasecResults: JSON.parse(localStorage.getItem('riasecResults')),
         bigFiveResults: JSON.parse(localStorage.getItem('bigFiveResults'))

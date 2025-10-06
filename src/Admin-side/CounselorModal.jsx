@@ -8,15 +8,17 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
     firstName: "",
     lastName: "",
     strand: "",
-    status: "",
+    status: "Active",
     officeHours: "",
     workHours: "",
     about: "",
   });
 
+  // Reset or populate the form depending on mode (add/edit)
   useEffect(() => {
     if (counselor) {
-      const nameParts = counselor.name.split(" ");
+      // Edit mode: fill with counselor data
+      const nameParts = counselor.name ? counselor.name.split(" ") : [];
       setFormData({
         title: nameParts[0] || "",
         firstName: nameParts[1] || "",
@@ -27,8 +29,20 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
         workHours: counselor.workHours || "",
         about: counselor.about || "",
       });
+    } else {
+      // Add mode: clear all fields
+      setFormData({
+        title: "",
+        firstName: "",
+        lastName: "",
+        strand: "",
+        status: "Active",
+        officeHours: "",
+        workHours: "",
+        about: "",
+      });
     }
-  }, [counselor]);
+  }, [counselor, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,7 +53,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
     e.preventDefault();
     const updatedCounselor = {
       ...counselor,
-      name: `${formData.title} ${formData.firstName} ${formData.lastName}`,
+      name: `${formData.title} ${formData.firstName} ${formData.lastName}`.trim(),
       strand: formData.strand,
       status: formData.status,
       officeHours: formData.officeHours,
@@ -59,7 +73,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {/* 🔸 Backdrop Animation */}
+          {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -69,7 +83,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
             onClick={onClose}
           />
 
-          {/* 🔸 Modal Pop Animation */}
+          {/* Modal Container with Animation */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}

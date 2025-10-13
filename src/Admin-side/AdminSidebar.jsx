@@ -11,19 +11,20 @@ const AdminSidebar = () => {
   const links = [
     {
       path: "/admin/dashboard",
+      icon: <Home className="w-5 h-5 mr-3" />,
       label: "Dashboard",
-      icon: <Home className="mr-3 w-5 h-5" />,
     },
     {
       path: "/admin/assessment",
+      icon: <ClipboardCheck className="w-5 h-5 mr-3" />,
       label: "Assessment",
-      icon: <ClipboardCheck className="mr-3 w-5 h-5" />,
+      matches: ["/admin/assessment", "/admin/student"],
     },
     {
       path: "/admin/counselors",
+      icon: <Users className="w-5 h-5 mr-3" />,
       label: "Manage Counselors",
-      icon: <Users className="mr-3 w-5 h-5" />,
-      children: ["/admin/preview"], // any preview route
+      matches: ["/admin/counselors", "/admin/preview"],
     },
   ];
 
@@ -95,24 +96,22 @@ const AdminSidebar = () => {
 
         {/* Navigation */}
         <nav className="flex flex-col flex-grow px-4 gap-2 mt-4">
-          {links.map((link) => {
-            const active = isLinkActive(link);
-
-            return (
-              <button
-                key={link.path}
-                onClick={() => {
-                  navigate(link.path);
-                  setIsOpen(false);
-                }}
-                className={`flex items-center w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  active ? "bg-yellow-100 text-yellow-600" : "hover:bg-gray-100"
-                }`}
-              >
-                {link.icon} {link.label}
-              </button>
-            );
-          })}
+          {links.map((link) => (
+            <button
+              key={link.path}
+              onClick={() => {
+                navigate(link.path);
+                setIsOpen(false);
+              }}
+              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                (link.matches?.some(path => location.pathname.includes(path)) || location.pathname === link.path)
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              {link.icon} {link.label}
+            </button>
+          ))}
         </nav>
 
         {/* Logout button */}

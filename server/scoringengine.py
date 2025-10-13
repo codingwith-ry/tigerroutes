@@ -117,6 +117,8 @@ def score_student(student: StudentData):
     track_sorted = sorted(track_aligned.items(), key=lambda x: x[1]["score"], reverse=True)[:5]
     cross_sorted = sorted(cross_track.items(), key=lambda x: x[1]["score"], reverse=True)[:5]
 
+    print("Track-Aligned Recommendations:", track_sorted)
+    print("Cross-Track Recommendations:", cross_sorted)
     return {
         "track_aligned": track_sorted,
         "cross_track": cross_sorted,

@@ -267,5 +267,103 @@
     "track_preferences": {
       "HUMSS": 100, "GAS-HealthAllied": 80, "ABM": 70, "STEM": 60, "ArtsDesign": 60, "SportsTrack": 50
     }
+  },
+  "BS Biology": {
+    "riasec_requirements": {
+      "Investigative": { "weight": 0.35, "ideal_range": [70, 100] },
+      "Realistic": { "weight": 0.25, "ideal_range": [60, 90] },
+      "Artistic": { "weight": 0.1, "ideal_range": [40, 80] },
+      "Social": { "weight": 0.1, "ideal_range": [50, 85] },
+      "Enterprising": { "weight": 0.1, "ideal_range": [30, 75] },
+      "Conventional": { "weight": 0.1, "ideal_range": [40, 85] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [65, 100] },
+      "Conscientiousness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Extraversion": { "weight": 0.1, "ideal_range": [30, 80] },
+      "Agreeableness": { "weight": 0.2, "ideal_range": [55, 90] },
+      "Neuroticism": { "weight": 0.2, "ideal_range": [10, 50] }
+    },
+    "academic_requirements": {
+      "math_performance": { "weight": 0.3, "minimum": 80 },
+      "science_performance": { "weight": 0.4, "minimum": 85 },
+      "english_performance": { "weight": 0.2, "minimum": 80 },
+      "overall_gen_ave": { "weight": 0.1, "minimum": 82 }
+    },
+    "track_preferences": { "STEM": 100, "ABM": 60, "HUMSS": 50 }
+  },
+
+  "BS Medical Technology": {
+    "riasec_requirements": {
+      "Investigative": { "weight": 0.4, "ideal_range": [70, 100] },
+      "Realistic": { "weight": 0.3, "ideal_range": [60, 90] },
+      "Social": { "weight": 0.1, "ideal_range": [40, 85] },
+      "Conventional": { "weight": 0.1, "ideal_range": [50, 90] },
+      "Enterprising": { "weight": 0.05, "ideal_range": [30, 70] },
+      "Artistic": { "weight": 0.05, "ideal_range": [20, 70] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.2, "ideal_range": [55, 95] },
+      "Conscientiousness": { "weight": 0.3, "ideal_range": [70, 100] },
+      "Extraversion": { "weight": 0.1, "ideal_range": [30, 75] },
+      "Agreeableness": { "weight": 0.25, "ideal_range": [60, 95] },
+      "Neuroticism": { "weight": 0.15, "ideal_range": [10, 45] }
+    },
+    "academic_requirements": {
+      "math_performance": { "weight": 0.25, "minimum": 85 },
+      "science_performance": { "weight": 0.45, "minimum": 88 },
+      "english_performance": { "weight": 0.15, "minimum": 80 },
+      "overall_gen_ave": { "weight": 0.15, "minimum": 84 }
+    },
+    "track_preferences": { "STEM": 100, "ABM": 55, "HUMSS": 50 }
+  },
+
+  "BA Communication": {
+    "riasec_requirements": {
+      "Artistic": { "weight": 0.3, "ideal_range": [65, 100] },
+      "Social": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Enterprising": { "weight": 0.2, "ideal_range": [60, 95] },
+      "Investigative": { "weight": 0.1, "ideal_range": [50, 85] },
+      "Realistic": { "weight": 0.05, "ideal_range": [30, 75] },
+      "Conventional": { "weight": 0.1, "ideal_range": [40, 80] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.3, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Extraversion": { "weight": 0.3, "ideal_range": [65, 100] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [60, 95] },
+      "Neuroticism": { "weight": 0.1, "ideal_range": [10, 50] }
+    },
+    "academic_requirements": {
+      "english_performance": { "weight": 0.4, "minimum": 85 },
+      "overall_gen_ave": { "weight": 0.4, "minimum": 83 },
+      "science_performance": { "weight": 0.1, "minimum": 75 },
+      "math_performance": { "weight": 0.1, "minimum": 75 }
+    },
+    "track_preferences": { "HUMSS": 100, "ABM": 80, "STEM": 60 }
+  },
+
+  "BS Entrepreneurship": {
+    "riasec_requirements": {
+      "Enterprising": { "weight": 0.4, "ideal_range": [70, 100] },
+      "Social": { "weight": 0.2, "ideal_range": [60, 90] },
+      "Investigative": { "weight": 0.1, "ideal_range": [40, 80] },
+      "Conventional": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Artistic": { "weight": 0.1, "ideal_range": [40, 85] },
+      "Realistic": { "weight": 0.05, "ideal_range": [40, 80] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [60, 100] },
+      "Conscientiousness": { "weight": 0.25, "ideal_range": [65, 95] },
+      "Extraversion": { "weight": 0.3, "ideal_range": [65, 100] },
+      "Agreeableness": { "weight": 0.1, "ideal_range": [45, 90] },
+      "Neuroticism": { "weight": 0.1, "ideal_range": [10, 50] }
+    },
+    "academic_requirements": {
+      "math_performance": { "weight": 0.3, "minimum": 80 },
+      "english_performance": { "weight": 0.3, "minimum": 80 },
+      "overall_gen_ave": { "weight": 0.4, "minimum": 82 }
+    },
+    "track_preferences": { "ABM": 100, "HUMSS": 75, "STEM": 60 }
   }
 }

@@ -82,33 +82,106 @@ module.exports = (db) => {
                                     return res.status(500).json({ message: 'Error inserting Student Assessment record' });
                                 }
 
-                                const programsRequest = await fetch('http://localhost:8000/score', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        riasec: riasecResults,
-                                        bigfive: bigFiveResults
-                                    })
-                                }).then(response => {
-                                    console.log("Scoring Engine Response:", response.json());
-
-                                    return res.status(200).json({
-                                        success: true,
-                                        message: 'Assessment results saved successfully',
-                                        programRecommendations: response.json()
+                                let programsResponse;
+                                try {
+                                    const response = await fetch('http://localhost:8000/score', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            riasec: riasecResults,
+                                            bigfive: bigFiveResults
+                                        })
                                     });
-                                })
-                                .catch(error => {
+
+                                    programsResponse = await response.json();
+                                } catch (error) {
                                     console.error('Error fetching program recommendations:', error);
                                     return res.status(500).json({ message: 'Error fetching program recommendations' });
-                                });   
-                        });
+                                }
 
-                        
+                                const allRecommendations = [
+                                    ...programsResponse.track_aligned.map(([name, data]) => ({
+                                        programName: name,
+                                        ...data,
+                                        trackAligned: 'Y'
+                                    })),
+                                    ...programsResponse.cross_track.map(([name, data]) => ({
+                                        programName: name,
+                                        ...data,
+                                        trackAligned: 'N'
+                                    }))
+                                ];
+
+                                for (const rec of allRecommendations) {
+                                    const { programName, score, breakdown, trackAligned } = rec;
+                                    const alignmentScore = score;
+                                    const breakdownJSON = JSON.stringify(breakdown);
+
+                                    // Get program_ID
+                                    const getProgramQuery = `SELECT program_ID FROM tbl_programs WHERE programName = ? LIMIT 1`;
+
+                                    db.query(getProgramQuery, [programName], (err, programResult) => {
+                                        if (err) {
+                                            console.error(`Error fetching program ID for ${programName}:`, err);
+                                            return;
+                                        }
+
+                                        if (programResult.length === 0) {
+                                            console.warn(`Program not found: ${programName}`);
+                                            return;
+                                        }
+
+                                        const program_ID = programResult[0].program_ID;
+
+                                        // Insert recommendation
+                                        const insertRecQuery = `
+                                            INSERT INTO tbl_recommendations 
+                                            (studentAssessment_ID, program_ID, alignmentScore, breakdown, track_aligned)
+                                            VALUES (?, ?, ?, ?, ?)
+                                        `;
+
+                                        db.query(
+                                            insertRecQuery,
+                                            [studentAssessment_ID, program_ID, alignmentScore, breakdownJSON, trackAligned],
+                                            (err) => {
+                                                if (err) {
+                                                    console.error(`Error inserting recommendation for ${programName}:`, err);
+                                                } else {
+                                                    console.log(`✅ Saved recommendation for ${programName} (${trackAligned})`);
+                                                }
+                                            }
+                                        );
+                                    });
+                                }
+                                return res.status(200).json({ success: true, message: 'Assessment completed successfully', programRecommendations: allRecommendations});
+                        });
                     }
                 );
             }
         );
+    });
+
+    router.get('/assessment/assessmentDetails', (req, res)=>{
+        try{
+            const {assessmentID} = req.body;
+
+            const fetchPsychometricIDs = 'SELECT riasecResult_ID, bigFiveResult_ID FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
+
+            db.query([fetchPsychometricIDs, assessmentID], (err, result)=>{
+
+                const fetchRIASEC = 'SELECT * from tbl_riasecresults WHERE riasecResult_ID = ?';
+
+                const fetchBigFive = 'SELECT * from tbl_bigfiveresults WHERE bigFiveResult_ID = ?';
+
+                const fetchProgramRecoDetails = 'SELECT * from tbl_recommendations WHERE studentAssessment_ID = ?';
+
+                const fetchProgramDescriptions = 'SELECT * from tbl_programs WHERE program_ID = ?';
+
+            });
+            
+        }catch(e){
+            return res.json({success: false, message: e.message});
+        }
     });
     return router;
 };

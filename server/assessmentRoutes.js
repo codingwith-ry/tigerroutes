@@ -161,26 +161,149 @@ module.exports = (db) => {
         );
     });
 
-    router.get('/assessment/assessmentDetails', (req, res)=>{
-        try{
-            const {assessmentID} = req.body;
+    router.get('/assessment/assessmentDetails', (req, res) => {
+        try {
+            const { assessmentID } = req.query;
+
+            if (!assessmentID) {
+                return res.json({ success: false, message: 'assessmentID is required' });
+            }
 
             const fetchPsychometricIDs = 'SELECT riasecResult_ID, bigFiveResult_ID FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
 
-            db.query([fetchPsychometricIDs, assessmentID], (err, result)=>{
+            db.query(fetchPsychometricIDs, [assessmentID], (err, result) => {
+                if (err) {
+                    return res.json({ success: false, message: err.message });
+                }
 
-                const fetchRIASEC = 'SELECT * from tbl_riasecresults WHERE riasecResult_ID = ?';
+                if (result.length === 0) {
+                    return res.json({ success: false, message: 'Assessment not found' });
+                }
 
-                const fetchBigFive = 'SELECT * from tbl_bigfiveresults WHERE bigFiveResult_ID = ?';
+                const { riasecResult_ID, bigFiveResult_ID } = result[0];
 
-                const fetchProgramRecoDetails = 'SELECT * from tbl_recommendations WHERE studentAssessment_ID = ?';
+                // Fetch RIASEC results
+                const fetchRIASEC = 'SELECT * FROM tbl_riasecresults WHERE riasecResult_ID = ?';
+                
+                // Fetch Big Five results
+                const fetchBigFive = 'SELECT * FROM tbl_bigfiveresults WHERE bigFiveResult_ID = ?';
 
-                const fetchProgramDescriptions = 'SELECT * from tbl_programs WHERE program_ID = ?';
+                // Fetch program recommendations
+                const fetchProgramRecoDetails = 'SELECT * FROM tbl_recommendations WHERE studentAssessment_ID = ?';
+
+                // Execute all queries in parallel
+                Promise.all([
+                    new Promise((resolve, reject) => {
+                        db.query(fetchRIASEC, [riasecResult_ID], (err, riasecResult) => {
+                            if (err) reject(err);
+                            else resolve(riasecResult);
+                        });
+                    }),
+                    new Promise((resolve, reject) => {
+                        db.query(fetchBigFive, [bigFiveResult_ID], (err, bigFiveResult) => {
+                            if (err) reject(err);
+                            else resolve(bigFiveResult);
+                        });
+                    }),
+                    new Promise((resolve, reject) => {
+                        db.query(fetchProgramRecoDetails, [assessmentID], (err, programRecos) => {
+                            if (err) reject(err);
+                            else resolve(programRecos);
+                        });
+                    })
+                ]).then(async ([riasecResults, bigFiveResults, programRecos]) => {
+                    
+                    // Convert all results to proper JSON format
+                    const responseData = {
+                        success: true,
+                        data: {
+                            riasec: riasecResults.length > 0 ? JSON.parse(JSON.stringify(riasecResults[0])) : null,
+                            bigFive: bigFiveResults.length > 0 ? JSON.parse(JSON.stringify(bigFiveResults[0])) : null,
+                            programRecommendations: {
+                                track_aligned: [],
+                                cross_track: []
+                            }
+                        }
+                    };
+
+                    // If there are program recommendations, fetch their details
+                    if (programRecos.length > 0) {
+                        const programPromises = programRecos.map(reco => {
+                            return new Promise((resolve, reject) => {
+                                // Use JOIN to fetch program and college data in one query
+                                const fetchProgramWithCollege = `
+                                    SELECT 
+                                        p.*, 
+                                        c.collegeName 
+                                    FROM tbl_programs p 
+                                    LEFT JOIN tbl_colleges c ON p.collegeID = c.collegeID 
+                                    WHERE p.program_ID = ?`;
+                                
+                                db.query(fetchProgramWithCollege, [reco.program_ID], (err, results) => {
+                                    if (err) {
+                                        reject(err);
+                                        return;
+                                    }
+
+                                    if (results.length === 0) {
+                                        resolve({
+                                            recommendation: JSON.parse(JSON.stringify(reco)),
+                                            programDetails: null,
+                                            collegeDetails: null
+                                        });
+                                        return;
+                                    }
+
+                                    const resultData = JSON.parse(JSON.stringify(results[0]));
+                                    
+                                    // Separate program details and college details
+                                    const { collegeName, ...programDetails } = resultData;
+                                    
+                                    resolve({
+                                        recommendation: JSON.parse(JSON.stringify(reco)),
+                                        programDetails: programDetails,
+                                        collegeDetails: collegeName ? { collegeName } : null
+                                    });
+                                });
+                            });
+                        });
+
+                        try {
+                            const programResults = await Promise.all(programPromises);
+                            
+                            // Separate programs into track_aligned and cross_track
+                            programResults.forEach(program => {
+                                const programWithScore = {
+                                    ...program,
+                                    alignment_score: parseFloat(program.recommendation.alignment_score) || 0
+                                };
+                                
+                                if (program.recommendation.track_aligned === 'Y') {
+                                    responseData.data.programRecommendations.track_aligned.push(programWithScore);
+                                } else {
+                                    responseData.data.programRecommendations.cross_track.push(programWithScore);
+                                }
+                            });
+
+                            // Sort both arrays by alignment_score descending
+                            responseData.data.programRecommendations.track_aligned.sort((a, b) => b.alignment_score - a.alignment_score);
+                            responseData.data.programRecommendations.cross_track.sort((a, b) => b.alignment_score - a.alignment_score);
+
+                        } catch (error) {
+                            return res.json({ success: false, message: error.message });
+                        }
+                    }
+
+                    return res.json(responseData);
+
+                }).catch(error => {
+                    return res.json({ success: false, message: error.message });
+                });
 
             });
-            
-        }catch(e){
-            return res.json({success: false, message: e.message});
+
+        } catch (e) {
+            return res.json({ success: false, message: e.message });
         }
     });
     return router;

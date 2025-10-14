@@ -1,8 +1,8 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Server version:               8.0.34 - MySQL Community Server - GPL
+-- Server version:               10.4.32-MariaDB - mariadb.org binary distribution
 -- Server OS:                    Win64
--- HeidiSQL Version:             12.10.0.7000
+-- HeidiSQL Version:             12.8.0.6908
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -16,18 +16,18 @@
 
 
 -- Dumping database structure for tigerroutesdb
-CREATE DATABASE IF NOT EXISTS `tigerroutesdb` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE IF NOT EXISTS `tigerroutesdb` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
 USE `tigerroutesdb`;
 
 -- Dumping structure for table tigerroutesdb.tbl_bigfiveresults
 CREATE TABLE IF NOT EXISTS `tbl_bigfiveresults` (
-  `bigFiveResult_ID` int NOT NULL AUTO_INCREMENT,
-  `openness` int NOT NULL DEFAULT (0),
-  `conscientiousness` int NOT NULL DEFAULT (0),
-  `artistic` int NOT NULL DEFAULT (0),
-  `extraversion` int NOT NULL DEFAULT (0),
-  `agreeableness` int NOT NULL DEFAULT (0),
-  `neuroticism` int NOT NULL DEFAULT (0),
+  `bigFiveResult_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `openness` int(11) NOT NULL DEFAULT 0,
+  `conscientiousness` int(11) NOT NULL DEFAULT 0,
+  `artistic` int(11) NOT NULL DEFAULT 0,
+  `extraversion` int(11) NOT NULL DEFAULT 0,
+  `agreeableness` int(11) NOT NULL DEFAULT 0,
+  `neuroticism` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`bigFiveResult_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -51,10 +51,10 @@ INSERT INTO `tbl_bigfiveresults` (`bigFiveResult_ID`, `openness`, `conscientious
 
 -- Dumping structure for table tigerroutesdb.tbl_counselornotes
 CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
-  `counselorNote_ID` int NOT NULL AUTO_INCREMENT,
-  `studentAssessment_ID` char(36) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `staffAccount_ID` int NOT NULL,
-  `counselorNotes` text COLLATE utf8mb4_general_ci,
+  `counselorNote_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `studentAssessment_ID` char(36) NOT NULL DEFAULT '',
+  `staffAccount_ID` int(11) NOT NULL,
+  `counselorNotes` text DEFAULT NULL,
   PRIMARY KEY (`counselorNote_ID`),
   KEY `studentAssessment_ID` (`studentAssessment_ID`),
   KEY `staffAccount_ID` (`staffAccount_ID`),
@@ -66,11 +66,11 @@ CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
 
 -- Dumping structure for table tigerroutesdb.tbl_programs
 CREATE TABLE IF NOT EXISTS `tbl_programs` (
-  `program_ID` int NOT NULL AUTO_INCREMENT,
-  `programName` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `programDescription` text COLLATE utf8mb4_general_ci,
-  `careerPaths` text COLLATE utf8mb4_general_ci,
-  `programUSTlink` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `program_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `programName` varchar(255) NOT NULL,
+  `programDescription` text DEFAULT NULL,
+  `careerPaths` text DEFAULT NULL,
+  `programUSTlink` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`program_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -78,9 +78,9 @@ CREATE TABLE IF NOT EXISTS `tbl_programs` (
 
 -- Dumping structure for table tigerroutesdb.tbl_recommendations
 CREATE TABLE IF NOT EXISTS `tbl_recommendations` (
-  `recommendation_ID` int NOT NULL AUTO_INCREMENT,
-  `studentAssessment_ID` char(36) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `program_ID` int NOT NULL,
+  `recommendation_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `studentAssessment_ID` char(36) NOT NULL DEFAULT '',
+  `program_ID` int(11) NOT NULL,
   `alignmentScore` decimal(5,2) NOT NULL,
   PRIMARY KEY (`recommendation_ID`),
   KEY `studentAssessment_ID` (`studentAssessment_ID`),
@@ -93,13 +93,13 @@ CREATE TABLE IF NOT EXISTS `tbl_recommendations` (
 
 -- Dumping structure for table tigerroutesdb.tbl_riasecresults
 CREATE TABLE IF NOT EXISTS `tbl_riasecresults` (
-  `riasecResult_ID` int NOT NULL AUTO_INCREMENT,
-  `realistic` int NOT NULL DEFAULT (0),
-  `investigative` int NOT NULL DEFAULT (0),
-  `artistic` int NOT NULL DEFAULT (0),
-  `social` int NOT NULL DEFAULT (0),
-  `enterprising` int NOT NULL DEFAULT (0),
-  `conventional` int NOT NULL DEFAULT (0),
+  `riasecResult_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `realistic` int(11) NOT NULL DEFAULT 0,
+  `investigative` int(11) NOT NULL DEFAULT 0,
+  `artistic` int(11) NOT NULL DEFAULT 0,
+  `social` int(11) NOT NULL DEFAULT 0,
+  `enterprising` int(11) NOT NULL DEFAULT 0,
+  `conventional` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`riasecResult_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -123,13 +123,13 @@ INSERT INTO `tbl_riasecresults` (`riasecResult_ID`, `realistic`, `investigative`
 
 -- Dumping structure for table tigerroutesdb.tbl_staffaccounts
 CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
-  `staffAccount_ID` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(128) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `staffRole_ID` int DEFAULT NULL,
-  `staffProfile_ID` int DEFAULT NULL,
-  `status` tinyint DEFAULT NULL,
+  `staffAccount_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(128) NOT NULL,
+  `password` varchar(128) DEFAULT NULL,
+  `staffRole_ID` int(11) DEFAULT NULL,
+  `staffProfile_ID` int(11) DEFAULT NULL,
+  `status` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`staffAccount_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -137,8 +137,8 @@ CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
 
 -- Dumping structure for table tigerroutesdb.tbl_strands
 CREATE TABLE IF NOT EXISTS `tbl_strands` (
-  `strand_ID` int NOT NULL AUTO_INCREMENT,
-  `strandName` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+  `strand_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `strandName` varchar(64) NOT NULL,
   PRIMARY KEY (`strand_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -151,11 +151,11 @@ INSERT INTO `tbl_strands` (`strand_ID`, `strandName`) VALUES
 
 -- Dumping structure for table tigerroutesdb.tbl_studentaccounts
 CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
-  `studentAccount_ID` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `email` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `password` varchar(128) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `studentProfile_ID` int DEFAULT NULL,
+  `studentAccount_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL DEFAULT '',
+  `email` varchar(128) NOT NULL DEFAULT '',
+  `password` varchar(128) NOT NULL DEFAULT '',
+  `studentProfile_ID` int(11) DEFAULT NULL,
   PRIMARY KEY (`studentAccount_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -165,13 +165,13 @@ INSERT INTO `tbl_studentaccounts` (`studentAccount_ID`, `name`, `email`, `passwo
 
 -- Dumping structure for table tigerroutesdb.tbl_studentassessments
 CREATE TABLE IF NOT EXISTS `tbl_studentassessments` (
-  `studentAssessment_ID` char(36) COLLATE utf8mb4_general_ci NOT NULL,
-  `studentAccount_ID` int NOT NULL,
-  `riasecResult_ID` int NOT NULL,
-  `bigFiveResult_ID` int NOT NULL,
-  `rating` int DEFAULT NULL,
-  `feedback` text COLLATE utf8mb4_general_ci,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `studentAssessment_ID` char(36) NOT NULL,
+  `studentAccount_ID` int(11) NOT NULL,
+  `riasecResult_ID` int(11) NOT NULL,
+  `bigFiveResult_ID` int(11) NOT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`studentAssessment_ID`),
   KEY `studentAccount_ID` (`studentAccount_ID`),
   KEY `riasecResult_ID` (`riasecResult_ID`),
@@ -196,12 +196,24 @@ INSERT INTO `tbl_studentassessments` (`studentAssessment_ID`, `studentAccount_ID
 	('f5d2464f-e7ca-4094-9714-a8df381aa90c', 8, 5, 5, NULL, NULL, '2025-10-04 07:29:48'),
 	('fcc71539-2404-4f95-96e6-88fe1068302d', 8, 2, 2, NULL, NULL, '2025-10-04 03:31:54');
 
+-- Dumping structure for table tigerroutesdb.tbl_studentgrades
+CREATE TABLE IF NOT EXISTS `tbl_studentgrades` (
+  `studentGrades_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `mathGrade` double DEFAULT NULL,
+  `scienceGrade` double DEFAULT NULL,
+  `englishGrade` double DEFAULT NULL,
+  `genAverageGrade` double DEFAULT NULL,
+  PRIMARY KEY (`studentGrades_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_studentgrades: ~0 rows (approximately)
+
 -- Dumping structure for table tigerroutesdb.tbl_studentprofiles
 CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
-  `studentProfile_ID` int NOT NULL AUTO_INCREMENT,
-  `strand_ID` int NOT NULL,
-  `gradeLevel` tinyint DEFAULT NULL,
-  `studentGrades_ID` int DEFAULT NULL,
+  `studentProfile_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `strand_ID` int(11) NOT NULL,
+  `gradeLevel` tinyint(4) DEFAULT NULL,
+  `studentGrades_ID` int(11) DEFAULT NULL,
   PRIMARY KEY (`studentProfile_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

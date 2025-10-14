@@ -59,6 +59,20 @@ const ProfilePage = () => {
                 if (data.gradeLevel) {
                     setYearLevel(data.gradeLevel === 11 ? 'Grade 11' : data.gradeLevel === 12 ? 'Grade 12' : '');
                 }
+                
+                // Populate existing grades data
+                if (data.genAverageGrade !== null && data.genAverageGrade !== undefined) {
+                    setGeneralAverage(data.genAverageGrade.toString());
+                }
+                if (data.mathGrade !== null && data.mathGrade !== undefined) {
+                    setMathGrade(data.mathGrade.toString());
+                }
+                if (data.scienceGrade !== null && data.scienceGrade !== undefined) {
+                    setScienceGrade(data.scienceGrade.toString());
+                }
+                if (data.englishGrade !== null && data.englishGrade !== undefined) {
+                    setEnglishGrade(data.englishGrade.toString());
+                }
             })
             .catch(error => {
                 console.error('Error fetching user data:', error);
@@ -141,6 +155,9 @@ const ProfilePage = () => {
                 placeholder="Enter first name"
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
+                readOnly
+                tabIndex={-1} //just remove the readOnly, tabIndex, and style if you want it to be editable again.
+                style={{ pointerEvents: "none", backgroundColor: "#f3f4f6", color: "#6b7280" }}                                
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
             </div>
@@ -152,6 +169,9 @@ const ProfilePage = () => {
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 placeholder="Enter last name"
+                readOnly
+                tabIndex={-1} //just remove the readOnly, tabIndex, and style if you want it to be editable again.
+                style={{ pointerEvents: "none", backgroundColor: "#f3f4f6", color: "#6b7280" }}                
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
             </div>
@@ -239,6 +259,8 @@ const ProfilePage = () => {
                 <input
                 type="text"
                 placeholder="e.g., 1.750"
+                value={generalAverage}
+                onChange={e => setGeneralAverage(e.target.value)}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
                 />
             </div>
@@ -249,6 +271,8 @@ const ProfilePage = () => {
                 <input
                 type="text"
                 placeholder="e.g., 95"
+                value={mathGrade}
+                onChange={e => setMathGrade(e.target.value)}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
                 />
             </div>
@@ -259,6 +283,8 @@ const ProfilePage = () => {
                 <input
                 type="text"
                 placeholder="e.g., 95"
+                value={scienceGrade}
+                onChange={e => setScienceGrade(e.target.value)}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
                 />
             </div>
@@ -269,6 +295,8 @@ const ProfilePage = () => {
                 <input
                 type="text"
                 placeholder="e.g., 95"
+                value={englishGrade}
+                onChange={e => setEnglishGrade(e.target.value)}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
                 />
             </div>

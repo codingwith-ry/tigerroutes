@@ -42,7 +42,9 @@ module.exports = (db) => {
 
     router.put('/student-profile/:id', (req, res) => {
         const studentAccountId = req.params.id;
-        const { firstName, lastName, strand_ID, gradeLevel } = req.body;
+        const { firstName, lastName, strand_ID, gradeLevel, generalAverage,
+            mathGrade, scienceGrade, englishGrade
+         } = req.body;
 
         // Start transaction to ensure data consistency
         db.beginTransaction((err) => {
@@ -59,6 +61,54 @@ module.exports = (db) => {
                             res.status(500).json({ error: err.message });
                         });
                     }
+
+                    // Handle grades - create or update tbl_studentgrades
+                    const handleGrades = (profileId, callback) => {
+                        if (generalAverage || mathGrade || scienceGrade || englishGrade) {
+                            //Convert empty strings to null for database
+                            const genAvg = generalAverage ? parseFloat(generalAverage) : null;
+                            const mathGrd = mathGrade ? parseFloat(mathGrade) : null;
+                            const scienceGrd = scienceGrade ? parseFloat(scienceGrade) : null;
+                            const englishGrd = englishGrade ? parseFloat(englishGrade) : null;
+
+                            db.query(
+                                'SELECT studentGrades_ID FROM tbl_studentprofiles WHERE studentProfile_ID = ?',
+                                [profileId],
+                                (err, results) => {
+                                    if (err) return callback(err);
+
+                                    const existingGradesId = results[0]?.studentGrades_ID;
+
+                                    if (existingGradesId) {
+                                        //Update existing grades
+                                        db.query(
+                                            'UPDATE tbl_studentgrades SET genAverageGrade = ?, mathGrade = ?, scienceGrade = ?, englishGrade = ? WHERE studentGrades_ID = ?',
+                                            [genAvg, mathGrd, scienceGrd, englishGrd, existingGradesId],
+                                            callback
+                                        );
+                                    } else {
+                                        db.query(
+                                            'INSERT INTO tbl_studentgrades (genAverageGrade, mathGrade, scienceGrade, englishGrade) VALUES (?, ?, ?, ?)',
+                                            [genAvg, mathGrd, scienceGrd, englishGrd],
+                                            (err, result) => {
+                                                if (err) return callback(err);
+
+                                                const newGradesId = result.insertId;
+                                                //Link grades to profile
+                                                db.query(
+                                                    'UPDATE tbl_studentprofiles SET studentGrades_ID = ? WHERE studentProfile_ID = ?',
+                                                    [newGradesId, profileId],
+                                                    callback
+                                                );
+                                            }
+                                        );
+                                    }
+                                }
+                            );
+                        } else {
+                            callback(null);
+                        }
+                    };
 
                     // Check if student already has a linked profile
                     db.query(
@@ -84,7 +134,17 @@ module.exports = (db) => {
                                                 res.status(500).json({ error: err.message });
                                             });
                                         }
-                                        
+
+                                        //Handle Grades
+                                        handleGrades(existingProfileId, (err) => {
+                                            if (err) {
+                                                return db.rollback(() => {
+                                                    res.status(500).json({ error: err.message });
+                                                });
+                                            }
+
+
+
                                         db.commit((err) => {
                                             if (err) {
                                                 return db.rollback(() => {
@@ -97,6 +157,7 @@ module.exports = (db) => {
                                                 profileId: existingProfileId 
                                             });
                                         });
+                                    });
                                     }
                                 );
                             } else {
@@ -112,6 +173,15 @@ module.exports = (db) => {
                                         }
 
                                         const newProfileId = result.insertId;
+
+                                        // Handle Grades
+                                        handleGrades(newProfileId, (err) => {
+                                            if (err) {
+                                                return db.rollback(() => {
+                                                    res.status(500).json({ error: err.message });
+                                                });
+                                            }
+
 
                                         // Link the new profile to the student account
                                         db.query(
@@ -138,6 +208,7 @@ module.exports = (db) => {
                                                 });
                                             }
                                         );
+                                    });
                                     }
                                 );
                             }
@@ -151,10 +222,22 @@ module.exports = (db) => {
     router.get('/student-profile/:id', (req, res) => {
         const id = req.params.id;
         db.query(`
-            SELECT sa.studentAccount_ID, sa.name, sa.email, sp.studentProfile_ID, sp.strand_ID, sp.gradeLevel, s.strandName
+            SELECT 
+                sa.studentAccount_ID, 
+                sa.name, 
+                sa.email, 
+                sp.studentProfile_ID, 
+                sp.strand_ID, 
+                sp.gradeLevel, 
+                s.strandName,
+                sg.genAverageGrade,
+                sg.mathGrade,
+                sg.scienceGrade,
+                sg.englishGrade
             FROM tbl_studentaccounts sa
             LEFT JOIN tbl_studentprofiles sp ON sa.studentProfile_ID = sp.studentProfile_ID
             LEFT JOIN tbl_strands s ON sp.strand_ID = s.strand_ID
+            LEFT JOIN tbl_studentgrades sg ON sp.studentGrades_ID = sg.studentGrades_ID
             WHERE sa.studentAccount_ID = ?`, [id], (err, results) => {
                 if (err) return res.status(500).json({ error: err.message });
                 if (results.length > 0) {

@@ -42,8 +42,7 @@ function App() {
           <Route path="/error" element={<Error />} />
           <Route path="/assessment" element={<AssessmentWelcome />} />
           <Route path="home" element={<UserHomepage />} />
-          <Route path="/results" element={<UserResults />} />
-          <Route path="/results-history" element={<UserResultsHistory />} />
+          <Route path="/results" element={<UserResultsHistory />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/noresult" element={<NoResultPage />} />
           <Route path="/assessment/test/RIASEC/:assessmentId" element={<AssessmentRIASECPage />} />

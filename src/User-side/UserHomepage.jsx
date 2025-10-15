@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FiBarChart2, FiAlertCircle, FiChevronRight, FiFileText } from "react-icons/fi";
 import { GiBrain } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,9 @@ import Footer from "../Visitor-side/Footer";
 const UserHomepage = () => {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem('user'));
+  useEffect(() =>{
+    document.title = 'TigerRoutes | Homepage'
+  });
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">

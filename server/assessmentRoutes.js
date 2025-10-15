@@ -306,5 +306,73 @@ module.exports = (db) => {
             return res.json({ success: false, message: e.message });
         }
     });
+
+    // routes/assessmentHistory.js
+    router.get('/assessment/history', (req, res) => {
+        try {
+            const { studentID } = req.query; // You might want to get this from auth middleware
+
+            if (!studentID) {
+                return res.json({ success: false, message: 'Student ID is required' });
+            }
+
+            const fetchAssessmentHistory = `
+                SELECT 
+                    sa.studentAssessment_ID as assessmentId,
+                    sa.date as date,
+                    sa.rating as satisfaction
+                FROM tbl_studentassessments sa
+                WHERE sa.studentAccount_ID = ?
+                ORDER BY sa.date DESC
+            `;
+
+            db.query(fetchAssessmentHistory, [studentID], (err, results) => {
+                if (err) {
+                    return res.json({ success: false, message: err.message });
+                }
+
+                // Format the data for frontend
+                const formattedAssessments = results.map(assessment => {
+                    const assessmentDate = new Date(assessment.date);
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    
+                    return {
+                        assessmentId: assessment.assessmentId,
+                        date: assessmentDate.toLocaleDateString('en-US'),
+                        day: dayNames[assessmentDate.getDay()],
+                        status: assessment.status,
+                        satisfaction: assessment.satisfaction || 0,
+                        reply: assessment.counselor ? {
+                            counselor: assessment.counselor,
+                            date: new Date(assessment.replyDate).toLocaleDateString('en-US'),
+                            isNew: assessment.isNew || false
+                        } : "No reply"
+                    };
+                });
+
+                // Calculate stats
+                const totalAssessments = results.length;
+                const avgSatisfaction = results.length > 0 
+                    ? (results.reduce((sum, a) => sum + (a.satisfaction || 0), 0) / results.length).toFixed(1)
+                    : 0;
+                const counselorReplies = results.filter(a => a.counselor).length;
+
+                res.json({
+                    success: true,
+                    data: {
+                        stats: {
+                            totalAssessments,
+                            avgSatisfaction: parseFloat(avgSatisfaction),
+                            counselorReplies
+                        },
+                        assessments: formattedAssessments
+                    }
+                });
+            });
+
+        } catch (error) {
+            return res.json({ success: false, message: error.message });
+        }
+    });
     return router;
 };

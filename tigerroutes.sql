@@ -217,8 +217,10 @@ CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
   `email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `studentProfile_ID` int DEFAULT NULL,
-  PRIMARY KEY (`studentAccount_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  PRIMARY KEY (`studentAccount_ID`),
+  KEY `FK_tbl_studentaccounts_tbl_studentprofiles` (`studentProfile_ID`),
+  CONSTRAINT `FK_tbl_studentaccounts_tbl_studentprofiles` FOREIGN KEY (`studentProfile_ID`) REFERENCES `tbl_studentprofiles` (`studentProfile_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table tigerroutesdb.tbl_studentaccounts: ~0 rows (approximately)
 INSERT INTO `tbl_studentaccounts` (`studentAccount_ID`, `name`, `email`, `password`, `studentProfile_ID`) VALUES
@@ -262,12 +264,14 @@ CREATE TABLE IF NOT EXISTS `tbl_studentgrades` (
 
 -- Dumping structure for table tigerroutesdb.tbl_studentprofiles
 CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
-  `studentProfile_ID` int(11) NOT NULL AUTO_INCREMENT,
-  `strand_ID` int(11) NOT NULL,
-  `gradeLevel` tinyint(4) DEFAULT NULL,
-  `studentGrades_ID` int(11) DEFAULT NULL,
-  PRIMARY KEY (`studentProfile_ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `studentProfile_ID` int NOT NULL AUTO_INCREMENT,
+  `strand_ID` int NOT NULL,
+  `gradeLevel` tinyint DEFAULT NULL,
+  `studentGrades_ID` int DEFAULT NULL,
+  PRIMARY KEY (`studentProfile_ID`),
+  KEY `FK_tbl_studentprofiles_tbl_studentgrades` (`studentGrades_ID`),
+  CONSTRAINT `FK_tbl_studentprofiles_tbl_studentgrades` FOREIGN KEY (`studentGrades_ID`) REFERENCES `tbl_studentgrades` (`studentGrades_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table tigerroutesdb.tbl_studentprofiles: ~0 rows (approximately)
 

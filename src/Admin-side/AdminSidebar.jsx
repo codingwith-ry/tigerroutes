@@ -8,6 +8,12 @@ const AdminSidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
+  const staffUser = (() => {
+    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null');} catch { return null; }
+  })();
+  
+  const isSupervisor = staffUser?.staffRole_ID === 2 || staffUser?.role?.toLowerCase() === 'supervisor';
+
   const links = [
     {
       path: "/admin/dashboard",
@@ -20,12 +26,12 @@ const AdminSidebar = () => {
       label: "Assessment",
       matches: ["/admin/assessment", "/admin/student"],
     },
-    {
+    ...(isSupervisor ? [{  
       path: "/admin/counselors",
       icon: <Users className="w-5 h-5 mr-3" />,
       label: "Manage Counselors",
       matches: ["/admin/counselors", "/admin/preview"],
-    },
+    }] : []),
   ];
 
   const handleLogout = () => {

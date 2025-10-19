@@ -219,7 +219,7 @@ module.exports = (db) => {
             return res.status(400).json({ error: 'Email and password required'});
         }
         db.query(
-            'SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?',
+            'SELECT sa.*, sr.role FROM tbl_staffaccounts sa  LEFT JOIN tbl_staffroles sr ON sa.staffRole_ID = sr.staffRole_ID WHERE sa.email = ? AND sa.password = ?',
             [email, password],
             (err, results) => {
                 if (err) return res.status(500).json({ error: err.message});

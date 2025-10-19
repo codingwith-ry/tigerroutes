@@ -219,7 +219,7 @@ CREATE TABLE IF NOT EXISTS `tbl_staffroles` (
 
 -- Dumping data for table tigerroutesdb.tbl_staffroles: ~0 rows (approximately)
 INSERT INTO `tbl_staffroles` (`staffRole_ID`, `role`) VALUES
-	(1, 'admin'),
+	(1, 'counselor'),
 	(2, 'supervisor');  
 
 -- Dumping structure for table tigerroutesdb.tbl_strands

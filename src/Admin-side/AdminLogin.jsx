@@ -5,17 +5,33 @@ import { useNavigate } from "react-router-dom"; // Add this import
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const navigate = useNavigate(); // Add navigation hook
 
   // Add form handler
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your authentication logic here
-    // For now, we'll just redirect
-    navigate('/admin/dashboard'); // Redirects to dashboard
+    try {
+      const resp = await fetch('http://localhost:5000/api/staff-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // using username as the email field
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      });
+      const data = await resp.json();
+
+      if (data.success && data.user) {
+        // Persist staff info for role-based UI
+        sessionStorage.setItem('staffUser', JSON.stringify(data.user));
+        navigate('/admin/dashboard');
+      } else {
+        alert(data.error || 'Invalid email or password');
+      }
+    } catch (err) {
+      alert('Login failed, Please try again.');
+    }
   };
 
   // Add input handler
@@ -61,9 +77,9 @@ const AdminLogin = () => {
           <form className="space-y-4 font-sfpro" onSubmit={handleSubmit}>
             <input
               type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
+              name="email"
+              placeholder="Email"
+              value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-full border bg-white border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#fbc562] font-sfpro"
               autoComplete="username"

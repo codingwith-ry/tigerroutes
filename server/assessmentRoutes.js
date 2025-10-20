@@ -3,15 +3,68 @@ const express = require('express');
 module.exports = (db) => {
     const router = express.Router();
 
-    router.get('/assessment/getStrands', (req, res) => {
-        const query = `SELECT * FROM tbl_strands`;
-        db.query(query, (err, results) => {
-            if (err) {
-                console.error('Error fetching strands:', err);
-                return res.status(500).json({ message: 'Internal server error' });
+    router.get('/assessment/profile', async (req, res) => {
+        try {
+            const { studentAccountId } = req.query;
+
+            if (!studentAccountId) {
+                return res.status(400).json({ error: 'studentAccountId is required' });
             }
-            res.json(results);
-        });
+
+            const query = `
+            SELECT 
+                sa.studentAccount_ID,
+                sa.name,
+                sa.email,
+                sp.studentProfile_ID,
+                sp.gradeLevel,
+                sp.strand_ID,
+                strands.strandName AS strand,
+                sg.mathGrade,
+                sg.scienceGrade,
+                sg.englishGrade,
+                sg.genAverageGrade
+            FROM tbl_studentAccounts sa
+            LEFT JOIN tbl_studentProfiles sp ON sa.studentProfile_ID = sp.studentProfile_ID
+            LEFT JOIN tbl_strands strands ON sp.strand_ID = strands.strand_ID
+            LEFT JOIN tbl_studentGrades sg ON sp.studentGrades_ID = sg.studentGrades_ID
+            WHERE sa.studentAccount_ID = ?
+            `;
+
+            // Using db.query with promise wrapper
+            db.query(query, [studentAccountId], (error, results) => {
+                if (error) {
+                    console.error('Database error:', error);
+                    return res.status(500).json({ error: 'Database error' });
+                }
+
+                if (!results.length) {
+                    return res.status(404).json({ error: 'Student not found' });
+                }
+
+                const user = results[0];
+                const userData = {
+                    studentAccount_ID: user.studentAccount_ID,
+                    name: user.name,
+                    email: user.email,
+                    contact: user.contact,
+                    studentProfile_ID: user.studentProfile_ID,
+                    gradeLevel: user.gradeLevel,
+                    strandID: user.strand_ID,
+                    strand: user.strand,
+                    mathGrade: user.mathGrade,
+                    scienceGrade: user.scienceGrade,
+                    englishGrade: user.englishGrade,
+                    genAverageGrade: user.genAverageGrade
+                };
+
+                res.json(userData);
+            });
+
+        } catch (error) {
+            console.error('Error fetching student profile:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     });
 
     router.post('/assessment/complete', (req, res) => {
@@ -307,10 +360,9 @@ module.exports = (db) => {
         }
     });
 
-    // routes/assessmentHistory.js
     router.get('/assessment/history', (req, res) => {
         try {
-            const { studentID } = req.query; // You might want to get this from auth middleware
+            const { studentID } = req.query;
 
             if (!studentID) {
                 return res.json({ success: false, message: 'Student ID is required' });
@@ -320,8 +372,16 @@ module.exports = (db) => {
                 SELECT 
                     sa.studentAssessment_ID as assessmentId,
                     sa.date as date,
-                    sa.rating as satisfaction
+                    sa.rating as satisfaction,
+                    sa.feedback as feedback,
+                    cn.counselorNotes as counselorNotes,
+                    cn.date as noteDate,
+                    cn.staffAccount_ID as staffId,
+                    s.name as counselorName,
+                    s.email as counselorEmail
                 FROM tbl_studentassessments sa
+                LEFT JOIN tbl_counselornotes cn ON sa.studentAssessment_ID = cn.studentAssessment_ID
+                LEFT JOIN tbl_staffaccounts s ON cn.staffAccount_ID = s.staffAccount_ID
                 WHERE sa.studentAccount_ID = ?
                 ORDER BY sa.date DESC
             `;
@@ -336,16 +396,20 @@ module.exports = (db) => {
                     const assessmentDate = new Date(assessment.date);
                     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                     
+                    // Determine if there's a counselor reply
+                    const hasCounselorReply = assessment.counselorName && assessment.counselorNotes;
+                    
                     return {
                         assessmentId: assessment.assessmentId,
                         date: assessmentDate.toLocaleDateString('en-US'),
                         day: dayNames[assessmentDate.getDay()],
-                        status: assessment.status,
+                        status: 'Completed', // Assuming all are completed since they're in history
                         satisfaction: assessment.satisfaction || 0,
-                        reply: assessment.counselor ? {
-                            counselor: assessment.counselor,
-                            date: new Date(assessment.replyDate).toLocaleDateString('en-US'),
-                            isNew: assessment.isNew || false
+                        reply: hasCounselorReply ? {
+                            counselor: assessment.counselorName,
+                            date: assessment.noteDate ? new Date(assessment.noteDate).toLocaleDateString('en-US') : 'No date',
+                            notes: assessment.counselorNotes,
+                            isNew: false // You can add logic to determine if it's new based on dates
                         } : "No reply"
                     };
                 });
@@ -355,7 +419,7 @@ module.exports = (db) => {
                 const avgSatisfaction = results.length > 0 
                     ? (results.reduce((sum, a) => sum + (a.satisfaction || 0), 0) / results.length).toFixed(1)
                     : 0;
-                const counselorReplies = results.filter(a => a.counselor).length;
+                const counselorReplies = results.filter(a => a.counselorName && a.counselorNotes).length;
 
                 res.json({
                     success: true,
@@ -372,6 +436,66 @@ module.exports = (db) => {
 
         } catch (error) {
             return res.json({ success: false, message: error.message });
+        }
+    });
+    
+    router.get('/assessment/getHomeAnalytics', (req, res) => {
+        try {
+            const { studentAccountId } = req.query;
+
+            if (!studentAccountId) {
+                return res.status(400).json({ error: 'studentAccountId is required' });
+            }
+
+            const query = `
+                SELECT 
+                    -- Total number of assessments completed
+                    COUNT(*) as totalAssessments,
+                    
+                    -- Average engagement (records with rating not null divided by total assessments)
+                    (COUNT(CASE WHEN rating IS NOT NULL THEN 1 END) * 100.0 / COUNT(*)) as averageEngagement,
+                    
+                    -- Average satisfaction (sum of ratings divided by number of ratings)
+                    AVG(CASE WHEN rating IS NOT NULL THEN rating END) as averageSatisfaction,
+                    
+                    -- Additional useful metrics
+                    COUNT(CASE WHEN rating IS NOT NULL THEN 1 END) as ratedAssessments,
+                    COUNT(CASE WHEN rating IS NULL THEN 1 END) as unratedAssessments,
+                    MAX(rating) as highestRating,
+                    MIN(CASE WHEN rating IS NOT NULL THEN rating END) as lowestRating
+                FROM tbl_studentassessments 
+                WHERE studentAccount_ID = ?
+            `;
+
+            db.query(query, [studentAccountId], (error, results) => {
+                if (error) {
+                    console.error('Database error:', error);
+                    return res.status(500).json({ error: 'Database error' });
+                }
+
+                if (!results.length) {
+                    return res.status(404).json({ error: 'No assessment data found' });
+                }
+
+                const analytics = results[0];
+                
+                // Format the response
+                const response = {
+                    totalAssessments: analytics.totalAssessments || 0,
+                    averageEngagement: analytics.averageEngagement ? Math.round(analytics.averageEngagement) : 0,
+                    averageSatisfaction: analytics.averageSatisfaction ? Math.round(analytics.averageSatisfaction * 10) / 10 : 0, // Round to 1 decimal
+                    ratedAssessments: analytics.ratedAssessments || 0,
+                    unratedAssessments: analytics.unratedAssessments || 0,
+                    highestRating: analytics.highestRating || 0,
+                    lowestRating: analytics.lowestRating || 0
+                };
+
+                res.json(response);
+            });
+
+        } catch (error) {
+            console.error('Error fetching home analytics:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
     return router;

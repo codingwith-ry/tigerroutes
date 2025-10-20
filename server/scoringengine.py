@@ -7,6 +7,7 @@ app = FastAPI()
 # -------------------------------
 # Load Program Profiles
 # -------------------------------
+
 def load_program_profiles():
     try:
         with open("ProgramProfiles.json", "r") as file:

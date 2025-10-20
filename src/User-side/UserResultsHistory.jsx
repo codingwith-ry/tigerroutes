@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FiEye, FiFileText, FiMessageCircle, FiCalendar, FiCopy } from "react-icons/fi";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
+import Swal from "sweetalert2";
 
 const UserResultsHistory = () => {
   const navigate = useNavigate();
@@ -104,6 +105,30 @@ const UserResultsHistory = () => {
     );
   };
 
+
+  const handleShowFeedback = (feedback, userRating) => {
+    const notes = feedback;
+    const rating = userRating; // assuming rating is a number (e.g. 4)
+    
+    const stars = Array.from({ length: 5 }, (_, i) => 
+      i < rating
+        ? `<span style="color: gold; font-size: 20px;">&#9733;</span>`
+        : `<span style="color: lightgray; font-size: 20px;">&#9733;</span>`
+    ).join("");
+
+    Swal.fire({
+      title: "Feedback Details",
+      html: `
+        <div style="text-align: left;">
+          <p style="font-size: 16px; margin-bottom: 10px;">${notes}</p>
+          <div>${stars}</div>
+        </div>
+      `,
+      confirmButtonText: "Close",
+      width: 500,
+    });
+  };
+
   if (loading) {
     return (
       <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -167,6 +192,7 @@ const UserResultsHistory = () => {
               <span className="text-yellow-500 text-3xl">★</span>
             </ProgressCircle>
           </div>
+          
 
           {/* Counselor Replies */}
           <div className="bg-white p-6 rounded-xl shadow flex items-center justify-between border border-black">
@@ -198,6 +224,7 @@ const UserResultsHistory = () => {
                       <th className="py-3 px-4">Assessment ID</th>
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Satisfaction</th>
+                      <th className="py-3 px-4">Feedback</th>
                       <th className="py-3 px-4">Counselor Reply</th>
                       <th className="py-3 px-4">Action</th>
                     </tr>
@@ -249,6 +276,19 @@ const UserResultsHistory = () => {
                             <span className="ml-2 text-gray-600">{assessment.satisfaction}/5</span>
                           </div>
                         </td>
+
+                        {assessment.reply.notes ? (
+                          <td
+                            className="py-3 px-4 max-w-xs truncate cursor-pointer text-blue-600 hover:underline"
+                            onClick={() => handleShowFeedback(assessment.reply.notes, assessment.satisfaction)}
+                            title="Click to view full feedback"
+                          >
+                            {assessment.reply.notes}
+                          </td>
+                        ) : (
+                          <td className="py-3 px-4 text-gray-500">No Feedback</td>
+                        )}
+                        
                         
                         {/* Counselor Reply Column */}
                         <td className="py-3 px-4">

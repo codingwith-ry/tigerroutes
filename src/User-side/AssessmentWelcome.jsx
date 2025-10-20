@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import UserNavbar from "./UserNavbar";
 import { UserCircle2, SquarePen, BookOpen, Brain, FileText } from "lucide-react";
 import Footer from "../Visitor-side/Footer";
@@ -7,40 +7,102 @@ import { v4 as uuidv4 } from 'uuid';
 
 const AssessmentPage = () => {
   const navigate = useNavigate();
-  useEffect(() => {
-      document.title = "Assessment | Overview";
-      if(localStorage.getItem('riasecAnswers') && localStorage.getItem('riasecResults')){
-          localStorage.removeItem('riasecAnswers');
-          localStorage.removeItem('riasecResults');
-        }else if(localStorage.getItem('riasecAnswers')){
-          localStorage.removeItem('riasecAnswers');
-        }else{
-          localStorage.removeItem('riasecResults');
-        }
-    
-        if(localStorage.getItem('bigFiveAnswers') && localStorage.getItem('bigFiveResults')){
-          localStorage.removeItem('bigFiveAnswers');
-          localStorage.removeItem('bigFiveResults');
-        }else if(localStorage.getItem('bigFiveAnswers')){
-          localStorage.removeItem('bigFiveAnswers');
-        }else{
-          localStorage.removeItem('bigFiveResults');
-        }
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-        if(localStorage.getItem('currentAssessmentId')){
-          localStorage.removeItem('currentAssessmentId');
-        }
-      return () => {
+  useEffect(() => {
+    document.title = "Assessment | Overview";
+    
+    // Clear assessment data
+    if(localStorage.getItem('riasecAnswers') && localStorage.getItem('riasecResults')){
+      localStorage.removeItem('riasecAnswers');
+      localStorage.removeItem('riasecResults');
+    } else if(localStorage.getItem('riasecAnswers')){
+      localStorage.removeItem('riasecAnswers');
+    } else {
+      localStorage.removeItem('riasecResults');
+    }
+
+    if(localStorage.getItem('bigFiveAnswers') && localStorage.getItem('bigFiveResults')){
+      localStorage.removeItem('bigFiveAnswers');
+      localStorage.removeItem('bigFiveResults');
+    } else if(localStorage.getItem('bigFiveAnswers')){
+      localStorage.removeItem('bigFiveAnswers');
+    } else {
+      localStorage.removeItem('bigFiveResults');
+    }
+
+    if(localStorage.getItem('currentAssessmentId')){
+      localStorage.removeItem('currentAssessmentId');
+    }
+
+    // Fetch user data
+    fetchUserData();
+
+    return () => {
       document.title = "Default Title";
     };
   }, []);
 
+  const fetchUserData = async () => {
+    try {
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      if (!user || !user.studentAccount_ID) {
+        throw new Error('No user found in session storage');
+      }
+
+      const response = await fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const data = await response.json();
+      setUserData(data);
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const startAssessment = () => {
-    const assessmentId = uuidv4(); // Generate unique ID
-    localStorage.setItem('currentAssessmentId', assessmentId); // Store for reference
+    const assessmentId = uuidv4();
+    localStorage.setItem('currentAssessmentId', assessmentId);
     window.scrollTo(0, 0);
     navigate(`/assessmentRIASEC/${assessmentId}`);
   };
+
+  // Helper function to format grade display
+  const formatGrade = (grade) => {
+    return grade !== null && grade !== undefined ? grade : 'N/A';
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
+        <UserNavbar />
+        <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 flex items-center justify-center">
+          <div className="text-center">Loading profile data...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
+        <UserNavbar />
+        <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 flex items-center justify-center">
+          <div className="text-center text-red-600">Error: {error}</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -54,32 +116,53 @@ const AssessmentPage = () => {
             style={{ fontFamily: "SF Pro" }}
           >
             <div className="flex flex-col sm:flex-row items-start sm:items-center">
-              {/* Profile Icon */}
-              <div className="mr-0 sm:mr-2 mb-2 sm:mb-0">
-                <UserCircle2 size={40} stroke="#FB9724" strokeWidth={2} />
-              </div>
+              
+              
 
               {/* Profile Info */}
               <div className="w-full">
-                <h2 className="font-semibold pl-0 sm:pl-5 text-base sm:text-lg mb-3 sm:mb-2">
-                  Current Profile
-                </h2>
+                {/* Profile Icon */}
+                <div className="flex items-center mb-2">
+                  <div className="mr-2">
+                    <UserCircle2 size={40} stroke="#FB9724" strokeWidth={2} />
+                  </div>
+                  <h2 className="font-semibold pl-0 sm:pl-5 text-base sm:text-lg mb-3 sm:mb-2">
+                      Current Profile
+                  </h2>
+                </div>
 
                 {/* Desktop / Tablet Layout */}
                 <div className="hidden sm:block">
-                  <div className="grid grid-cols-4 text-sm font-semibold">
+                  <div className="grid grid-cols-4 text-sm font-semibold mb-2">
                     <span className="pl-5">Name:</span>
-                    <span className="pl-4 -ml-2">Email:</span>
-                    <span className="pl-20">Contact:</span>
-                    <span className="pl-20">Strand:</span>
+                    <span className="pl-4">Email:</span>
+                    <span className="pl-4">Grade Level:</span>
+                    <span className="pl-4">Strand:</span>
                   </div>
                   <div className="grid grid-cols-4 text-sm">
-                    <span className="pl-5">Juan Dela Cruz</span>
-                    <span className="pl-4 -ml-2 break-words">
-                      juan.delacruz.shs@ust.edu.ph
+                    <span className="pl-5">{userData?.name || 'N/A'}</span>
+                    <span className="pl-4 break-words">
+                      {userData?.email || 'N/A'}
                     </span>
-                    <span className="pl-20">(0912) 345 6789</span>
-                    <span className="pl-20">STEM</span>
+                    <span className="pl-4">{userData?.gradeLevel || 'N/A'}</span>
+                    <span className="pl-4">{userData?.strand || 'N/A'}</span>
+                    
+                  </div>
+                  
+                  {/* Grades Section */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="grid grid-cols-4 text-sm font-semibold mb-2">
+                      <span className="pl-5">Math Grade:</span>
+                      <span className="pl-4">Science Grade:</span>
+                      <span className="pl-4">English Grade:</span>
+                      <span className="pl-4">Average Grade:</span>
+                    </div>
+                    <div className="grid grid-cols-4 text-sm">
+                      <span className="pl-5">{formatGrade(userData?.mathGrade)}</span>
+                      <span className="pl-4">{formatGrade(userData?.scienceGrade)}</span>
+                      <span className="pl-4">{formatGrade(userData?.englishGrade)}</span>
+                      <span className="pl-4">{formatGrade(userData?.genAverageGrade)}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -87,19 +170,35 @@ const AssessmentPage = () => {
                 <div className="block sm:hidden space-y-3 text-sm">
                   <div>
                     <span className="font-semibold">Name:</span>
-                    <p>Juan Dela Cruz</p>
+                    <p>{userData?.name || 'N/A'}</p>
                   </div>
                   <div>
                     <span className="font-semibold">Email:</span>
-                    <p className="break-words">juan.delacruz.shs@ust.edu.ph</p>
+                    <p className="break-words">{userData?.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <span className="font-semibold">Contact:</span>
-                    <p>(0912) 345 6789</p>
+                    <span className="font-semibold">Grade Level:</span>
+                    <p>{userData?.gradeLevel || 'N/A'}</p>
                   </div>
                   <div>
                     <span className="font-semibold">Strand:</span>
-                    <p>STEM</p>
+                    <p>{userData?.strand || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Math Grade:</span>
+                    <p>{formatGrade(userData?.mathGrade)}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Science Grade:</span>
+                    <p>{formatGrade(userData?.scienceGrade)}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">English Grade:</span>
+                    <p>{formatGrade(userData?.englishGrade)}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold">Average Grade:</span>
+                    <p>{formatGrade(userData?.genAverageGrade)}</p>
                   </div>
                 </div>
               </div>
@@ -127,45 +226,45 @@ const AssessmentPage = () => {
               and interest assessment designed to unlock your potential.
             </p>
 
-{/* Step Progress Indicator */}
-<div className="flex justify-center items-center text-sm mb-10">
-  <div className="flex items-center space-x-6 text-purple-700">
-    <div className="flex items-center space-x-2">
-      <UserCircle2 size={18} />
-      <span className="font-medium">Overview</span>
-    </div>
+            {/* Step Progress Indicator */}
+            <div className="flex justify-center items-center text-sm mb-10">
+              <div className="flex items-center space-x-6 text-purple-700">
+                <div className="flex items-center space-x-2">
+                  <UserCircle2 size={18} />
+                  <span className="font-medium">Overview</span>
+                </div>
 
-    <span className="text-gray-400">{">"}</span>
+                <span className="text-gray-400">{">"}</span>
 
-    <div className="flex items-center space-x-2">
-      <BookOpen size={18} />
-      <span className="font-medium">RIASEC</span>
-    </div>
+                <div className="flex items-center space-x-2">
+                  <BookOpen size={18} />
+                  <span className="font-medium">RIASEC</span>
+                </div>
 
-    <span className="text-gray-400">{">"}</span>
+                <span className="text-gray-400">{">"}</span>
 
-    <div className="flex items-center space-x-2">
-      <Brain size={18} />
-      <span className="font-medium">Big Five</span>
-    </div>
+                <div className="flex items-center space-x-2">
+                  <Brain size={18} />
+                  <span className="font-medium">Big Five</span>
+                </div>
 
-    <span className="text-gray-400">{">"}</span>
+                <span className="text-gray-400">{">"}</span>
 
-    <div className="flex items-center space-x-2">
-      <FileText size={18} />
-      <span className="font-medium">Results</span>
-    </div>
-  </div>
-</div>
+                <div className="flex items-center space-x-2">
+                  <FileText size={18} />
+                  <span className="font-medium">Results</span>
+                </div>
+              </div>
+            </div>
 
-            {/* What You’ll Discover */}
+            {/* What You'll Discover */}
             <div className="bg-blue-100 border border-gray-200 rounded-xl p-6 mb-5 text-center">
               <h3 className="text-blue-700 font-semibold text-lg mb-3">
-                What You’ll Discover
+                What You'll Discover
               </h3>
               <p className="text-blue-700 text-sm leading-relaxed max-w-2xl mx-auto">
                 Our assessment will help you understand your personality traits,
-                interests, and work preferences. You’ll receive personalized career
+                interests, and work preferences. You'll receive personalized career
                 recommendations based on the RIASEC and Big Five models, giving you
                 valuable insights into careers that align with who you are and what
                 motivates you.
@@ -197,7 +296,7 @@ const AssessmentPage = () => {
                   Quick & Easy
                 </h4>
                 <p className="text-sm text-yellow-700">
-                  Takes only 10–15 minutes to complete.
+                  Takes only 10-15 minutes to complete.
                 </p>
               </div>
             </div>
@@ -205,14 +304,14 @@ const AssessmentPage = () => {
             {/* CTA Button Centered */}
             <div className="flex justify-center">
               <button
-              onClick={() => {
-                window.scrollTo(0, 0); // scroll to top
-                startAssessment(); // start assessment
-              }}
-              className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
-            >
-              Begin Assessment
-            </button>
+                onClick={() => {
+                  window.scrollTo(0, 0);
+                  startAssessment();
+                }}
+                className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
+              >
+                Begin Assessment
+              </button>
             </div>
           </div>
         </div>

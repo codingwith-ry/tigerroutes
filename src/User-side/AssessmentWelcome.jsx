@@ -122,11 +122,11 @@ const AssessmentPage = () => {
               {/* Profile Info */}
               <div className="w-full">
                 {/* Profile Icon */}
-                <div className="flex items-center mb-2">
+                <div className="flex items-center mb-3 pl-5">
                   <div className="mr-2">
                     <UserCircle2 size={40} stroke="#FB9724" strokeWidth={2} />
                   </div>
-                  <h2 className="font-semibold pl-0 sm:pl-5 text-base sm:text-lg mb-3 sm:mb-2">
+                  <h2 className="font-semibold py-2 pl-0 text-base sm:text-lg">
                       Current Profile
                   </h2>
                 </div>
@@ -139,6 +139,7 @@ const AssessmentPage = () => {
                     <span className="pl-4">Grade Level:</span>
                     <span className="pl-4">Strand:</span>
                   </div>
+
                   <div className="grid grid-cols-4 text-sm">
                     <span className="pl-5">{userData?.name || 'N/A'}</span>
                     <span className="pl-4 break-words">

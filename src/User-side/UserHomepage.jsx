@@ -196,7 +196,8 @@ const UserHomepage = () => {
               Please complete your academic profile to get personalized recommendations.
             </p>
           </div>
-          <button className="mt-4 md:mt-0 self-start md:self-auto px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow transition hover:scale-105 duration-200">
+          <button className="mt-4 md:mt-0 self-start md:self-auto px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow transition hover:scale-105 duration-200"
+          onClick={() => navigate("/profile")}>
             Complete Profile
           </button>
         </div>
@@ -256,8 +257,14 @@ const UserHomepage = () => {
             </div>
 
             {/* Tip 2 */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer">
-              <div className="text-green-500 text-2xl">📚</div>
+            <div
+              role="link"
+              tabIndex={0}
+              onClick={() => window.open("https://www.ust.edu.ph/academics/faculties-colleges-institutes-and-schools/", "_blank", "noopener,noreferrer")}
+              onKeyDown={(e) => { if (e.key === "Enter") window.open("https://www.ust.edu.ph/academics/faculties-colleges-institutes-and-schools/", "_blank", "noopener,noreferrer"); }}
+              className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer"
+            >
+              <div className="text-purple-500 text-2xl">🔗</div>
               <div>
                 <h4 className="font-semibold text-gray-800">Explore Career Paths</h4>
                 <p className="text-sm text-gray-600 mt-1">
@@ -267,10 +274,16 @@ const UserHomepage = () => {
             </div>
 
             {/* Tip 3 */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate("/profile")}
+              onKeyDown={(e) => { if (e.key === "Enter") navigate("/profile"); }}
+              className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer"
+            >
               <div className="text-blue-500 text-2xl">📝</div>
               <div>
-                <h4 className="font-semibold text-gray-800">Complete Your Profile</h4>
+                <h4 className="font-semibold text-gray-800">Complete/Update Your Profile</h4>
                 <p className="text-sm text-gray-600 mt-1">
                   Fill out your academic info to get more accurate program recommendations.
                 </p>
@@ -278,12 +291,18 @@ const UserHomepage = () => {
             </div>
 
             {/* Tip 4 */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer">
+            <div
+              role="link"
+              tabIndex={0}
+              onClick={() => window.open("https://www.ust.edu.ph", "_blank", "noopener,noreferrer")}
+              onKeyDown={(e) => { if (e.key === "Enter") window.open("https://www.ust.edu.ph", "_blank", "noopener,noreferrer"); }}
+              className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer"
+            >
               <div className="text-purple-500 text-2xl">🔗</div>
               <div>
                 <h4 className="font-semibold text-gray-800">Useful Resources</h4>
                 <p className="text-sm text-gray-600 mt-1">
-                  Visit UST's official site for program details, scholarships, and application tips.
+                  Visit UST's official site for program details, scholarships, and university information.
                 </p>
               </div>
             </div>

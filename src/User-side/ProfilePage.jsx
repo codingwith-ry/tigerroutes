@@ -22,6 +22,8 @@ const ProfilePage = () => {
 
     // validation state
     const [errors, setErrors] = useState({
+        selectedStrand: null,
+      yearLevel: null,
       generalAverage: null,
       mathGrade: null,
       scienceGrade: null,
@@ -111,6 +113,8 @@ const ProfilePage = () => {
     // basic form validation before submit
     const validateForm = () => {
       const newErrors = {};
+      newErrors.selectedStrand = selectedStrand ? null : 'Strand/Track is required';
+      newErrors.yearLevel = yearLevel ? null : 'Year level is required';
       newErrors.generalAverage = generalAverage ? null : 'General Average is required';
       newErrors.mathGrade = mathGrade ? null : 'Mathematics grade is required';
       newErrors.scienceGrade = scienceGrade ? null : 'Science grade is required';
@@ -262,7 +266,10 @@ const ProfilePage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1" id="strand">Strand/Track</label>
                 <select 
                     value={selectedStrand}
-                    onChange={e => setSelectedStrand(e.target.value)}
+                    onChange={e => {
+                      setSelectedStrand(e.target.value);
+                      setErrors(prev => ({ ...prev, selectedStrand: null }));
+                    }}
                     className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
                         <option value="" disabled hidden>Select Strand</option>
                         {strands.map(strand => (
@@ -271,6 +278,7 @@ const ProfilePage = () => {
                             </option>
                         ))}
                 </select>
+                {errors.selectedStrand && <p className="text-xs text-red-600 mt-1">{errors.selectedStrand}</p>}
             </div>
 
 
@@ -278,12 +286,16 @@ const ProfilePage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Year Level</label>
             <select 
                 value={yearLevel}
-                onChange={e => setYearLevel(e.target.value)}
+                onChange={e => {
+                  setYearLevel(e.target.value);
+                  setErrors(prev => ({ ...prev, yearLevel: null }));
+                }}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
                     <option value="" disabled hidden>Select Year</option>
                     <option className="text-gray-700">Grade 11</option>
                     <option className="text-gray-700">Grade 12</option>
                     </select>
+                    {errors.yearLevel && <p className="text-xs text-red-600 mt-1">{errors.yearLevel}</p>}
             </div>
         </div>
 

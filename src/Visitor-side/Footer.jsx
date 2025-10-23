@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import CookiesModal from "../Visitor-side/CookiesModal";
 
 const Footer = () => {
   const [isCookiesModalOpen, setIsCookiesModalOpen] = useState(false);
+
 
   return (
     <>

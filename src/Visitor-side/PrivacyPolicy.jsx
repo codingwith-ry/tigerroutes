@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../Visitor-side/Navbar";
+import UserNavbar from "../User-side/UserNavbar";
 
 const sections = [
   {
@@ -167,8 +168,11 @@ const sections = [
 ];
 
 const PrivacyPolicy = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
+    document.title = "Privacy Policy | TigerRoutes";
+    sessionStorage.getItem("user") ? setLoggedIn(true) : setLoggedIn(false);
     return () => {
       document.documentElement.style.scrollBehavior = "auto";
     };
@@ -176,7 +180,8 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900"  style={{width: '100%'}}>
-      <Navbar />
+      {loggedIn ? <UserNavbar /> : <Navbar />}
+      
       <header className="relative bg-gradient-to-b from-[#FFCC00] to-white text-black text-center py-12">
         <h1 className="text-4xl font-bold">Privacy Policy</h1>
         <p className="mt-2 text-gray-700">Effective Date: November 2025</p>

@@ -1,4 +1,5 @@
 const express = require('express');
+const { resolvePath } = require('react-router-dom');
 
 module.exports = (db) => {
     const router = express.Router();
@@ -71,6 +72,31 @@ module.exports = (db) => {
         console.log("Assessment completion endpoint hit");
         const { studentAssessment_ID, studentAccount_ID, riasecResults, bigFiveResults } = req.body;
 
+        const fetchStudentProfileDetails = `
+        SELECT 
+            sa.name, 
+            sa.email, 
+            sp.strand_ID, 
+            sp.studentGrades_ID,
+            s.strandName,
+            sp.gradeLevel,
+            sg.mathGrade,
+            sg.scienceGrade,
+            sg.englishGrade,
+            sg.genAverageGrade
+        FROM tbl_studentaccounts AS sa
+        INNER JOIN tbl_studentprofiles AS sp
+            ON sa.studentProfile_ID = sp.studentProfile_ID
+        INNER JOIN tbl_strands AS s
+            ON sp.strand_ID = s.strand_ID
+        INNER JOIN tbl_studentgrades AS sg
+            ON sp.studentGrades_ID = sg.studentGrades_ID
+        WHERE sa.studentAccount_ID = ?;
+        `;
+
+        const studentProfileQuery = `INSERT INTO tbl_assessmentProfiles (mathGrade, scienceGrade, englishGrade, genAverageGrade, strand_ID, gradeLevel) VALUES (?, ?, ?, ?, ?, ?)`;
+        
+
         const riasecQuery = `
             INSERT INTO tbl_riasecresults 
             (realistic, investigative, artistic, social, enterprising, conventional) 
@@ -82,6 +108,8 @@ module.exports = (db) => {
             (openness, conscientiousness, extraversion, agreeableness, neuroticism) 
             VALUES (?, ?, ?, ?, ?)
         `;
+
+        
 
         db.query(
             riasecQuery,
@@ -119,95 +147,128 @@ module.exports = (db) => {
 
                         console.log("Big Five insertId:", bigFiveResult.insertId);
 
-                        const assessmentQuery = `INSERT INTO tbl_studentassessments (studentAssessment_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID, date) VALUES(?, ?, ?, ?, ?)`;
                         db.query(
-                            assessmentQuery,
-                            [
-                                studentAssessment_ID,
-                                studentAccount_ID,
-                                riasecResult.insertId,
-                                bigFiveResult.insertId,
-                                timestamp = new Date()
-                            ],
-                            async (err, assessmentResult) => {
+                            fetchStudentProfileDetails,
+                            [studentAccount_ID],
+                            (err, profileResults) => {
                                 if (err) {
-                                    console.error('Error inserting Student Assessment record:', err);
-                                    return res.status(500).json({ message: 'Error inserting Student Assessment record' });
+                                    console.error('Error fetching student profile details:', err);
+                                    return res.status(500).json({ message: 'Error fetching student profile details' });
                                 }
 
-                                let programsResponse;
-                                try {
-                                    const response = await fetch('http://localhost:8000/score', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            riasec: riasecResults,
-                                            bigfive: bigFiveResults
-                                        })
-                                    });
-
-                                    programsResponse = await response.json();
-                                } catch (error) {
-                                    console.error('Error fetching program recommendations:', error);
-                                    return res.status(500).json({ message: 'Error fetching program recommendations' });
-                                }
-
-                                const allRecommendations = [
-                                    ...programsResponse.track_aligned.map(([name, data]) => ({
-                                        programName: name,
-                                        ...data,
-                                        trackAligned: 'Y'
-                                    })),
-                                    ...programsResponse.cross_track.map(([name, data]) => ({
-                                        programName: name,
-                                        ...data,
-                                        trackAligned: 'N'
-                                    }))
-                                ];
-
-                                for (const rec of allRecommendations) {
-                                    const { programName, score, breakdown, trackAligned } = rec;
-                                    const alignmentScore = score;
-                                    const breakdownJSON = JSON.stringify(breakdown);
-
-                                    // Get program_ID
-                                    const getProgramQuery = `SELECT program_ID FROM tbl_programs WHERE programName = ? LIMIT 1`;
-
-                                    db.query(getProgramQuery, [programName], (err, programResult) => {
+                                db.query(
+                                    studentProfileQuery,
+                                    [profileResults[0].mathGrade,
+                                    profileResults[0].scienceGrade,
+                                    profileResults[0].englishGrade,
+                                    profileResults[0].genAverageGrade,
+                                    profileResults[0].strand_ID,
+                                    profileResults[0].gradeLevel],
+                                    (err, assessmentProfileResult) => {
                                         if (err) {
-                                            console.error(`Error fetching program ID for ${programName}:`, err);
-                                            return;
+                                            console.error('Error inserting Assessment Profile:', err);
+                                            return res.status(500).json({ message: 'Error inserting Assessment Profile' });
                                         }
+                                        const assessmentProfile_ID = assessmentProfileResult.insertId;
 
-                                        if (programResult.length === 0) {
-                                            console.warn(`Program not found: ${programName}`);
-                                            return;
-                                        }
-
-                                        const program_ID = programResult[0].program_ID;
-
-                                        // Insert recommendation
-                                        const insertRecQuery = `
-                                            INSERT INTO tbl_recommendations 
-                                            (studentAssessment_ID, program_ID, alignmentScore, breakdown, track_aligned)
-                                            VALUES (?, ?, ?, ?, ?)
-                                        `;
-
+                                        const assessmentQuery = `INSERT INTO tbl_studentassessments (studentAssessment_ID, studentAccount_ID, assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID, date) VALUES(?, ?, ?, ?, ?, ?)`;
                                         db.query(
-                                            insertRecQuery,
-                                            [studentAssessment_ID, program_ID, alignmentScore, breakdownJSON, trackAligned],
-                                            (err) => {
+                                            assessmentQuery,
+                                            [
+                                                studentAssessment_ID,
+                                                studentAccount_ID,
+                                                assessmentProfile_ID,
+                                                riasecResult.insertId,
+                                                bigFiveResult.insertId,
+                                                timestamp = new Date()
+                                            ],
+                                            async (err, assessmentResult) => {
                                                 if (err) {
-                                                    console.error(`Error inserting recommendation for ${programName}:`, err);
-                                                } else {
-                                                    console.log(`✅ Saved recommendation for ${programName} (${trackAligned})`);
+                                                    console.error('Error inserting Student Assessment record:', err);
+                                                    return res.status(500).json({ message: 'Error inserting Student Assessment record' });
                                                 }
-                                            }
-                                        );
-                                    });
-                                }
-                                return res.status(200).json({ success: true, message: 'Assessment completed successfully', programRecommendations: allRecommendations});
+
+                                                let programsResponse;
+                                                try {
+                                                    const response = await fetch('http://localhost:8000/score', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            riasec: riasecResults,
+                                                            bigfive: bigFiveResults
+                                                        })
+                                                    });
+
+                                                    programsResponse = await response.json();
+                                                } catch (error) {
+                                                    console.error('Error fetching program recommendations:', error);
+                                                    return res.status(500).json({ message: 'Error fetching program recommendations' });
+                                                }
+
+                                                const allRecommendations = [
+                                                    ...programsResponse.track_aligned.map(([name, data]) => ({
+                                                        programName: name,
+                                                        ...data,
+                                                        trackAligned: 'Y'
+                                                    })),
+                                                    ...programsResponse.cross_track.map(([name, data]) => ({
+                                                        programName: name,
+                                                        ...data,
+                                                        trackAligned: 'N'
+                                                    }))
+                                                ];
+
+                                                for (const rec of allRecommendations) {
+                                                    const { programName, score, breakdown, trackAligned } = rec;
+                                                    const alignmentScore = score;
+                                                    const breakdownJSON = JSON.stringify(breakdown);
+
+                                                    // Get program_ID
+                                                    const getProgramQuery = `SELECT program_ID FROM tbl_programs WHERE programName = ? LIMIT 1`;
+
+                                                    db.query(getProgramQuery, [programName], (err, programResult) => {
+                                                        if (err) {
+                                                            console.error(`Error fetching program ID for ${programName}:`, err);
+                                                            return;
+                                                        }
+
+                                                        if (programResult.length === 0) {
+                                                            console.warn(`Program not found: ${programName}`);
+                                                            return;
+                                                        }
+
+                                                        const program_ID = programResult[0].program_ID;
+
+                                                        // Insert recommendation
+                                                        const insertRecQuery = `
+                                                            INSERT INTO tbl_recommendations 
+                                                            (studentAssessment_ID, program_ID, alignmentScore, breakdown, track_aligned)
+                                                            VALUES (?, ?, ?, ?, ?)
+                                                        `;
+
+                                                        db.query(
+                                                            insertRecQuery,
+                                                            [studentAssessment_ID, program_ID, alignmentScore, breakdownJSON, trackAligned],
+                                                            (err) => {
+                                                                if (err) {
+                                                                    console.error(`Error inserting recommendation for ${programName}:`, err);
+                                                                } else {
+                                                                    console.log(`✅ Saved recommendation for ${programName} (${trackAligned})`);
+                                                                }
+                                                            }
+                                                        );
+                                                    });
+                                                }
+
+                                                
+                                                return res.status(200).json({ success: true, message: 'Assessment completed successfully', programRecommendations: allRecommendations});
+                                        });
+                                    }
+                                );
+                                
                         });
+
+
                     }
                 );
             }
@@ -222,7 +283,7 @@ module.exports = (db) => {
                 return res.json({ success: false, message: 'assessmentID is required' });
             }
 
-            const fetchPsychometricIDs = 'SELECT riasecResult_ID, bigFiveResult_ID FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
+            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
 
             db.query(fetchPsychometricIDs, [assessmentID], (err, result) => {
                 if (err) {
@@ -233,7 +294,10 @@ module.exports = (db) => {
                     return res.json({ success: false, message: 'Assessment not found' });
                 }
 
-                const { riasecResult_ID, bigFiveResult_ID } = result[0];
+                const { assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID } = result[0];
+
+                // Fetch Student Profile
+                const fetchStudentProfile = 'SELECT st.`name`, st.email, ap.gradeLevel, s.strandName, ap.mathGrade, ap.scienceGrade, ap.englishGrade, ap.genAverageGrade FROM tbl_assessmentProfiles AS ap INNER JOIN tbl_strands AS s ON ap.strand_ID = s.strand_ID INNER JOIN tbl_studentassessments AS sa ON ap.assessmentProfile_ID = sa.assessmentProfile_ID INNER JOIN tbl_studentaccounts AS st ON sa.studentAccount_ID = st.studentAccount_ID WHERE ap.assessmentProfile_ID = ?';
 
                 // Fetch RIASEC results
                 const fetchRIASEC = 'SELECT * FROM tbl_riasecresults WHERE riasecResult_ID = ?';
@@ -246,6 +310,12 @@ module.exports = (db) => {
 
                 // Execute all queries in parallel
                 Promise.all([
+                    new Promise((resolve, reject) => {
+                        db.query(fetchStudentProfile, [assessmentProfile_ID], (err, assessmentProfileResult) =>{
+                            if (err) reject(err);
+                            else resolve(assessmentProfileResult);
+                        });
+                    }),
                     new Promise((resolve, reject) => {
                         db.query(fetchRIASEC, [riasecResult_ID], (err, riasecResult) => {
                             if (err) reject(err);
@@ -264,12 +334,13 @@ module.exports = (db) => {
                             else resolve(programRecos);
                         });
                     })
-                ]).then(async ([riasecResults, bigFiveResults, programRecos]) => {
+                ]).then(async ([assessmentProfileResults ,riasecResults, bigFiveResults, programRecos]) => {
                     
                     // Convert all results to proper JSON format
                     const responseData = {
                         success: true,
                         data: {
+                            assessmentProfile: assessmentProfileResults.length > 0 ? JSON.parse(JSON.stringify(assessmentProfileResults[0])) : null,
                             riasec: riasecResults.length > 0 ? JSON.parse(JSON.stringify(riasecResults[0])) : null,
                             bigFive: bigFiveResults.length > 0 ? JSON.parse(JSON.stringify(bigFiveResults[0])) : null,
                             programRecommendations: {
@@ -498,5 +569,6 @@ module.exports = (db) => {
             res.status(500).json({ error: 'Internal server error' });
         }
     });
+
     return router;
 };

@@ -2,6 +2,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX } from "react-icons/fi";
+import { UserCircle2, SquarePen } from "lucide-react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { useParams } from "react-router-dom";
@@ -11,6 +12,7 @@ import html2canvas from 'html2canvas';
 
 
 const AssessmentResults = () => {
+    const [userData, setUserData] = useState(null);
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [rating, setRating] = useState(0);
     const [feedback, setFeedback] = useState('');
@@ -519,6 +521,10 @@ const AssessmentResults = () => {
         pdf.save(`assessment-results-${assessmentId}.pdf`);
     };
 
+    const formatGrade = (grade) => {
+        return grade !== null && grade !== undefined ? grade : 'N/A';
+    };
+
     
     const handleDownload = async () => {
         setIsGeneratingPDF(true);
@@ -625,7 +631,7 @@ const AssessmentResults = () => {
         );
     }
 
-    const { riasec, bigFive, programRecommendations } = assessmentData;
+    const { assessmentProfile, riasec, bigFive, programRecommendations } = assessmentData;
 
     return (
         <div className="min-h-screen w-full bg-[#FFFCED] flex flex-col">
@@ -640,6 +646,103 @@ const AssessmentResults = () => {
             </section>
 
             <main id="assessment-results-content" className="flex flex-col gap-8 px-6 md:px-16 lg:px-32 pb-16">
+                {/* Profile Section */}
+                <div
+                    className="bg-white rounded-lg shadow p-5 border border-black"
+                    style={{ fontFamily: "SF Pro" }}
+                >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center">
+                    
+                    
+
+                    {/* Profile Info */}
+                    <div className="w-full">
+                        {/* Profile Icon */}
+                        <div className="flex items-center mb-3 pl-5">
+                        <div className="mr-2">
+                            <UserCircle2 size={40} stroke="#FB9724" strokeWidth={2} />
+                        </div>
+                        <h2 className="font-semibold py-2 pl-0 text-base sm:text-lg">
+                            Student Profile
+                        </h2>
+                        </div>
+
+                        {/* Desktop / Tablet Layout */}
+                        <div className="hidden sm:block">
+                        <div className="grid grid-cols-4 text-sm font-semibold mb-2">
+                            <span className="pl-5">Name:</span>
+                            <span className="pl-4">Email:</span>
+                            <span className="pl-4">Grade Level:</span>
+                            <span className="pl-4">Strand:</span>
+                        </div>
+
+                        <div className="grid grid-cols-4 text-sm">
+                            <span className="pl-5">{assessmentProfile?.name || 'N/A'}</span>
+                            <span className="pl-4 break-words">
+                            {assessmentProfile?.email || 'N/A'}
+                            </span>
+                            <span className="pl-4">{assessmentProfile?.gradeLevel || 'N/A'}</span>
+                            <span className="pl-4">{assessmentProfile?.strandName || 'N/A'}</span>
+                            
+                        </div>
+                        
+                        {/* Grades Section */}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-4 text-sm font-semibold mb-2">
+                            <span className="pl-5">Math Grade:</span>
+                            <span className="pl-4">Science Grade:</span>
+                            <span className="pl-4">English Grade:</span>
+                            <span className="pl-4">Average Grade:</span>
+                            </div>
+                            <div className="grid grid-cols-4 text-sm">
+                            <span className="pl-5">{formatGrade(assessmentProfile?.mathGrade)}</span>
+                            <span className="pl-4">{formatGrade(assessmentProfile?.scienceGrade)}</span>
+                            <span className="pl-4">{formatGrade(assessmentProfile?.englishGrade)}</span>
+                            <span className="pl-4">{formatGrade(assessmentProfile?.genAverageGrade)}</span>
+                            <p class="pl-5 mt-3 text-gray-500">As of October 5, 2025.</p>
+                            </div>
+                        </div>
+                        
+                        </div>
+
+                        {/* Mobile Layout */}
+                        <div className="block sm:hidden space-y-3 text-sm">
+                        <div>
+                            <span className="font-semibold">Name:</span>
+                            <p>{userData?.name || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Email:</span>
+                            <p className="break-words">{userData?.email || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Grade Level:</span>
+                            <p>{userData?.gradeLevel || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Strand:</span>
+                            <p>{userData?.strand || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Math Grade:</span>
+                            <p>{formatGrade(userData?.mathGrade)}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Science Grade:</span>
+                            <p>{formatGrade(userData?.scienceGrade)}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">English Grade:</span>
+                            <p>{formatGrade(userData?.englishGrade)}</p>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Average Grade:</span>
+                            <p>{formatGrade(userData?.genAverageGrade)}</p>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
                 {/* RIASEC Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {riasec && (

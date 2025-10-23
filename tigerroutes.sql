@@ -19,6 +19,24 @@
 CREATE DATABASE IF NOT EXISTS `tigerroutesdb` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `tigerroutesdb`;
 
+-- Dumping structure for table tigerroutesdb.tbl_assessmentprofiles
+CREATE TABLE IF NOT EXISTS `tbl_assessmentprofiles` (
+  `assessmentProfile_ID` int NOT NULL AUTO_INCREMENT,
+  `mathGrade` double DEFAULT NULL,
+  `scienceGrade` double DEFAULT NULL,
+  `englishGrade` double DEFAULT NULL,
+  `genAverageGrade` double DEFAULT NULL,
+  `strand_ID` int DEFAULT NULL,
+  `gradeLevel` tinyint DEFAULT NULL,
+  PRIMARY KEY (`assessmentProfile_ID`) USING BTREE,
+  KEY `FK_tbl_assessmentprofiles_tbl_strands` (`strand_ID`),
+  CONSTRAINT `FK_tbl_assessmentprofiles_tbl_strands` FOREIGN KEY (`strand_ID`) REFERENCES `tbl_strands` (`strand_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_assessmentprofiles: ~1 rows (approximately)
+INSERT INTO `tbl_assessmentprofiles` (`assessmentProfile_ID`, `mathGrade`, `scienceGrade`, `englishGrade`, `genAverageGrade`, `strand_ID`, `gradeLevel`) VALUES
+	(4, 94, 90, 90, 90, 7, 11);
+
 -- Dumping structure for table tigerroutesdb.tbl_bigfiveresults
 CREATE TABLE IF NOT EXISTS `tbl_bigfiveresults` (
   `bigFiveResult_ID` int NOT NULL AUTO_INCREMENT,
@@ -28,13 +46,17 @@ CREATE TABLE IF NOT EXISTS `tbl_bigfiveresults` (
   `agreeableness` int NOT NULL DEFAULT (0),
   `neuroticism` int NOT NULL DEFAULT (0),
   PRIMARY KEY (`bigFiveResult_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_bigfiveresults: ~0 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_bigfiveresults: ~6 rows (approximately)
 INSERT INTO `tbl_bigfiveresults` (`bigFiveResult_ID`, `openness`, `conscientiousness`, `extraversion`, `agreeableness`, `neuroticism`) VALUES
-	(30, 63, 83, 83, 77, 53),
-	(31, 67, 63, 53, 60, 53),
-	(32, 67, 67, 57, 57, 73);
+	(35, 53, 70, 70, 47, 67),
+	(36, 53, 70, 70, 47, 67),
+	(37, 60, 50, 73, 53, 77),
+	(38, 50, 50, 53, 67, 77),
+	(39, 70, 53, 73, 63, 77),
+	(40, 63, 43, 80, 47, 77),
+	(41, 50, 63, 53, 57, 70);
 
 -- Dumping structure for table tigerroutesdb.tbl_colleges
 CREATE TABLE IF NOT EXISTS `tbl_colleges` (
@@ -73,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
   `studentAssessment_ID` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `staffAccount_ID` int NOT NULL,
   `counselorNotes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `date` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`counselorNote_ID`),
   KEY `studentAssessment_ID` (`studentAssessment_ID`),
   KEY `staffAccount_ID` (`staffAccount_ID`),
@@ -81,8 +104,6 @@ CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table tigerroutesdb.tbl_counselornotes: ~1 rows (approximately)
-INSERT INTO `tbl_counselornotes` (`counselorNote_ID`, `studentAssessment_ID`, `staffAccount_ID`, `counselorNotes`) VALUES
-	(1, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 1, 'This feedback is useful, thanks.');
 
 -- Dumping structure for table tigerroutesdb.tbl_programs
 CREATE TABLE IF NOT EXISTS `tbl_programs` (
@@ -127,40 +148,20 @@ CREATE TABLE IF NOT EXISTS `tbl_recommendations` (
   KEY `program_ID` (`program_ID`),
   CONSTRAINT `FK_tbl_recommendations_tbl_studentassessments` FOREIGN KEY (`studentAssessment_ID`) REFERENCES `tbl_studentassessments` (`studentAssessment_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `tbl_recommendations_ibfk_2` FOREIGN KEY (`program_ID`) REFERENCES `tbl_programs` (`program_ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_recommendations: ~20 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_recommendations: ~10 rows (approximately)
 INSERT INTO `tbl_recommendations` (`recommendation_ID`, `studentAssessment_ID`, `program_ID`, `alignmentScore`, `breakdown`, `track_aligned`) VALUES
-	(59, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 3, 73.00, '{"Track": 80, "RIASEC": 45, "BigFive": 90, "Academic": 100}', 'Y'),
-	(60, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 12, 70.50, '{"Track": 100, "RIASEC": 45, "BigFive": 75, "Academic": 100}', 'Y'),
-	(61, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 6, 69.00, '{"Track": 100, "RIASEC": 45, "BigFive": 70, "Academic": 100}', 'Y'),
-	(62, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 7, 68.00, '{"Track": 90, "RIASEC": 30, "BigFive": 90, "Academic": 100}', 'Y'),
-	(63, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 2, 66.50, '{"Track": 80, "RIASEC": 40, "BigFive": 75, "Academic": 100}', 'Y'),
-	(64, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 9, 84.00, '{"Track": 70, "RIASEC": 75, "BigFive": 90, "Academic": 100}', 'N'),
-	(65, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 10, 74.00, '{"Track": 60, "RIASEC": 60, "BigFive": 80, "Academic": 100}', 'N'),
-	(66, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 14, 73.00, '{"Track": 60, "RIASEC": 50, "BigFive": 90, "Academic": 100}', 'N'),
-	(67, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 13, 70.00, '{"Track": 60, "RIASEC": 65, "BigFive": 60, "Academic": 100}', 'N'),
-	(68, '4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 5, 68.00, '{"Track": 70, "RIASEC": 35, "BigFive": 90, "Academic": 100}', 'N'),
-	(69, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 1, 71.00, '{"Track": 100, "RIASEC": 65, "BigFive": 50, "Academic": 100}', 'Y'),
-	(70, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 11, 68.50, '{"Track": 100, "RIASEC": 55, "BigFive": 55, "Academic": 100}', 'Y'),
-	(71, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 12, 68.50, '{"Track": 100, "RIASEC": 55, "BigFive": 55, "Academic": 100}', 'Y'),
-	(72, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 4, 67.50, '{"Track": 100, "RIASEC": 75, "BigFive": 25, "Academic": 100}', 'Y'),
-	(73, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 6, 67.50, '{"Track": 100, "RIASEC": 60, "BigFive": 45, "Academic": 100}', 'Y'),
-	(74, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 8, 70.00, '{"Track": 50, "RIASEC": 75, "BigFive": 50, "Academic": 100}', 'N'),
-	(75, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 10, 66.00, '{"Track": 60, "RIASEC": 40, "BigFive": 80, "Academic": 100}', 'N'),
-	(76, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 13, 65.00, '{"Track": 60, "RIASEC": 75, "BigFive": 30, "Academic": 100}', 'N'),
-	(77, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 9, 57.00, '{"Track": 70, "RIASEC": 30, "BigFive": 60, "Academic": 100}', 'N'),
-	(78, 'f0e819ac-aa13-4f3d-999d-67fa88ad469b', 5, 51.00, '{"Track": 70, "RIASEC": 15, "BigFive": 60, "Academic": 100}', 'N'),
-	(79, '722a56f9-310a-4dc5-bdef-e6dacac28576', 4, 73.00, '{"Track": 100, "RIASEC": 70, "BigFive": 50, "Academic": 100}', 'Y'),
-	(80, '722a56f9-310a-4dc5-bdef-e6dacac28576', 3, 72.00, '{"Track": 80, "RIASEC": 65, "BigFive": 60, "Academic": 100}', 'Y'),
-	(81, '722a56f9-310a-4dc5-bdef-e6dacac28576', 1, 69.00, '{"Track": 100, "RIASEC": 60, "BigFive": 50, "Academic": 100}', 'Y'),
-	(82, '722a56f9-310a-4dc5-bdef-e6dacac28576', 11, 68.50, '{"Track": 100, "RIASEC": 55, "BigFive": 55, "Academic": 100}', 'Y'),
-	(83, '722a56f9-310a-4dc5-bdef-e6dacac28576', 7, 66.00, '{"Track": 90, "RIASEC": 70, "BigFive": 30, "Academic": 100}', 'Y'),
-	(84, '722a56f9-310a-4dc5-bdef-e6dacac28576', 10, 84.00, '{"Track": 60, "RIASEC": 85, "BigFive": 80, "Academic": 100}', 'N'),
-	(85, '722a56f9-310a-4dc5-bdef-e6dacac28576', 14, 74.00, '{"Track": 60, "RIASEC": 75, "BigFive": 60, "Academic": 100}', 'N'),
-	(86, '722a56f9-310a-4dc5-bdef-e6dacac28576', 8, 72.00, '{"Track": 50, "RIASEC": 80, "BigFive": 50, "Academic": 100}', 'N'),
-	(87, '722a56f9-310a-4dc5-bdef-e6dacac28576', 5, 68.50, '{"Track": 70, "RIASEC": 70, "BigFive": 45, "Academic": 100}', 'N'),
-	(88, '722a56f9-310a-4dc5-bdef-e6dacac28576', 13, 68.50, '{"Track": 60, "RIASEC": 95, "BigFive": 15, "Academic": 100}', 'N');
+	(109, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 2, 75.50, '{"Track": 80, "RIASEC": 85, "BigFive": 45, "Academic": 100}', 'Y'),
+	(110, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 11, 75.00, '{"Track": 100, "RIASEC": 90, "BigFive": 30, "Academic": 100}', 'Y'),
+	(111, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 1, 73.50, '{"Track": 100, "RIASEC": 90, "BigFive": 25, "Academic": 100}', 'Y'),
+	(112, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 6, 73.50, '{"Track": 100, "RIASEC": 90, "BigFive": 25, "Academic": 100}', 'Y'),
+	(113, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 4, 69.50, '{"Track": 100, "RIASEC": 80, "BigFive": 25, "Academic": 100}', 'Y'),
+	(114, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 9, 79.00, '{"Track": 70, "RIASEC": 85, "BigFive": 60, "Academic": 100}', 'N'),
+	(115, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 10, 76.50, '{"Track": 60, "RIASEC": 85, "BigFive": 55, "Academic": 100}', 'N'),
+	(116, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 8, 76.00, '{"Track": 50, "RIASEC": 90, "BigFive": 50, "Academic": 100}', 'N'),
+	(117, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 5, 68.50, '{"Track": 70, "RIASEC": 70, "BigFive": 45, "Academic": 100}', 'N'),
+	(118, '9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 13, 68.50, '{"Track": 60, "RIASEC": 95, "BigFive": 15, "Academic": 100}', 'N');
 
 -- Dumping structure for table tigerroutesdb.tbl_riasecresults
 CREATE TABLE IF NOT EXISTS `tbl_riasecresults` (
@@ -172,13 +173,17 @@ CREATE TABLE IF NOT EXISTS `tbl_riasecresults` (
   `enterprising` int NOT NULL DEFAULT (0),
   `conventional` int NOT NULL DEFAULT (0),
   PRIMARY KEY (`riasecResult_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_riasecresults: ~0 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_riasecresults: ~6 rows (approximately)
 INSERT INTO `tbl_riasecresults` (`riasecResult_ID`, `realistic`, `investigative`, `artistic`, `social`, `enterprising`, `conventional`) VALUES
-	(30, 86, 67, 29, 100, 71, 50),
-	(31, 100, 83, 86, 100, 57, 75),
-	(32, 100, 83, 86, 71, 86, 63);
+	(35, 71, 83, 86, 57, 86, 38),
+	(36, 71, 83, 86, 57, 86, 38),
+	(37, 57, 83, 71, 29, 100, 88),
+	(38, 86, 67, 57, 71, 86, 88),
+	(39, 86, 50, 86, 71, 71, 88),
+	(40, 57, 100, 57, 100, 71, 63),
+	(41, 86, 83, 100, 71, 71, 75);
 
 -- Dumping structure for table tigerroutesdb.tbl_staffaccounts
 CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
@@ -192,35 +197,9 @@ CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
   PRIMARY KEY (`staffAccount_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_staffaccounts: ~1 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_staffaccounts: ~0 rows (approximately)
 INSERT INTO `tbl_staffaccounts` (`staffAccount_ID`, `name`, `email`, `password`, `staffRole_ID`, `staffProfile_ID`, `status`) VALUES
 	(1, 'Owen Trinidad', 'michaelowen.trinidad.cics@ust.edu.ph', 'hello123', NULL, NULL, NULL);
-
--- Dumping structure for table tigerroutesdb.tbl_staffprofiles
-CREATE TABLE IF NOT EXISTS `tbl_staffprofiles` (
-  `staffProfile_ID` int NOT NULL AUTO_INCREMENT,
-  `strand_ID` int DEFAULT NULL,
-  `officeDetails` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `about` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `consultationDetails` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`staffProfile_ID`),
-  KEY `FK_tbl_staffprofiles_tbl_strands` (`strand_ID`),
-  CONSTRAINT `FK_tbl_staffprofiles_tbl_strands` FOREIGN KEY (`strand_ID`) REFERENCES `tbl_strands` (`strand_ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Dumping data for table tigerroutesdb.tbl_staffprofiles: ~0 rows (approximately)
-
--- Dumping structure for table tigerroutesdb.tbl_staffroles
-CREATE TABLE IF NOT EXISTS `tbl_staffroles` (
-  `staffRole_ID` int NOT NULL AUTO_INCREMENT,
-  `role` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`staffRole_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Dumping data for table tigerroutesdb.tbl_staffroles: ~0 rows (approximately)
-INSERT INTO `tbl_staffroles` (`staffRole_ID`, `role`) VALUES
-	(1, 'counselor'),
-	(2, 'supervisor');  
 
 -- Dumping structure for table tigerroutesdb.tbl_strands
 CREATE TABLE IF NOT EXISTS `tbl_strands` (
@@ -245,10 +224,10 @@ CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (
   `studentProfile_ID` int DEFAULT NULL,
   PRIMARY KEY (`studentAccount_ID`),
   KEY `FK_tbl_studentaccounts_tbl_studentprofiles` (`studentProfile_ID`),
-  CONSTRAINT `FK_tbl_studentaccounts_tbl_studentprofiles` FOREIGN KEY (`studentProfile_ID`) REFERENCES `tbl_studentprofiles` (`studentProfile_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `FK_tbl_studentaccounts_tbl_studentprofiles` FOREIGN KEY (`studentProfile_ID`) REFERENCES `tbl_studentprofiles` (`studentProfile_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_studentaccounts: ~0 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_studentaccounts: ~1 rows (approximately)
 INSERT INTO `tbl_studentaccounts` (`studentAccount_ID`, `name`, `email`, `password`, `studentProfile_ID`) VALUES
 	(8, 'RYAN REGULACION', 'ryan.regulacion.cics@ust.edu.ph', '', 1);
 
@@ -256,6 +235,7 @@ INSERT INTO `tbl_studentaccounts` (`studentAccount_ID`, `name`, `email`, `passwo
 CREATE TABLE IF NOT EXISTS `tbl_studentassessments` (
   `studentAssessment_ID` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `studentAccount_ID` int NOT NULL,
+  `assessmentProfile_ID` int DEFAULT NULL,
   `riasecResult_ID` int NOT NULL,
   `bigFiveResult_ID` int NOT NULL,
   `rating` int DEFAULT NULL,
@@ -265,28 +245,30 @@ CREATE TABLE IF NOT EXISTS `tbl_studentassessments` (
   KEY `studentAccount_ID` (`studentAccount_ID`),
   KEY `riasecResult_ID` (`riasecResult_ID`),
   KEY `bigFiveResult_ID` (`bigFiveResult_ID`),
+  KEY `FK_tbl_studentassessments_tbl_assessmentprofiles` (`assessmentProfile_ID`),
+  CONSTRAINT `FK_tbl_studentassessments_tbl_assessmentprofiles` FOREIGN KEY (`assessmentProfile_ID`) REFERENCES `tbl_assessmentprofiles` (`assessmentProfile_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `tbl_studentassessments_ibfk_1` FOREIGN KEY (`studentAccount_ID`) REFERENCES `tbl_studentaccounts` (`studentAccount_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `tbl_studentassessments_ibfk_2` FOREIGN KEY (`riasecResult_ID`) REFERENCES `tbl_riasecresults` (`riasecResult_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `tbl_studentassessments_ibfk_3` FOREIGN KEY (`bigFiveResult_ID`) REFERENCES `tbl_bigfiveresults` (`bigFiveResult_ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_studentassessments: ~2 rows (approximately)
-INSERT INTO `tbl_studentassessments` (`studentAssessment_ID`, `studentAccount_ID`, `riasecResult_ID`, `bigFiveResult_ID`, `rating`, `feedback`, `date`) VALUES
-	('4b310348-2939-47d9-b8fc-3a5b7ad0b5ce', 8, 30, 30, NULL, NULL, '2025-10-15 03:12:47'),
-	('722a56f9-310a-4dc5-bdef-e6dacac28576', 8, 32, 32, NULL, NULL, '2025-10-15 07:25:13'),
-	('f0e819ac-aa13-4f3d-999d-67fa88ad469b', 8, 31, 31, NULL, NULL, '2025-10-15 03:57:30');
+-- Dumping data for table tigerroutesdb.tbl_studentassessments: ~0 rows (approximately)
+INSERT INTO `tbl_studentassessments` (`studentAssessment_ID`, `studentAccount_ID`, `assessmentProfile_ID`, `riasecResult_ID`, `bigFiveResult_ID`, `rating`, `feedback`, `date`) VALUES
+	('9a068cf1-2aed-49bf-a5b1-d59de1b0e7e3', 8, 4, 41, 41, NULL, NULL, '2025-10-23 09:13:53');
 
 -- Dumping structure for table tigerroutesdb.tbl_studentgrades
 CREATE TABLE IF NOT EXISTS `tbl_studentgrades` (
-  `studentGrades_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `studentGrades_ID` int NOT NULL AUTO_INCREMENT,
   `mathGrade` double DEFAULT NULL,
   `scienceGrade` double DEFAULT NULL,
   `englishGrade` double DEFAULT NULL,
   `genAverageGrade` double DEFAULT NULL,
   PRIMARY KEY (`studentGrades_ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table tigerroutesdb.tbl_studentgrades: ~0 rows (approximately)
+INSERT INTO `tbl_studentgrades` (`studentGrades_ID`, `mathGrade`, `scienceGrade`, `englishGrade`, `genAverageGrade`) VALUES
+	(1, 94, 90, 90, 90);
 
 -- Dumping structure for table tigerroutesdb.tbl_studentprofiles
 CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
@@ -296,10 +278,14 @@ CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
   `studentGrades_ID` int DEFAULT NULL,
   PRIMARY KEY (`studentProfile_ID`),
   KEY `FK_tbl_studentprofiles_tbl_studentgrades` (`studentGrades_ID`),
-  CONSTRAINT `FK_tbl_studentprofiles_tbl_studentgrades` FOREIGN KEY (`studentGrades_ID`) REFERENCES `tbl_studentgrades` (`studentGrades_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `FK_tbl_studentprofiles_tbl_strands` (`strand_ID`),
+  CONSTRAINT `FK_tbl_studentprofiles_tbl_strands` FOREIGN KEY (`strand_ID`) REFERENCES `tbl_strands` (`strand_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_tbl_studentprofiles_tbl_studentgrades` FOREIGN KEY (`studentGrades_ID`) REFERENCES `tbl_studentgrades` (`studentGrades_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_studentprofiles: ~0 rows (approximately)
+-- Dumping data for table tigerroutesdb.tbl_studentprofiles: ~1 rows (approximately)
+INSERT INTO `tbl_studentprofiles` (`studentProfile_ID`, `strand_ID`, `gradeLevel`, `studentGrades_ID`) VALUES
+	(1, 7, 11, 1);
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

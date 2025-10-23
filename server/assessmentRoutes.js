@@ -297,7 +297,7 @@ module.exports = (db) => {
                 const { assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID } = result[0];
 
                 // Fetch Student Profile
-                const fetchStudentProfile = 'SELECT st.`name`, st.email, ap.gradeLevel, s.strandName, ap.mathGrade, ap.scienceGrade, ap.englishGrade, ap.genAverageGrade FROM tbl_assessmentProfiles AS ap INNER JOIN tbl_strands AS s ON ap.strand_ID = s.strand_ID INNER JOIN tbl_studentassessments AS sa ON ap.assessmentProfile_ID = sa.assessmentProfile_ID INNER JOIN tbl_studentaccounts AS st ON sa.studentAccount_ID = st.studentAccount_ID WHERE ap.assessmentProfile_ID = ?';
+                const fetchStudentProfile = 'SELECT st.`name`, st.email, ap.gradeLevel, s.strandName, ap.mathGrade, ap.scienceGrade, ap.englishGrade, ap.genAverageGrade, sa.date FROM tbl_assessmentProfiles AS ap INNER JOIN tbl_strands AS s ON ap.strand_ID = s.strand_ID INNER JOIN tbl_studentassessments AS sa ON ap.assessmentProfile_ID = sa.assessmentProfile_ID INNER JOIN tbl_studentaccounts AS st ON sa.studentAccount_ID = st.studentAccount_ID WHERE ap.assessmentProfile_ID = ?';
 
                 // Fetch RIASEC results
                 const fetchRIASEC = 'SELECT * FROM tbl_riasecresults WHERE riasecResult_ID = ?';

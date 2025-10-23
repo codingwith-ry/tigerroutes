@@ -699,7 +699,7 @@ const AssessmentResults = () => {
                             <span className="pl-4">{formatGrade(assessmentProfile?.scienceGrade)}</span>
                             <span className="pl-4">{formatGrade(assessmentProfile?.englishGrade)}</span>
                             <span className="pl-4">{formatGrade(assessmentProfile?.genAverageGrade)}</span>
-                            <p class="pl-5 mt-3 text-gray-500">As of October 5, 2025.</p>
+                            <p class="pl-5 mt-3 text-gray-500">As of {new Date(assessmentProfile.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.</p>
                             </div>
                         </div>
                         

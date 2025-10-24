@@ -3,12 +3,11 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { User } from "lucide-react";
 import { GraduationCap } from "lucide-react";
-import { BookOpenText } from "lucide-react"; // Import open-book icon
-import { Star } from "lucide-react"; // Import open-book icon
+import { BookOpenText } from "lucide-react";
+import { Star } from "lucide-react";
 import { useEffect } from "react"; 
 import { useState } from "react";
-
-
+import Swal from "sweetalert2";
 
 const ProfilePage = () => {
     const [strands, setStrands] = useState([]);
@@ -16,12 +15,20 @@ const ProfilePage = () => {
     const [lastName, setLastName] = useState('');
     const [selectedStrand, setSelectedStrand] = useState('');
     const [yearLevel, setYearLevel] = useState('');
-    const [schoolYear, setSchoolYear] = useState('');
     const [generalAverage, setGeneralAverage] = useState('');
     const [mathGrade, setMathGrade] = useState('');
     const [scienceGrade, setScienceGrade] = useState('');
     const [englishGrade, setEnglishGrade] = useState('');
 
+    // validation state
+    const [errors, setErrors] = useState({
+        selectedStrand: null,
+      yearLevel: null,
+      generalAverage: null,
+      mathGrade: null,
+      scienceGrade: null,
+      englishGrade: null
+    });
 
     //Using session storage value for email as it doesn't need to be edited.
     const storedUser = JSON.parse(sessionStorage.getItem('user'));
@@ -42,7 +49,6 @@ const ProfilePage = () => {
     function fetchUserData() {
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (user && user.studentAccount_ID) {
-            // Change from /api/student/ to /api/student-profile/
             fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`)
             .then(res => res.json())
             .then(data => {
@@ -51,27 +57,25 @@ const ProfilePage = () => {
                     setFirstName(nameParts.slice(0, -1).join(' '));
                     setLastName(nameParts.slice(-1)[0]);
                 }
-                
-                // Populate existing profile data
+
                 if (data.strand_ID) {
                     setSelectedStrand(data.strand_ID.toString());
                 }
                 if (data.gradeLevel) {
                     setYearLevel(data.gradeLevel === 11 ? 'Grade 11' : data.gradeLevel === 12 ? 'Grade 12' : '');
                 }
-                
-                // Populate existing grades data
+
                 if (data.genAverageGrade !== null && data.genAverageGrade !== undefined) {
-                    setGeneralAverage(data.genAverageGrade.toString());
+                    setGeneralAverage(String(data.genAverageGrade).slice(0,2));
                 }
                 if (data.mathGrade !== null && data.mathGrade !== undefined) {
-                    setMathGrade(data.mathGrade.toString());
+                    setMathGrade(String(data.mathGrade).slice(0,2));
                 }
                 if (data.scienceGrade !== null && data.scienceGrade !== undefined) {
-                    setScienceGrade(data.scienceGrade.toString());
+                    setScienceGrade(String(data.scienceGrade).slice(0,2));
                 }
                 if (data.englishGrade !== null && data.englishGrade !== undefined) {
-                    setEnglishGrade(data.englishGrade.toString());
+                    setEnglishGrade(String(data.englishGrade).slice(0,2));
                 }
             })
             .catch(error => {
@@ -80,19 +84,62 @@ const ProfilePage = () => {
         }
     }
 
+    // sanitize input to digits only and limit to 2 characters
+    const sanitizeTwoDigits = (val) => {
+      if (!val && val !== '') return '';
+      const digits = String(val).replace(/\D/g, '').slice(0,2);
+      return digits;
+    };
+
+    // generic handler for grade fields
+    const handleGradeChange = (setter, fieldName) => (e) => {
+      const value = sanitizeTwoDigits(e.target.value);
+      setter(value);
+
+      // validation: allow empty (not typed yet) but if present must be 1-2 digits (0-99)
+      if (value === '') {
+        setErrors(prev => ({ ...prev, [fieldName]: 'This field is required' }));
+      } else {
+        // optional: ensure numeric range 0-100
+        const n = Number(value);
+        if (Number.isNaN(n) || n < 0 || n > 100) {
+          setErrors(prev => ({ ...prev, [fieldName]: 'Enter a number between 0 and 99' }));
+        } else {
+          setErrors(prev => ({ ...prev, [fieldName]: null }));
+        }
+      }
+    };
+
+    // basic form validation before submit
+    const validateForm = () => {
+      const newErrors = {};
+      newErrors.selectedStrand = selectedStrand ? null : 'Strand/Track is required';
+      newErrors.yearLevel = yearLevel ? null : 'Year level is required';
+      newErrors.generalAverage = generalAverage ? null : 'General Average is required';
+      newErrors.mathGrade = mathGrade ? null : 'Mathematics grade is required';
+      newErrors.scienceGrade = scienceGrade ? null : 'Science grade is required';
+      newErrors.englishGrade = englishGrade ? null : 'English grade is required';
+
+      setErrors(newErrors);
+      return Object.values(newErrors).every(v => v === null);
+    };
+
     // PUT request for the whole form.
     function handleSaveProfile(e) {
         e.preventDefault();
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (!user || !user.studentAccount_ID) return;
 
+        if (!validateForm()) {
+          return;
+        }
+
         const profileData = {
             firstName,
             lastName,
             strand_ID: selectedStrand,
             gradeLevel: yearLevel === 'Grade 11' ? 11 : yearLevel === 'Grade 12' ? 12 : null,
-            schoolYear,
-            generalAverage,
+            genAverageGrade: generalAverage,
             mathGrade,
             scienceGrade,
             englishGrade
@@ -109,14 +156,28 @@ const ProfilePage = () => {
                 const user = JSON.parse(sessionStorage.getItem('user'));
                 user.name = firstName + ' ' + lastName;
                 sessionStorage.setItem('user', JSON.stringify(user));
-                alert('Profile updated successfully');
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Profile updated',
+                  text: 'Your profile was saved successfully.',
+                  timer: 1800,
+                  showConfirmButton: false,
+                });
             } else {
-                alert('Failed to update profile: ' + (data.error || 'Unknown error'));
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Save failed',
+                  text: data.error || 'Failed to update profile.',
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to update profile.');
+            Swal.fire({
+              icon: 'error',
+              title: 'Save failed',
+              text: 'An unexpected error occurred while saving your profile.',
+            });
         });
     }
 
@@ -156,7 +217,8 @@ const ProfilePage = () => {
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 readOnly
-                tabIndex={-1} //just remove the readOnly, tabIndex, and style if you want it to be editable again.
+                tabIndex={-1}
+                aria-readonly="true"
                 style={{ pointerEvents: "none", backgroundColor: "#f3f4f6", color: "#6b7280" }}                                
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
@@ -170,7 +232,8 @@ const ProfilePage = () => {
                 onChange={e => setLastName(e.target.value)}
                 placeholder="Enter last name"
                 readOnly
-                tabIndex={-1} //just remove the readOnly, tabIndex, and style if you want it to be editable again.
+                tabIndex={-1}
+                aria-readonly="true"
                 style={{ pointerEvents: "none", backgroundColor: "#f3f4f6", color: "#6b7280" }}                
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
@@ -184,6 +247,7 @@ const ProfilePage = () => {
                 value={email}
                 readOnly
                 tabIndex={-1}
+                aria-readonly="true"
                 style={{ pointerEvents: "none", backgroundColor: "#f3f4f6", color: "#6b7280" }}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] font-normal"
                 />
@@ -200,49 +264,39 @@ const ProfilePage = () => {
 
             <div>   
                 <label className="block text-sm font-medium text-gray-700 mb-1" id="strand">Strand/Track</label>
-        <select 
-            value={selectedStrand}
-            onChange={e => setSelectedStrand(e.target.value)}
-            className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
-                    <option value="" disabled hidden>Select Strand</option>
-                    {strands.map(strand => (
-                        <option key={strand.strand_ID} className="text-gray-700" value={strand.strand_ID}>
-                            {strand.strandName}
-                        </option>
-                    ))}
+                <select 
+                    value={selectedStrand}
+                    onChange={e => {
+                      setSelectedStrand(e.target.value);
+                      setErrors(prev => ({ ...prev, selectedStrand: null }));
+                    }}
+                    className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
+                        <option value="" disabled hidden>Select Strand</option>
+                        {strands.map(strand => (
+                            <option key={strand.strand_ID} className="text-gray-700" value={strand.strand_ID}>
+                                {strand.strandName}
+                            </option>
+                        ))}
                 </select>
+                {errors.selectedStrand && <p className="text-xs text-red-600 mt-1">{errors.selectedStrand}</p>}
             </div>
-
-
-            {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Track</label>
-                <select defaultValue=""className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-400">
-                <option value="" disabled hidden>Select Track</option>
-                <option className="text-gray-700">Pre-Computer Science</option>
-                <option className="text-gray-700">Engineering</option>
-                <option className="text-gray-700">Medical</option>
-                </select>
-            </div> */}
 
 
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Year Level</label>
             <select 
                 value={yearLevel}
-                onChange={e => setYearLevel(e.target.value)}
+                onChange={e => {
+                  setYearLevel(e.target.value);
+                  setErrors(prev => ({ ...prev, yearLevel: null }));
+                }}
                 className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] text-gray-700">
                     <option value="" disabled hidden>Select Year</option>
                     <option className="text-gray-700">Grade 11</option>
                     <option className="text-gray-700">Grade 12</option>
                     </select>
+                    {errors.yearLevel && <p className="text-xs text-red-600 mt-1">{errors.yearLevel}</p>}
             </div>
-
-
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">School Year</label>
-                <input type="text" placeholder="e.g., 2024-2025" className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]" />
-            </div>
-
         </div>
 
 
@@ -258,11 +312,15 @@ const ProfilePage = () => {
                 <label className="block text-sm font-medium text-gray-600">General Average</label>
                 <input
                 type="text"
-                placeholder="e.g., 1.750"
+                placeholder="e.g., 90"
                 value={generalAverage}
-                onChange={e => setGeneralAverage(e.target.value)}
-                className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
+                onChange={handleGradeChange(setGeneralAverage, 'generalAverage')}
+                inputMode="numeric"
+                maxLength={2}
+                pattern="\d{1,2}"
+                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.generalAverage ? 'border-red-500' : 'border-gray-400'}`}
                 />
+                {errors.generalAverage && <p className="text-xs text-red-600 mt-1">{errors.generalAverage}</p>}
             </div>
 
             {/* Mathematics */}
@@ -272,9 +330,13 @@ const ProfilePage = () => {
                 type="text"
                 placeholder="e.g., 95"
                 value={mathGrade}
-                onChange={e => setMathGrade(e.target.value)}
-                className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
+                onChange={handleGradeChange(setMathGrade, 'mathGrade')}
+                inputMode="numeric"
+                maxLength={2}
+                pattern="\d{1,2}"
+                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.mathGrade ? 'border-red-500' : 'border-gray-400'}`}
                 />
+                {errors.mathGrade && <p className="text-xs text-red-600 mt-1">{errors.mathGrade}</p>}
             </div>
 
             {/* Science */}
@@ -284,9 +346,13 @@ const ProfilePage = () => {
                 type="text"
                 placeholder="e.g., 95"
                 value={scienceGrade}
-                onChange={e => setScienceGrade(e.target.value)}
-                className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
+                onChange={handleGradeChange(setScienceGrade, 'scienceGrade')}
+                inputMode="numeric"
+                maxLength={2}
+                pattern="\d{1,2}"
+                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.scienceGrade ? 'border-red-500' : 'border-gray-400'}`}
                 />
+                {errors.scienceGrade && <p className="text-xs text-red-600 mt-1">{errors.scienceGrade}</p>}
             </div>
 
             {/* English */}
@@ -296,9 +362,13 @@ const ProfilePage = () => {
                 type="text"
                 placeholder="e.g., 95"
                 value={englishGrade}
-                onChange={e => setEnglishGrade(e.target.value)}
-                className="w-full border border-gray-400 rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724]"
+                onChange={handleGradeChange(setEnglishGrade, 'englishGrade')}
+                inputMode="numeric"
+                maxLength={2}
+                pattern="\d{1,2}"
+                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.englishGrade ? 'border-red-500' : 'border-gray-400'}`}
                 />
+                {errors.englishGrade && <p className="text-xs text-red-600 mt-1">{errors.englishGrade}</p>}
             </div>
             </div>
 
@@ -313,7 +383,8 @@ const ProfilePage = () => {
 
             <button
                 type="submit"
-                className="px-6 py-2 text-sm bg-[#FBBF24] text-white rounded-md shadow-md"
+                disabled={Object.values(errors).some(Boolean)}
+                className={`px-6 py-2 text-sm rounded-md shadow-md ${Object.values(errors).some(Boolean) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#FBBF24] text-white'}`}
             >
                 Save Profile
             </button>

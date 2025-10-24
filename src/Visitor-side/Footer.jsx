@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import CookiesModal from "../Visitor-side/CookiesModal";
 
 const Footer = () => {
   const [isCookiesModalOpen, setIsCookiesModalOpen] = useState(false);
+
 
   return (
     <>
@@ -24,52 +25,71 @@ const Footer = () => {
 
           {/* Center: Subscription Form */}
           <div className="text-center">
-            <h3 className="text-2xl font-semibold mb-3">Be Informed. Subscribe.</h3>
-            <form className="flex items-center justify-center md:justify-start bg-white rounded-full shadow max-w-md mx-auto md:mx-0 overflow-hidden">
-              <input
-                type="email"
-                placeholder="Your Email"
-                className="flex-grow px-5 py-4 text-black text-base outline-none"
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe"
-                className="bg-[#F6BE1E] text-white w-11 h-11 flex items-center justify-center rounded-full hover:bg-yellow-500 transition-all mr-1.5"
-              >
-                <ArrowRight className="text-white" size={22} strokeWidth={3} />
-              </button>
-            </form>
+            <h4 className="text-base font-semibold mb-3">About TigerRoutes</h4>
+            <p className="text-sm leading-relaxed max-w-xs mx-auto mb-3">
+              TigerRoutes helps Thomasian Senior High School students discover UST programs that match their interests,
+              personality, and academic profile using psychometric assessments and a rule‑based recommendation engine.
+            </p>
+            <p className="text-sm font-medium">Contact</p>
+            <p className="text-sm">tigeroutes.support@ust.edu.ph</p>
           </div>
 
           {/* Right: QR Code */}
+          
           <div className="text-center">
-            <h4 className="text-base font-semibold mb-3">Send us your feedback</h4>
-            <img
-              src="/assets/qr-feedback.png"
-              alt="Feedback QR code"
-              className="w-24 h-24 mx-auto md:ml-auto border-4 border-black rounded-lg"
-            />
+            <h3 className="text-2xl font-semibold mb-3">Quick Links</h3>
+            <ul className="text-sm space-y-2">
+              <li>
+                <a
+                  href="https://www.ust.edu.ph/admission/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black hover:underline"
+                >
+                  UST Admission
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.ust.edu.ph/academics/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black hover:underline"
+                >
+                  UST Academic Programs
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://myusteportal.ust.edu.ph/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black hover:underline"
+                >
+                  MyUSTe Portal
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-
         {/* Bottom copyright */}
-        <div className="border-t border-black mt-10 pt-4 text-center text-xs md:text-sm text-black flex flex-col md:flex-row justify-between items-center gap-2 max-w-7xl mx-auto">
-          <p>© 2025 TigerRoutes. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:underline">
-              Privacy Policy
-            </Link>
-            <Link to="/terms-of-service" className="hover:underline">
-              Terms of Service
-            </Link>
-            <button 
-              onClick={() => setIsCookiesModalOpen(true)}
-              className="hover:underline"
-            >
-              Cookies Settings
-            </button>
+          <div className="border-t border-black mt-10 pt-4 text-center text-xs md:text-sm text-black flex flex-col md:flex-row justify-between items-center gap-2 max-w-7xl mx-auto">
+            <p>© 2025 TigerRoutes. All rights reserved.</p>
+            <div className="flex gap-4">
+              <Link to="/privacy-policy" className="hover:underline">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-of-service" className="hover:underline">
+                Terms of Service
+              </Link>
+              <button 
+                onClick={() => setIsCookiesModalOpen(true)}
+                className="hover:underline"
+              >
+                Cookies Settings
+              </button>
+            </div>
           </div>
-        </div>
       </footer>
 
       <CookiesModal 

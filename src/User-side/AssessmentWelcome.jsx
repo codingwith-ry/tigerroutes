@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import UserNavbar from "./UserNavbar";
 import { UserCircle2, SquarePen, BookOpen, Brain, FileText } from "lucide-react";
 import Footer from "../Visitor-side/Footer";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { v4 as uuidv4 } from 'uuid';
+import Swal from "sweetalert2";
+import { time } from "framer-motion";
 
 const AssessmentPage = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
   useEffect(() => {
     document.title = "Assessment | Overview";
@@ -68,7 +71,39 @@ const AssessmentPage = () => {
     }
   };
 
+  const isProfileComplete = (data) => {
+    if (!data) return false;
+    const requiredFields = [
+      "name",
+      "email",
+      "gradeLevel",
+      "strand",
+      "mathGrade",
+      "scienceGrade",
+      "englishGrade",
+      "genAverageGrade"
+    ];
+    return requiredFields.every((key) => {
+      const v = data[key];
+      return v !== undefined && v !== null && String(v).trim() !== "";
+    });
+  };
+
   const startAssessment = () => {
+    if (!isProfileComplete(userData)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Complete your profile",
+        html:
+          "Please complete your student profile before starting the assessment. You will be redirected to your profile page to update missing information.",
+        timer: 2500,
+        showConfirmButton: false,
+      }).then(() => {
+        navigate("/profile");
+      });
+      return;
+    }
+
     const assessmentId = uuidv4();
     localStorage.setItem('currentAssessmentId', assessmentId);
     window.scrollTo(0, 0);
@@ -122,11 +157,11 @@ const AssessmentPage = () => {
               {/* Profile Info */}
               <div className="w-full">
                 {/* Profile Icon */}
-                <div className="flex items-center mb-2">
+                <div className="flex items-center mb-3 pl-5">
                   <div className="mr-2">
                     <UserCircle2 size={40} stroke="#FB9724" strokeWidth={2} />
                   </div>
-                  <h2 className="font-semibold pl-0 sm:pl-5 text-base sm:text-lg mb-3 sm:mb-2">
+                  <h2 className="font-semibold py-2 pl-0 text-base sm:text-lg">
                       Current Profile
                   </h2>
                 </div>
@@ -139,6 +174,7 @@ const AssessmentPage = () => {
                     <span className="pl-4">Grade Level:</span>
                     <span className="pl-4">Strand:</span>
                   </div>
+
                   <div className="grid grid-cols-4 text-sm">
                     <span className="pl-5">{userData?.name || 'N/A'}</span>
                     <span className="pl-4 break-words">
@@ -301,6 +337,23 @@ const AssessmentPage = () => {
               </div>
             </div>
 
+            {/* Consent */}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <input
+                id="privacy-consent"
+                type="checkbox"
+                checked={acceptedPrivacy}
+                onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                className="w-4 h-4 text-[#FBBF24] border-gray-300 rounded"
+              />
+              <label htmlFor="privacy-consent" className="text-sm text-gray-700">
+                I agree to the{" "}
+                <Link to="/privacy-policy" className="text-[#195FD3] underline">
+                  TigerRoutes Privacy Policy
+                </Link>
+              </label>
+            </div>
+
             {/* CTA Button Centered */}
             <div className="flex justify-center">
               <button
@@ -308,7 +361,8 @@ const AssessmentPage = () => {
                   window.scrollTo(0, 0);
                   startAssessment();
                 }}
-                className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
+                disabled={!acceptedPrivacy}
+                className={`bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base ${!acceptedPrivacy ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 Begin Assessment
               </button>

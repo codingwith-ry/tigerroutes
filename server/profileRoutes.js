@@ -42,7 +42,7 @@ module.exports = (db) => {
 
     router.put('/student-profile/:id', (req, res) => {
         const studentAccountId = req.params.id;
-        const { firstName, lastName, strand_ID, gradeLevel, generalAverage,
+        const { firstName, lastName, strand_ID, gradeLevel, genAverageGrade,
             mathGrade, scienceGrade, englishGrade
          } = req.body;
 
@@ -64,9 +64,9 @@ module.exports = (db) => {
 
                     // Handle grades - create or update tbl_studentgrades
                     const handleGrades = (profileId, callback) => {
-                        if (generalAverage || mathGrade || scienceGrade || englishGrade) {
+                        if (genAverageGrade || mathGrade || scienceGrade || englishGrade) {
                             //Convert empty strings to null for database
-                            const genAvg = generalAverage ? parseFloat(generalAverage) : null;
+                            const genAvg = genAverageGrade ? parseFloat(genAverageGrade) : null;
                             const mathGrd = mathGrade ? parseFloat(mathGrade) : null;
                             const scienceGrd = scienceGrade ? parseFloat(scienceGrade) : null;
                             const englishGrd = englishGrade ? parseFloat(englishGrade) : null;

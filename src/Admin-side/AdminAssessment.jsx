@@ -1,5 +1,5 @@
 import { FileCheck, Calendar, BarChart2, Users, Target, Star, Activity, Eye, TrendingUp, Bell } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import AdminSidebar from "./AdminSidebar";
@@ -9,12 +9,40 @@ import { useNavigate } from "react-router-dom";
 const AdminAssessment = () => {
   const navigate = useNavigate();
   // Mock Data
-  const stats = {
-    totalStudents: 12,
-    completedAssessments: 10,
-    pendingAssessments: 355,
-    overallAlignment: 88.5,
-  };
+  // const stats = {
+  //   totalStudents: 12,
+  //   completedAssessments: 10,
+  //   pendingAssessments: 355,
+  //   overallAlignment: 88.5,
+  // };
+
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    completedAssessments: 0,
+    overallAlignment: 0,
+  });
+
+  useEffect(() => {
+    fetchDashboardStats();
+  })
+
+  async function fetchDashboardStats(){
+    try {
+      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      const data = await response.json();
+
+      if (data.success) {
+        setStats(prevStats => ({
+          ...prevStats,
+          totalStudents: data.data.totalStudents,
+          completedAssessments: data.data.completedAssessments,
+          overallAlignment: data.data.overallAlignment
+        }))
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    }
+  }
 
   const students = [
     { id: "STU-0001", strand: "STEM", strandColor: "bg-blue-100 text-blue-600", date: "06/27/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
@@ -141,7 +169,7 @@ const AdminAssessment = () => {
               icon={<FileCheck className="w-6 h-6 text-green-600" />}
               color="#16a34a"
             />
-            <StatCard
+            {/* <StatCard
               title="Pending Assessments"
               value={stats.pendingAssessments}
               subtitle="Awaiting completion"
@@ -150,7 +178,7 @@ const AdminAssessment = () => {
               max={400}
               icon={<Calendar className="w-6 h-6 text-orange-600" />}
               color="#ea580c"
-            />
+            /> */}
             <StatCard
               title="Overall Alignment"
               value={`${stats.overallAlignment}%`}

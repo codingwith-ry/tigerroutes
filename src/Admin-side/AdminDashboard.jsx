@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { FileCheck, Calendar, BarChart2, Users } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
@@ -6,28 +6,101 @@ import AdminHeader from "./AdminHeader";
 
 const AdminDashboard = () => {
   // Mock Data
-  const stats = {
-    totalStudents: 12,
-    completedAssessments: 10,
-    pendingAssessments: 355,
-    overallAlignment: 88.5,
-  };
+  // const stats = {
+  //   totalStudents: 12,
+  //   completedAssessments: 10,
+  //   pendingAssessments: 355,
+  //   overallAlignment: 88.5,
+  // };
 
-  const strands = [
-    { name: "STEM", score: 85 },
-    { name: "ABM", score: 75 },
-    { name: "HUMSS", score: 65 },
-    { name: "GAS", score: 60 },
-    { name: "TVL", score: 55 },
-  ];
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    completedAssessments: 0,
+    pendingAssessments: 0,
+    overallAlignment: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  const programs = [
-    { name: "Computer Science", recommendations: 234, score: 85.2 },
-    { name: "Business Administration", recommendations: 189, score: 82.1 },
-    { name: "Engineering", recommendations: 156, score: 88.7 },
-    { name: "Education", recommendations: 143, score: 79.3 },
-    { name: "Nursing", recommendations: 127, score: 84.6 },
-  ];
+  useEffect(() => {
+    fetchDashboardStats();
+    fetchStrandScores();
+    fetchTopPrograms();
+  }, []);
+
+  const fetchDashboardStats = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      const data = await response.json();
+
+      if (data.success) {
+        setStats(prevStats => ({
+          ...prevStats,
+          totalStudents: data.data.totalStudents,
+          completedAssessments: data.data.completedAssessments,
+          overallAlignment: data.data.overallAlignment
+        }))
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // const strands = [
+  //   { name: "STEM", score: 85 },
+  //   { name: "ABM", score: 75 },
+  //   { name: "HUMSS", score: 65 },
+  //   { name: "GAS", score: 60 },
+  //   { name: "TVL", score: 55 },
+  // ];
+
+  const [strandScores, setStrandScores] = useState([]);
+
+  async function fetchStrandScores() {
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/strand-alignment');
+      const json = await res.json();
+      console.log('Strand scores response:', json); // Debug log
+      if (json.success) {
+        setStrandScores(json.data.map(r => ({
+          name: r.strandName,
+          score: Number(r.avgAlignment)
+        })));
+        console.log('Strand scores set:', json.data); // Debug log
+      }
+    } catch (e) {
+      console.error('Error fetching strand alignment:', e);
+    }
+  }
+
+  // const programs = [
+  //   { name: "Computer Science", recommendations: 234, score: 85.2 },
+  //   { name: "Business Administration", recommendations: 189, score: 82.1 },
+  //   { name: "Engineering", recommendations: 156, score: 88.7 },
+  //   { name: "Education", recommendations: 143, score: 79.3 },
+  //   { name: "Nursing", recommendations: 127, score: 84.6 },
+  // ];
+
+  const [topPrograms, setTopPrograms] = useState([]);
+  
+  async function fetchTopPrograms() {
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/top-programs');
+      const json = await res.json();
+      console.log('Top programs response:', json);
+      if (json.success) {
+        setTopPrograms(json.data.map(r => ({
+          name: r.programName,
+          recommendations: Number(r.recommendations),
+          score: Number(r.avgAlignment)
+        })));
+      }
+    } catch (e) {
+      console.error('Error fetching top programs:', e);
+    }
+  }
+
 
   const mismatchCases = [
     { id: 1001, from: "STEM", to: "Fine Arts", reason: "Low alignment with current track", rating: 4.8 },
@@ -78,6 +151,10 @@ const AdminDashboard = () => {
       </div>
     );
   };
+
+
+let statsContent;
+
 
 const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, color }) => (
   <div className="bg-white p-8 sm:p-6 rounded-xl shadow border border-gray-200 hover:border-yellow-500 transition-all duration-200">
@@ -132,7 +209,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               icon={<FileCheck className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600" />}
               color="#16a34a"
             />
-            <StatCard
+            {/* <StatCard
               title="Pending Assessments"
               value={stats.pendingAssessments}
               subtitle="Awaiting completion"
@@ -141,7 +218,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               max={400}
               icon={<Calendar className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-orange-600" />}
               color="#ea580c"
-            />
+            /> */}
             <StatCard
               title="Overall Alignment"
               value={`${stats.overallAlignment}%`}
@@ -161,14 +238,15 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               <h2 className="text-lg font-semibold mb-6 flex items-center">
                 <span className="mr-2">📊</span> Strand Alignment Scores
               </h2>
-              {strands.map((s, i) => {
+              {(strandScores.length ? strandScores : []).map((s, i) => {
                 let barColor = "bg-gray-400";
                 let textColor = "text-gray-400";
                 if (s.name === "STEM") { barColor = "bg-blue-500"; textColor = "text-blue-500"; }
                 else if (s.name === "ABM") { barColor = "bg-green-500"; textColor = "text-green-500"; }
                 else if (s.name === "HUMSS") { barColor = "bg-purple-500"; textColor = "text-purple-500"; }
-                else if (s.name === "GAS") { barColor = "bg-orange-500"; textColor = "text-orange-500"; }
-                else if (s.name === "TVL") { barColor = "bg-red-500"; textColor = "text-red-500"; }
+                // else if (s.name === "GAS") { barColor = "bg-orange-500"; textColor = "text-orange-500"; }
+                // else if (s.name === "TVL") { barColor = "bg-red-500"; textColor = "text-red-500"; }
+                else if (s.name.includes("Health")) { barColor = "bg-orange-500"; textColor = "text-orange-500"; }                
 
                 return (
                   <div key={i} className="mb-6 last:mb-0">
@@ -179,8 +257,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                     <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4">
                       <div 
                         className={`${barColor} h-3 sm:h-4 rounded-full transition-all duration-300`} 
-                        style={{ width: `${s.score}%` }}
-                      />
+                        style={{ width: `${Math.min(100, Math.max(0, s.score))}%` }}                      />
                     </div>
                   </div>
                 );
@@ -193,7 +270,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                 <span className="mr-2">🏅</span> Top 5 Most Recommended Programs
               </h2>
               <div className="space-y-3">
-                {programs.map((p, i) => (
+                {topPrograms.map((p, i) => (
                   <div
                     key={i}
                     className="flex items-center justify-between bg-gray-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-100 transition-all duration-200"

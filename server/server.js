@@ -42,6 +42,10 @@ app.use('/api', profileRoutes);
 const assessmentRoutes = require('./assessmentRoutes.js')(db);
 app.use('/api', assessmentRoutes);
 
+//importing admin dashboard route
+const admindashboardRoutes = require('./admindashboardRoutes.js')(db);
+app.use('/api', admindashboardRoutes);
+
 app.listen(PORT, () => {
     console.log('Server is running on port', PORT)
 })

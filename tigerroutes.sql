@@ -201,6 +201,33 @@ CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
 INSERT INTO `tbl_staffaccounts` (`staffAccount_ID`, `name`, `email`, `password`, `staffRole_ID`, `staffProfile_ID`, `status`) VALUES
 	(1, 'Owen Trinidad', 'michaelowen.trinidad.cics@ust.edu.ph', 'hello123', NULL, NULL, NULL);
 
+-- Dumping structure for table tigerroutesdb.tbl_staffprofiles
+CREATE TABLE IF NOT EXISTS `tbl_staffprofiles` (
+  `staffProfile_ID` int NOT NULL AUTO_INCREMENT,
+  `strand_ID` int DEFAULT NULL,
+  `officeDetails` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `about` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `consultationDetails` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`staffProfile_ID`),
+  KEY `FK_tbl_staffprofiles_tbl_strands` (`strand_ID`),
+  CONSTRAINT `FK_tbl_staffprofiles_tbl_strands` FOREIGN KEY (`strand_ID`) REFERENCES `tbl_strands` (`strand_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_staffprofiles: ~0 rows (approximately)
+
+-- Dumping structure for table tigerroutesdb.tbl_staffroles
+CREATE TABLE IF NOT EXISTS `tbl_staffroles` (
+  `staffRole_ID` int NOT NULL AUTO_INCREMENT,
+  `role` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`staffRole_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_staffroles: ~2 rows (approximately)
+INSERT INTO `tbl_staffroles` (`staffRole_ID`, `role`) VALUES
+	(1, 'counselor'),
+	(2, 'supervisor');
+
+
 -- Dumping structure for table tigerroutesdb.tbl_strands
 CREATE TABLE IF NOT EXISTS `tbl_strands` (
   `strand_ID` int NOT NULL AUTO_INCREMENT,

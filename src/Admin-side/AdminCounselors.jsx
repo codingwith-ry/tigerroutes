@@ -4,6 +4,8 @@ import AdminHeader from "./AdminHeader";
 import { Search, Edit, Eye, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CounselorModal from "./CounselorModal";
+import Swal from "sweetalert2";
+
 
 const AdminCounselors = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -274,7 +276,18 @@ const AdminCounselors = () => {
                 setIsSaving(false);
               }
             }}
+            onDelete={(counselor) => {
+              setCounselors((prev) => prev.filter((c) => c.name !== counselor.name));
+              Swal.fire({
+                icon: "success",
+                title: "Successfully Deleted!",
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+              });
+            }}
           />
+
         </main>
       </div>
     </div>

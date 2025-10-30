@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Briefcase, Clock, FileText, CheckCircle } from "lucide-react";
+import Swal from "sweetalert2";
+import {
+  X,
+  User,
+  Briefcase,
+  Clock,
+  FileText,
+  CheckCircle,
+  Trash2,
+  Lock,
+} from "lucide-react";
 
-const CounselorModal = ({ isOpen, onClose, counselor, onSave, isSaving = false }) => {
+const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving = false }) => {
   const [formData, setFormData] = useState({
     title: "",
     firstName: "",
@@ -14,6 +24,9 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, isSaving = false }
     consultationHours: "",
     about: "",
   });
+
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Reset or populate the form depending on mode (add/edit).
   // When editing, fetch the canonical record from the backend by staffAccount_ID
@@ -174,6 +187,49 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, isSaving = false }
     onSave(counselorData);
   };
 
+  const handleConfirmDelete = (e) => {
+    e.preventDefault();
+
+    if (!confirmPassword) {
+      Swal.fire({
+        icon: "warning",
+        title: "Password Required",
+        text: "Please enter your password to confirm.",
+        confirmButtonColor: "#FB9724",
+      });
+      return;
+    }
+
+    // Example validation (replace with real password check)
+    const correctPassword = "admin123";
+    if (confirmPassword !== correctPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Incorrect Password!",
+        text: "Please try again.",
+        confirmButtonColor: "#FB9724",
+      });
+      return;
+    }
+
+    // Delete counselor
+    onDelete(counselor, confirmPassword);
+
+    // Close modal + reset
+    setConfirmPassword("");
+    setShowConfirmDelete(false);
+    onClose();
+
+    // Show success alert (no button, auto close 5s)
+    Swal.fire({
+      icon: "success",
+      title: "Successfully Deleted!",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -194,7 +250,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, isSaving = false }
             onClick={onClose}
           />
 
-          {/* Modal Container with Animation */}
+          {/* Modal Container */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -402,25 +458,91 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, isSaving = false }
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSaving}
+                <div className="flex justify-between items-center pt-2">
+                  {counselor && (
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmDelete(true)}
+                      className="px-5 py-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all flex items-center gap-2 font-medium"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
                     className={`px-6 py-2.5 bg-[#FBBC05] text-white rounded-lg shadow-md transition-all font-medium flex items-center gap-2 ${isSaving ? 'opacity-60 cursor-not-allowed hover:shadow-none hover:scale-100' : 'hover:shadow-lg hover:scale-105'}`}
-                  >
-                    <CheckCircle className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save Changes'}
-                  </button>
+                    >
+                      <CheckCircle className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
           </motion.div>
+
+          {/* Confirm Delete Modal */}
+          <AnimatePresence>
+            {showConfirmDelete && (
+              <motion.div
+                className="fixed inset-0 flex items-center justify-center z-50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div
+                  className="absolute inset-0 bg-black bg-opacity-50"
+                  onClick={() => setShowConfirmDelete(false)}
+                ></div>
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  className="relative bg-white rounded-xl p-6 shadow-2xl w-full max-w-md z-10"
+                >
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-[#FBBC05]" />
+                    Confirm Deletion
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Enter your password to confirm the deletion of{" "}
+                    <span className="font-semibold">{counselor?.name}</span>.
+                  </p>
+                  <input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all mb-4"
+                  />
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowConfirmDelete(false)}
+                      className="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-700 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmDelete}
+                      className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+                    >
+                      Confirm Delete
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

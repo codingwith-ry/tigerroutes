@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import { Search, Edit, Eye, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,13 +10,40 @@ const AdminCounselors = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [counselors, setCounselors] = useState([
     { name: "Dr. John Cruz", strand: "STEM", lastLogin: "2025-09-16 08:10", status: "Active" },
     { name: "Dr. Lily Cruz", strand: "ABM", lastLogin: "2025-09-16 06:45", status: "Active" },
-    { name: "Ms. Carla Rivera", strand: "HUMSS", lastLogin: "2025-09-15 19:20", status: "Active" },
+  { name: "Ms. Carla Rivera", strand: "HUMSS", lastLogin: "2025-09-15 19:20", status: "Active" },
     { name: "Dr. John Doe", strand: "TVL", lastLogin: "2025-09-18 08:20", status: "Inactive" },
   ]);
+
+  useEffect(() => {
+    fetchCounselors();
+  }, []);
+
+  const fetchCounselors = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/counselors');
+      const result = await response.json();
+      if (result.success) {
+        setCounselors(result.data.map(c => ({
+          staffAccount_ID: c.staffAccount_ID,
+          name: c.name,
+          strand: c.strand || 'N/A',
+          lastLogin: 'N/A', 
+          status: c.status === 1 ? 'Active' : 'Inactive',
+          email: c.email,
+          about: c.about,
+          officeLocation: c.officeDetails,
+          consultationHours: c.consultationDetails
+        })));
+      }
+    }catch(error){
+      console.error('Error fetching counselors:', error);
+    }
+  };
 
   const navigate = useNavigate();
   const itemsPerPage = 10;
@@ -26,7 +53,7 @@ const AdminCounselors = () => {
     const parts = name.split(" ");
     const first = parts[1] ? parts[1].toLowerCase() : parts[0].toLowerCase();
     const last = parts[parts.length - 1].toLowerCase();
-    return `${first}.${last}@school.edu`;
+    return `${first}.${last}@ust.edu.ph`;
   };
 
   const counselorsWithEmail = counselors.map((c) => ({
@@ -88,17 +115,26 @@ const AdminCounselors = () => {
                 <tbody className="divide-y divide-gray-200">
                   {currentCounselors.map((c, i) => (
                     <tr key={i} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span
-                            className="font-medium text-gray-900 cursor-pointer hover:underline"
-                            onClick={() => navigate(`/admin/preview/${encodeURIComponent(c.name)}`)}
-                          >
-                            {c.name}
-                          </span>
-                          <span className="text-sm text-gray-500">{c.email}</span>
-                        </div>
-                      </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span
+                                className="font-medium text-gray-900 cursor-pointer hover:underline"
+                                onClick={() => {
+                                  // Save only the staffAccount_ID in sessionStorage for preview fetch
+                                  try {
+                                    const id = c.staffAccount_ID || c.id || '';
+                                    sessionStorage.setItem('selectedCounselorId', String(id));
+                                  } catch (e) {
+                                    console.warn('Could not write sessionStorage', e);
+                                  }
+                                  navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                                }}
+                              >
+                                {c.name}
+                              </span>
+                              <span className="text-sm text-gray-500">{c.email}</span>
+                            </div>
+                          </td>
                       <td className="px-6 py-4 text-center">
                         <span
                           className="px-3 py-1 rounded-full text-xs font-medium inline-block min-w-[80px]"
@@ -132,7 +168,15 @@ const AdminCounselors = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center space-x-4">
-                          <button className="text-blue-600 hover:text-blue-800" onClick={() => navigate(`/admin/preview/${encodeURIComponent(c.name)}`)}>
+                          <button className="text-blue-600 hover:text-blue-800" onClick={() => {
+                              try {
+                                const id = c.staffAccount_ID || c.id || '';
+                                sessionStorage.setItem('selectedCounselorId', String(id));
+                              } catch (e) {
+                                console.warn('Could not write sessionStorage', e);
+                              }
+                              navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                            }}>
                             <Eye className="w-5 h-5" />
                           </button>
                           <button className="text-blue-600 hover:text-blue-800" onClick={() => { setSelectedCounselor(c); setIsModalOpen(true); }}>
@@ -184,10 +228,51 @@ const AdminCounselors = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             counselor={selectedCounselor}
-            onSave={(updated) => {
-              setCounselors(prev => prev.map(c => c.name === (selectedCounselor?.name || "") ? updated : c));
-              setIsModalOpen(false);
-              setSelectedCounselor(null);
+            // onSave={(updated) => {
+            //   setCounselors(prev => prev.map(c => c.name === (selectedCounselor?.name || "") ? updated : c));
+            //   setIsModalOpen(false);
+            //   setSelectedCounselor(null);
+            // }}
+            isSaving={isSaving}
+            onSave={async (counselorData) => {
+              if (isSaving) return;
+              setIsSaving(true);
+              try {
+                // If an id is present, perform update (PUT), otherwise create (POST)
+                const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                let response;
+                if (counselorData.id) {
+                  // Update existing counselor
+                  response = await fetch(`${base}/api/counselor/${encodeURIComponent(counselorData.id)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(counselorData)
+                  });
+                } else {
+                  // Create new counselor
+                  response = await fetch(`${base}/api/counselor/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(counselorData)
+                  });
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                  // Refresh list and close modal
+                  await fetchCounselors();
+                  setIsModalOpen(false);
+                  setSelectedCounselor(null);
+                  alert(counselorData.id ? 'Counselor updated successfully!' : 'Counselor added successfully!');
+                } else {
+                  alert('Error: ' + (result.message || 'Unknown error'));
+                }
+              } catch (error) {
+                console.error('Error saving counselor: ', error);
+                alert('Failed to save counselor');
+              } finally {
+                setIsSaving(false);
+              }
             }}
           />
         </main>

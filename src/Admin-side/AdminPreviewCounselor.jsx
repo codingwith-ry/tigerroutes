@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import { Mail, Phone, MapPin, BookOpen, Clock, Dot, MessageSquareText } from "lucide-react";
@@ -7,6 +7,68 @@ import { useNavigate, useParams } from "react-router-dom";
 const CounselorPreview = () => {
   const navigate = useNavigate();
   const { counselorName } = useParams(); // dynamic name from URL
+  const decodedName = decodeURIComponent(counselorName || "");
+
+  const [counselor, setCounselor] = useState(null);
+  const [loading, setLoading] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Try to read an ID from sessionStorage and fetch fresh data from backend.
+    const storedId = sessionStorage.getItem("selectedCounselorId");
+    const stored = sessionStorage.getItem("selectedCounselor");
+
+    let mounted = true;
+
+    const fetchById = async (id) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch(`http://localhost:5000/api/counselor/${encodeURIComponent(id)}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError('Counselor not found');
+            setCounselor(null);
+            return;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const json = await res.json();
+        if (mounted) {
+          setCounselor(json.data || null);
+        }
+      } catch (err) {
+        console.error('Error fetching counselor by id:', err);
+        if (mounted) setError(err.message || 'Network error');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    if (storedId) {
+      // If an ID is present, fetch canonical record from backend
+      fetchById(storedId);
+      return () => { mounted = false; };
+    }
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setCounselor(parsed);
+        setLoading(false);
+        setError(null);
+        return () => { mounted = false; };
+      } catch (e) {
+        console.warn("Invalid JSON in sessionStorage.selectedCounselor", e);
+        sessionStorage.removeItem("selectedCounselor");
+      }
+    }
+
+    // No data available
+    setLoading(false);
+    setError("No counselor data in sessionStorage");
+    return () => { mounted = false; };
+  }, [decodedName]);
 
   // Helper to generate email from name
   const formatEmail = (name) => {
@@ -16,7 +78,11 @@ const CounselorPreview = () => {
     return `${first}.${last}@school.edu`;
   };
 
-  const email = formatEmail(decodeURIComponent(counselorName));
+  
+
+  const renderValue = (value, fallback = 'N/A') => (value ? value : fallback);
+  // Accept either `officeDetails`/`consultationDetails` (DB names) or `officeLocation`/`consultationHours` (frontend)
+  const email = counselor?.email || formatEmail(decodedName);
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
@@ -34,17 +100,17 @@ const CounselorPreview = () => {
             {/* Profile Header */}
             <div className="flex items-center gap-5 mb-6">
               <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-xl font-bold text-white">
-                {counselorName
+                {decodedName
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-800">
-                  {decodeURIComponent(counselorName)}
+                  {counselor?.name || decodedName}
                 </h2>
                 <p className="text-gray-500 flex items-center gap-1">
-                  Counselor <Dot className="w-4 h-4" /> Guidance &amp; Counseling
+                  {counselor?.role || "Counselor"} <Dot className="w-4 h-4" /> Guidance & Counseling
                 </p>
               </div>
             </div>
@@ -64,25 +130,25 @@ const CounselorPreview = () => {
                       <span className="font-bold">{email}</span>
                     </div>
                   </li>
-                  <li className="flex items-start gap-2">
+                  {/* <li className="flex items-start gap-2">
                     <Phone className="w-6 h-6 mt-2 text-gray-400" />
                     <div className="flex flex-col">
                       <span className="font-normal">Phone:</span>
                       <span className="font-bold">+63 917 555 0123</span>
                     </div>
-                  </li>
+                  </li> */}
                   <li className="flex items-start gap-2">
                     <MapPin className="w-6 h-6 mt-2 text-gray-400" />
                     <div className="flex flex-col">
                       <span className="font-normal">Office:</span>
-                      <span className="font-bold">Room 205, Admin Building</span>
+                          <span className="font-bold">{renderValue(counselor?.officeDetails, '—')}</span>
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
                     <Clock className="w-6 h-6 mt-2 text-gray-400" />
                     <div className="flex flex-col">
-                      <span className="font-normal">Work Hours:</span>
-                      <span className="font-bold">Monday–Friday, 8:00 AM – 5:00 PM</span>
+                      <span className="font-normal">Consultation Hours:</span>
+                          <span className="font-bold">{renderValue(counselor?.consultationDetails, '—')}</span>
                     </div>
                   </li>
                 </ul>
@@ -92,9 +158,7 @@ const CounselorPreview = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">About</h3>
                 <p className="text-gray-600 text-sm text-justify max-w-[450px] leading-relaxed">
-                  Experienced guidance counselor with 8+ years in student development and
-                  career guidance. Specializes in STEM pathway counseling and college
-                  preparation.
+                  {renderValue(counselor?.about, 'No description available.')}
                 </p>
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold text-gray-700 mb-1">
@@ -104,7 +168,7 @@ const CounselorPreview = () => {
                     <BookOpen className="w-6 h-6 mt-2 text-gray-400" />
                     <div className="flex flex-col">
                       <span className="font-normal">Strand Specialization:</span>
-                      <span className="font-bold">STEM</span>
+                          <span className="font-bold">{renderValue(counselor?.strand, 'N/A')}</span>
                     </div>
                   </div>
                 </div>

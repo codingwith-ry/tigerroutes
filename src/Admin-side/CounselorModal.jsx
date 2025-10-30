@@ -2,46 +2,137 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, User, Briefcase, Clock, FileText, CheckCircle } from "lucide-react";
 
-const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
+const CounselorModal = ({ isOpen, onClose, counselor, onSave, isSaving = false }) => {
   const [formData, setFormData] = useState({
     title: "",
     firstName: "",
     lastName: "",
+    email: "",
     strand: "",
     status: "Active",
-    officeHours: "",
-    workHours: "",
+    officeLocation: "",
+    consultationHours: "",
     about: "",
   });
 
-  // Reset or populate the form depending on mode (add/edit)
+  // Reset or populate the form depending on mode (add/edit).
+  // When editing, fetch the canonical record from the backend by staffAccount_ID
+  // so we always present the latest DB values instead of relying on a possibly stale prop.
   useEffect(() => {
-    if (counselor) {
-      // Edit mode: fill with counselor data
-      const nameParts = counselor.name ? counselor.name.split(" ") : [];
-      setFormData({
-        title: nameParts[0] || "",
-        firstName: nameParts[1] || "",
-        lastName: nameParts.slice(-1)[0] || "",
-        strand: counselor.strand || "",
-        status: counselor.status || "Active",
-        officeHours: counselor.officeHours || "",
-        workHours: counselor.workHours || "",
-        about: counselor.about || "",
-      });
-    } else {
-      // Add mode: clear all fields
+    let aborted = false;
+
+    const populateEmpty = () => {
       setFormData({
         title: "",
         firstName: "",
         lastName: "",
+        email: "",
         strand: "",
         status: "Active",
-        officeHours: "",
-        workHours: "",
+        officeLocation: "",
+        consultationHours: "",
         about: "",
       });
+    };
+
+    const fetchAndPopulate = async (id) => {
+      try {
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const resp = await fetch(`${base}/api/counselor/${encodeURIComponent(id)}`);
+        if (!resp.ok) {
+          // fallback to using the provided counselor prop if fetch fails
+          console.warn('Failed to fetch counselor from API, using provided prop');
+          if (!aborted && counselor) {
+            const nameParts = counselor.name ? counselor.name.split(' ') : [];
+            setFormData({
+              title: nameParts[0] || '',
+              firstName: nameParts[1] || '',
+              lastName: nameParts.slice(-1)[0] || '',
+              email: counselor.email || '',
+              strand: counselor.strand || '',
+              status: counselor.status || 'Active',
+              officeLocation: counselor.officeLocation || counselor.officeHours || '',
+              consultationHours: counselor.consultationHours || counselor.workHours || '',
+              about: counselor.about || '',
+            });
+          }
+          return;
+        }
+
+        const payload = await resp.json();
+        if (!payload || !payload.success || !payload.data) {
+          console.warn('API returned no data for counselor id', id);
+          if (!aborted) populateEmpty();
+          return;
+        }
+
+        const data = payload.data;
+
+        if (aborted) return;
+
+        const nameParts = data.name ? data.name.split(' ') : [];
+        // Normalize status: DB stores numeric 1/0, UI expects 'Active'/'Inactive'
+        const statusVal = (data.status === 1 || data.status === '1' || data.status === 'Active') ? 'Active' : 'Inactive';
+
+        setFormData({
+          title: nameParts[0] || '',
+          firstName: nameParts[1] || '',
+          lastName: nameParts.slice(-1)[0] || '',
+          email: data.email || '',
+          strand: data.strand || '',
+          status: statusVal,
+          officeLocation: data.officeDetails || data.officeLocation || '',
+          consultationHours: data.consultationDetails || data.consultationHours || '',
+          about: data.about || '',
+        });
+      } catch (err) {
+        console.error('Error fetching counselor details:', err);
+        if (!aborted) {
+          if (counselor) {
+            const nameParts = counselor.name ? counselor.name.split(' ') : [];
+            setFormData({
+              title: nameParts[0] || '',
+              firstName: nameParts[1] || '',
+              lastName: nameParts.slice(-1)[0] || '',
+              email: counselor.email || '',
+              strand: counselor.strand || '',
+              status: counselor.status || 'Active',
+              officeLocation: counselor.officeLocation || counselor.officeHours || '',
+              consultationHours: counselor.consultationHours || counselor.workHours || '',
+              about: counselor.about || '',
+            });
+          } else {
+            populateEmpty();
+          }
+        }
+      }
+    };
+
+    if (!isOpen) return;
+
+    if (counselor && counselor.staffAccount_ID) {
+      fetchAndPopulate(counselor.staffAccount_ID);
+    } else if (counselor) {
+      // No id available; fall back to using the prop values
+      const nameParts = counselor.name ? counselor.name.split(' ') : [];
+      setFormData({
+        title: nameParts[0] || '',
+        firstName: nameParts[1] || '',
+        lastName: nameParts.slice(-1)[0] || '',
+        email: counselor.email || '',
+        strand: counselor.strand || '',
+        status: counselor.status || 'Active',
+        officeLocation: counselor.officeLocation || counselor.officeHours || '',
+        consultationHours: counselor.consultationHours || counselor.workHours || '',
+        about: counselor.about || '',
+      });
+    } else {
+      populateEmpty();
     }
+
+    return () => {
+      aborted = true;
+    };
   }, [counselor, isOpen]);
 
   const handleChange = (e) => {
@@ -49,18 +140,38 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const updatedCounselor = {
+  //     ...counselor,
+  //     name: `${formData.title} ${formData.firstName} ${formData.lastName}`.trim(),
+  //     strand: formData.strand,
+  //     status: formData.status,
+  //     officeHours: formData.officeHours,
+  //     workHours: formData.workHours,
+  //     about: formData.about,
+  //   };
+  //   onSave(updatedCounselor);
+  // };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const updatedCounselor = {
-      ...counselor,
+
+    const counselorData = {
+      id: counselor?.staffAccount_ID || null,
       name: `${formData.title} ${formData.firstName} ${formData.lastName}`.trim(),
+      email: formData.email && formData.email.trim() !== ''
+        ? formData.email.trim()
+        : `${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@school.edu`,
       strand: formData.strand,
       status: formData.status,
-      officeHours: formData.officeHours,
-      workHours: formData.workHours,
+      // map frontend fields to backend names
+      officeLocation: formData.officeLocation,
+      consultationHours: formData.consultationHours,
       about: formData.about,
     };
-    onSave(updatedCounselor);
+
+    onSave(counselorData);
   };
 
   return (
@@ -119,7 +230,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
                       Personal Information
                     </h3>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Title
@@ -165,6 +276,19 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
                         placeholder="Enter last name"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
+                        placeholder="e.g. first.last@school.edu"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -193,10 +317,11 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
                         <option>STEM</option>
                         <option>ABM</option>
                         <option>HUMSS</option>
-                        <option>GAS</option>
+                        <option>Health-Allied</option>
+                        {/* <option>GAS</option>
                         <option>TVL</option>
                         <option>Sports</option>
-                        <option>Arts & Design</option>
+                        <option>Arts & Design</option> */}
                       </select>
                     </div>
                     <div>
@@ -229,28 +354,28 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Office Hours
+                        Office Location
                       </label>
                       <input
                         type="text"
-                        name="officeHours"
-                        value={formData.officeHours}
+                        name="officeLocation"
+                        value={formData.officeLocation}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
-                        placeholder="e.g. 9:00 AM - 12:00 PM"
+                        placeholder="e.g. Room 204 / Building A"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Work Hours
+                        Consultation Hours
                       </label>
                       <input
                         type="text"
-                        name="workHours"
-                        value={formData.workHours}
+                        name="consultationHours"
+                        value={formData.consultationHours}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
-                        placeholder="e.g. 1:00 PM - 5:00 PM"
+                        placeholder="e.g. Mon & Wed 2:00 PM - 4:00 PM"
                       />
                     </div>
                   </div>
@@ -287,9 +412,10 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave }) => {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-[#FBBC05] text-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all font-medium flex items-center gap-2"
+                    disabled={isSaving}
+                    className={`px-6 py-2.5 bg-[#FBBC05] text-white rounded-lg shadow-md transition-all font-medium flex items-center gap-2 ${isSaving ? 'opacity-60 cursor-not-allowed hover:shadow-none hover:scale-100' : 'hover:shadow-lg hover:scale-105'}`}
                   >
-                    <CheckCircle className="w-4 h-4" /> Save Changes
+                    <CheckCircle className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>

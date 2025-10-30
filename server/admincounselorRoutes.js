@@ -225,5 +225,46 @@ module.exports = (db) => {
             res.status(500).json({ success:false, message: 'DB error', error: err.message});
         }
     });
+
+    // POST: Delete a counselor (requires verifying the requesting admin's password)
+    router.post('/counselor/delete', async (req, res) => {
+        try {
+            const { id, adminEmail, adminPassword } = req.body;
+            if (!id || !adminEmail || !adminPassword) {
+                return res.status(400).json({ success: false, message: 'Missing required fields' });
+            }
+
+            const conn = db.promise();
+
+            // Verify admin credentials
+            const [adminRows] = await conn.query('SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?', [adminEmail, adminPassword]);
+            if (!adminRows || adminRows.length === 0) {
+                return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+            }
+
+            // Perform delete within a transaction
+            await conn.beginTransaction();
+
+            // Get the profile id (if any) of the counselor to delete
+            const [acctRows] = await conn.query('SELECT staffProfile_ID FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
+            const staffProfileId = acctRows && acctRows[0] ? acctRows[0].staffProfile_ID : null;
+
+            // Delete the staff account
+            const [delResult] = await conn.query('DELETE FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
+
+            // Optionally delete the profile row if it exists
+            if (staffProfileId) {
+                await conn.query('DELETE FROM tbl_staffprofiles WHERE staffProfile_ID = ?', [staffProfileId]);
+            }
+
+            await conn.commit();
+
+            return res.json({ success: true, message: 'Counselor deleted' });
+        } catch (err) {
+            try { await db.promise().rollback(); } catch (e) { /* ignore */ }
+            console.error('Error deleting counselor:', err);
+            return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        }
+    });
     return router;
 };

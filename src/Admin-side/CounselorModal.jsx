@@ -199,35 +199,49 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
       });
       return;
     }
+    // Determine admin identity from sessionStorage set at login
+    let staffUser = null;
+    try {
+      staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+    } catch (err) {
+      staffUser = null;
+    }
 
-    // Example validation (replace with real password check)
-    const correctPassword = "admin123";
-    if (confirmPassword !== correctPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "Incorrect Password!",
-        text: "Please try again.",
-        confirmButtonColor: "#FB9724",
-      });
+    if (!staffUser || !staffUser.email) {
+      Swal.fire({ icon: 'error', title: 'Not authenticated', text: 'No logged-in staff user found.' , confirmButtonColor: '#FB9724' });
       return;
     }
 
-    // Delete counselor
-    onDelete(counselor, confirmPassword);
+    const doDelete = async () => {
+      try {
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const resp = await fetch(`${base}/api/counselor/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: counselor?.staffAccount_ID, adminEmail: staffUser.email, adminPassword: confirmPassword })
+        });
+        const result = await resp.json();
+        if (!resp.ok || !result.success) {
+          Swal.fire({ icon: 'error', title: 'Delete Failed', text: result.message || 'Invalid credentials or server error', confirmButtonColor: '#FB9724' });
+          return;
+        }
 
-    // Close modal + reset
-    setConfirmPassword("");
-    setShowConfirmDelete(false);
-    onClose();
+        // Notify parent to refresh list
+        if (typeof onDelete === 'function') onDelete(counselor);
 
-    // Show success alert (no button, auto close 5s)
-    Swal.fire({
-      icon: "success",
-      title: "Successfully Deleted!",
-      showConfirmButton: false,
-      timer: 2000,
-      timerProgressBar: true,
-    });
+        // Close modal + reset
+        setConfirmPassword('');
+        setShowConfirmDelete(false);
+        onClose();
+
+        Swal.fire({ icon: 'success', title: 'Successfully Deleted!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+      } catch (err) {
+        console.error('Error calling delete API:', err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Server error while attempting to delete', confirmButtonColor: '#FB9724' });
+      }
+    };
+
+    doDelete();
   };
 
   return (

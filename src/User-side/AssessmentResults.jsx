@@ -935,6 +935,105 @@ const AssessmentResults = () => {
                         </div>
                     )}
                 </div>
+                {assessmentData?.rating || assessmentData?.feedback ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Left Column - Student Feedback & Download */}
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-xl shadow p-6">
+                        <h3 className="font-semibold text-lg mb-3">Your Feedback</h3>
+                        <div className="space-y-4">
+                            <div>
+                            <p className="text-sm text-gray-500 mb-2">Satisfaction Rating</p>
+                            <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                <span 
+                                    key={star}
+                                    className={`text-2xl ${star <= assessmentData.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                >
+                                    ★
+                                </span>
+                                ))}
+                            </div>
+                            </div>
+                            {assessmentData.feedback && (
+                            <div>
+                                <p className="text-sm text-gray-500 mb-2">Your Comments</p>
+                                <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                {assessmentData.feedback}
+                                </p>
+                            </div>
+                            )}
+                        </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Counselor Response */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h3 className="font-semibold text-lg mb-3">Counselor's Response</h3>
+                        {assessmentData.counselorNotes ? (
+                            <div className="bg-blue-50 p-5 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex-shrink-0">
+                                        <SquarePen className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-medium text-sm">{assessmentData.counselorNotes.counselorName}</p>
+                                            <p className="text-sm text-gray-400">{assessmentData.counselorNotes.counselorEmail}</p>
+                                            <span className="text-xs text-gray-500">
+                                                {new Date(assessmentData.counselorNotes.date).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-700 bg-white p-4 rounded-lg border border-blue-100">
+                                            {assessmentData.counselorNotes.counselorNotes}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-gray-50 p-5 rounded-lg text-center">
+                                <div className="flex flex-col items-center gap-3">
+                                    <SquarePen className="w-8 h-8 text-gray-400" />
+                                    <div>
+                                        <p className="text-gray-600 font-medium mb-1">Pending Counselor Review</p>
+                                        <p className="text-sm text-gray-500">
+                                            Your assessment is being reviewed by our guidance counselors. 
+                                            Check back later for personalized feedback.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+
+                    {/* Download Button */}
+                        <div className="flex">
+                        <button 
+                            onClick={handleDownload}
+                            disabled={isGeneratingPDF}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors ${
+                            isGeneratingPDF 
+                                ? 'bg-gray-400 cursor-not-allowed text-white' 
+                                : 'bg-yellow-400 hover:bg-yellow-500 text-white'
+                            }`}
+                        >
+                            {isGeneratingPDF ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Generating PDF...
+                            </>
+                            ) : (
+                            <>
+                                <FiDownload className="text-base" />
+                                Download Results
+                            </>
+                            )}
+                        </button>
+                        </div>
+                </div>
+                
+            ) : (
                 <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between bg-white rounded-2xl shadow p-6">
                     <div>
                         <h3 className="font-semibold text-lg">What's Next?</h3>
@@ -970,6 +1069,7 @@ const AssessmentResults = () => {
                         </button>
                     </div>
                 </div>
+            )}
             </main>
             <Footer />
             <RatingModal 

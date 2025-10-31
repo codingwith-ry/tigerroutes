@@ -290,7 +290,7 @@ module.exports = (db) => {
                 return res.json({ success: false, message: 'assessmentID is required' });
             }
 
-            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
+            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID, rating, feedback FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
 
             db.query(fetchPsychometricIDs, [assessmentID], (err, result) => {
                 if (err) {
@@ -314,6 +314,9 @@ module.exports = (db) => {
 
                 // Fetch program recommendations
                 const fetchProgramRecoDetails = 'SELECT * FROM tbl_recommendations WHERE studentAssessment_ID = ?';
+
+                // Fetch counselor notes if any
+                const fetchCounselorNotes = 'SELECT cn.counselorNotes, cn.date, s.name AS counselorName, s.email AS counselorEmail FROM tbl_counselornotes AS cn INNER JOIN tbl_staffaccounts AS s ON cn.staffAccount_ID = s.staffAccount_ID WHERE cn.studentAssessment_ID = ? LIMIT 1;';
 
                 // Execute all queries in parallel
                 Promise.all([
@@ -340,8 +343,14 @@ module.exports = (db) => {
                             if (err) reject(err);
                             else resolve(programRecos);
                         });
+                    }),
+                    new Promise((resolve, reject) => {
+                        db.query(fetchCounselorNotes, [assessmentID], (err, counselorNotes) => {
+                            if (err) reject(err);
+                            else resolve(counselorNotes);
+                        });
                     })
-                ]).then(async ([assessmentProfileResults ,riasecResults, bigFiveResults, programRecos]) => {
+                ]).then(async ([assessmentProfileResults ,riasecResults, bigFiveResults, programRecos, counselorNotes]) => {
                     
                     // Convert all results to proper JSON format
                     const responseData = {
@@ -353,7 +362,10 @@ module.exports = (db) => {
                             programRecommendations: {
                                 track_aligned: [],
                                 cross_track: []
-                            }
+                            },
+                            rating: result[0].rating || null,
+                            feedback: result[0].feedback || null,
+                            counselorNotes: counselorNotes.length > 0 ? JSON.parse(JSON.stringify(counselorNotes[0])) : null
                         }
                     };
 

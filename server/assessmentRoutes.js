@@ -194,6 +194,13 @@ module.exports = (db) => {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({
+                                                            studentGrades: {
+                                                                mathGrade: profileResults[0].mathGrade,
+                                                                scienceGrade: profileResults[0].scienceGrade,
+                                                                englishGrade: profileResults[0].englishGrade,
+                                                                genAverageGrade: profileResults[0].genAverageGrade
+                                                            },
+                                                            strand: profileResults[0].strandName,
                                                             riasec: riasecResults,
                                                             bigfive: bigFiveResults
                                                         })

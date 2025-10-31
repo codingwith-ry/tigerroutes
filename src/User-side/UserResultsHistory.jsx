@@ -277,13 +277,13 @@ const UserResultsHistory = () => {
                           </div>
                         </td>
 
-                        {assessment.reply.notes ? (
+                        {assessment.feedback ? (
                           <td
                             className="py-3 px-4 max-w-xs truncate cursor-pointer text-blue-600 hover:underline"
-                            onClick={() => handleShowFeedback(assessment.reply.notes, assessment.satisfaction)}
+                            onClick={() => handleShowFeedback(assessment.feedback, assessment.satisfaction)}
                             title="Click to view full feedback"
                           >
-                            {assessment.reply.notes}
+                            {assessment.feedback}
                           </td>
                         ) : (
                           <td className="py-3 px-4 text-gray-500">No Feedback</td>

@@ -483,6 +483,7 @@ module.exports = (db) => {
                         day: dayNames[assessmentDate.getDay()],
                         status: 'Completed', // Assuming all are completed since they're in history
                         satisfaction: assessment.satisfaction || 0,
+                        feedback: assessment.feedback || '',
                         reply: hasCounselorReply ? {
                             counselor: assessment.counselorName,
                             date: assessment.noteDate ? new Date(assessment.noteDate).toLocaleDateString('en-US') : 'No date',
@@ -576,6 +577,33 @@ module.exports = (db) => {
             res.status(500).json({ error: 'Internal server error' });
         }
     });
+
+    router.post('/assessment/submitRating', (req, res) => {
+        try {
+            const { assessmentId, rating, feedback } = req.body;
+            if (!assessmentId) {
+                return res.status(400).json({ success: false, message: 'assessmentID is required' });
+            }
+
+            const updateQuery = `
+                UPDATE tbl_studentassessments 
+                SET rating = ?, feedback = ? 
+                WHERE studentAssessment_ID = ?
+            `
+            db.query(updateQuery, [rating, feedback, assessmentId], (err, result) => {
+                if (err) {
+                    console.error('Error updating rating and feedback:', err);
+                    return res.status(500).json({ success: false, message: 'Database error' });
+                }
+                return res.json({ success: true, message: 'Rating and feedback submitted successfully' });
+            });
+
+        } catch (error) {
+            console.error('Error submitting rating and feedback:', error);
+            res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+    });
+
 
     return router;
 };

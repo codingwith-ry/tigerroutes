@@ -60,8 +60,6 @@ function App() {
           <Route path="/cookies-settings" element={<CookiesModal />} />
           <Route path="/admin/preview" element={<AdminPreviewCounselor />} />
           <Route path="/admin/preview/:counselorName" element={<AdminPreviewCounselor />} />
-
-       
         </Routes>
       </div>
     </Router>

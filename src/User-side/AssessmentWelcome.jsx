@@ -175,7 +175,7 @@ const AssessmentPage = () => {
                     <span className="pl-4">Strand:</span>
                   </div>
 
-                  <div className="grid grid-cols-4 text-sm">
+                  <div className="grid grid-cols-4 text-xs">
                     <span className="pl-5">{userData?.name || 'N/A'}</span>
                     <span className="pl-4 break-words">
                       {userData?.email || 'N/A'}
@@ -193,7 +193,7 @@ const AssessmentPage = () => {
                       <span className="pl-4">English Grade:</span>
                       <span className="pl-4">Average Grade:</span>
                     </div>
-                    <div className="grid grid-cols-4 text-sm">
+                    <div className="grid grid-cols-4 text-xs">
                       <span className="pl-5">{formatGrade(userData?.mathGrade)}</span>
                       <span className="pl-4">{formatGrade(userData?.scienceGrade)}</span>
                       <span className="pl-4">{formatGrade(userData?.englishGrade)}</span>

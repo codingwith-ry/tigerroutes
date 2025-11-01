@@ -88,7 +88,7 @@ const ProfilePage = ({ assessmentData }) => {
                     <span className="capitalize font-semibold">{trait}</span>
                     <span>{value}%</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full">
+                    <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
                     <div
                         className="h-2 bg-blue-500 rounded-full"
                         style={{ width: `${value}%` }}
@@ -110,7 +110,7 @@ const ProfilePage = ({ assessmentData }) => {
                     </div>
                     <div className="w-full h-2 bg-gray-200 rounded-full">
                     <div
-                        className="h-2 bg-purple-500 rounded-full"
+                        className="h-2 bg-purple-500 rounded-full mt-2"
                         style={{ width: `${value}%` }}
                     />
                     </div>
@@ -120,7 +120,7 @@ const ProfilePage = ({ assessmentData }) => {
             </div>
         </div>
 
-      <div className="text-center text-sm text-gray-500 pt-8 mt-auto">
+      <div className="text-center text-sm text-gray-500 pt-2 mt-auto">
         <p>Page 1 of 3</p>
       </div>
     </div>

@@ -134,7 +134,6 @@ const ProgramCard = ({ program, isTrackAligned }) => (
         <h3 className="text-base font-semibold text-gray-800 mb-1">
           {program.programDetails?.programName}
         </h3>
-        <span className={ `text-xs font-semibold ${isTrackAligned ? 'bg-green-100 text-green-800' : 'bg-blue-500 text-white'} px-2 pb-3 rounded-full`}>{program.collegeDetails?.collegeName}</span>
       </div>
       <span className={`text-sm font-bold ml-2 ${
         isTrackAligned ? 'text-green-600' : 'text-blue-600'
@@ -142,6 +141,7 @@ const ProgramCard = ({ program, isTrackAligned }) => (
         {program.recommendation?.alignmentScore}%
       </span>
     </div>
+    <span className={ `text-xs font-semibold text-center ${isTrackAligned ? 'bg-green-100 text-green-800' : 'bg-blue-500 text-white'} px-2 pb-3 rounded-full`}>{program.collegeDetails?.collegeName}</span>
     
     <div className="flex-1 space-y-3">
       <div>

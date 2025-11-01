@@ -117,15 +117,60 @@ const UserResultsHistory = () => {
     ).join("");
 
     Swal.fire({
-      title: "Feedback Details",
+      title: '<span style="font-size: 24px; font-weight: 600;">Assessment Feedback</span>',
       html: `
-        <div style="text-align: left;">
-          <p style="font-size: 16px; margin-bottom: 10px;">${notes}</p>
-          <div>${stars}</div>
+        <div class="feedback-details" style="
+          background: #F9FAFB;
+          border-radius: 8px;
+          padding: 20px;
+          margin-top: 15px;
+        ">
+          <div style="
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #E5E7EB;
+          ">
+            <p style="
+              font-size: 14px;
+              color: #6B7280;
+              margin-bottom: 8px;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            ">Satisfaction Rating</p>
+            <div style="display: flex; align-items: center; justify-content: center;">
+              ${stars}
+            </div>
+          </div>
+          
+          <div>
+            <p style="
+              font-size: 14px;
+              color: #6B7280;
+              margin-bottom: 8px;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            ">Student Comments</p>
+            <p style="
+              font-size: 16px;
+              line-height: 1.5;
+              color: #374151;
+              background: white;
+              padding: 12px;
+              border-radius: 6px;
+              border: 1px solid #E5E7EB;
+            ">${notes}</p>
+          </div>
         </div>
       `,
       confirmButtonText: "Close",
-      width: 500,
+      confirmButtonColor: '#FBBF24',
+      width: 600,
+      padding: '2em',
+      customClass: {
+        container: 'font-sfpro',
+        popup: 'rounded-xl shadow-xl',
+        confirmButton: 'px-6 py-2 rounded-lg text-white font-medium hover:bg-yellow-500'
+      }
     });
   };
 
@@ -277,13 +322,13 @@ const UserResultsHistory = () => {
                           </div>
                         </td>
 
-                        {assessment.reply.notes ? (
+                        {assessment.feedback ? (
                           <td
                             className="py-3 px-4 max-w-xs truncate cursor-pointer text-blue-600 hover:underline"
-                            onClick={() => handleShowFeedback(assessment.reply.notes, assessment.satisfaction)}
+                            onClick={() => handleShowFeedback(assessment.feedback, assessment.satisfaction)}
                             title="Click to view full feedback"
                           >
-                            {assessment.reply.notes}
+                            {assessment.feedback}
                           </td>
                         ) : (
                           <td className="py-3 px-4 text-gray-500">No Feedback</td>
@@ -391,11 +436,6 @@ const UserResultsHistory = () => {
                             <p className="text-blue-600 font-medium">{assessment.reply.counselor}</p>
                             <p className="text-xs text-gray-500">{assessment.reply.date}</p>
                           </div>
-                          {assessment.reply.isNew && (
-                            <span className="ml-2 bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">
-                              New
-                            </span>
-                          )}
                         </div>
                       )}
                     </div>

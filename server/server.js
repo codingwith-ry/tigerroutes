@@ -5,7 +5,7 @@ const mysql = require('mysql2');
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
 app.use(express.json());
@@ -45,6 +45,10 @@ app.use('/api', assessmentRoutes);
 //importing admin dashboard route
 const admindashboardRoutes = require('./admindashboardRoutes.js')(db);
 app.use('/api', admindashboardRoutes);
+
+//importing admin counselor routes
+const admincounselorRoutes = require('./admincounselorRoutes.js')(db);
+app.use('/api', admincounselorRoutes);
 
 app.listen(PORT, () => {
     console.log('Server is running on port', PORT)

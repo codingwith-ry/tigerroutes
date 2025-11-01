@@ -1,5 +1,4 @@
 const express = require('express');
-const { resolvePath } = require('react-router-dom');
 
 module.exports = (db) => {
     const router = express.Router();
@@ -356,6 +355,7 @@ module.exports = (db) => {
                     const responseData = {
                         success: true,
                         data: {
+                            assessmentID: assessmentID,
                             assessmentProfile: assessmentProfileResults.length > 0 ? JSON.parse(JSON.stringify(assessmentProfileResults[0])) : null,
                             riasec: riasecResults.length > 0 ? JSON.parse(JSON.stringify(riasecResults[0])) : null,
                             bigFive: bigFiveResults.length > 0 ? JSON.parse(JSON.stringify(bigFiveResults[0])) : null,
@@ -615,7 +615,6 @@ module.exports = (db) => {
             res.status(500).json({ success: false, message: 'Internal server error' });
         }
     });
-
 
     return router;
 };

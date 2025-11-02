@@ -16,13 +16,17 @@ module.exports = (db) => {
         //Count completed assessments
         const assessmentsQuery = 'SELECT COUNT(*) as completedAssessments FROM tbl_studentassessments';
 
-        //Count overall alignment
-        const alignmentQuery = `SELECT AVG(top_score) AS overallAlignment
-        FROM (SELECT MAX(r.alignmentScore) AS top_score 
-        FROM tbl_studentassessments a
-        JOIN tbl_recommendations r ON a.studentAssessment_ID = r.studentAssessment_ID
-        GROUP BY a.studentAssessment_ID
-        ) AS all_scores`;
+                //Count overall alignment (average of per-assessment averages using only track-aligned recommendations)
+                // This matches the assessments listing which averages only recommendations where track_aligned = 'Y'
+                const alignmentQuery = `
+                SELECT ROUND(AVG(avgScore), 2) AS overallAlignment
+                FROM (
+                    SELECT AVG(r.alignmentScore) AS avgScore
+                    FROM tbl_recommendations r
+                    WHERE r.track_aligned = 'Y'
+                    GROUP BY r.studentAssessment_ID
+                ) t
+                `;
 
 
         db.query(studentsQuery, (err1, studentsResult) => {

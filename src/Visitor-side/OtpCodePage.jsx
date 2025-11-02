@@ -54,21 +54,21 @@ const handleSubmit = async (e) => {
       });
       const data = await res.json();
 
-      if (data.success) {
-        Swal.fire({
-          icon: "success",
-          title: "OTP Verified!",
-          text: "You may now reset your password.",
-          confirmButtonText: "OK",
-          customClass: {
-            popup: "rounded-xl",
-            confirmButton:
-              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
-          },
-          buttonsStyling: false,
-        });
+     if (data.success) {
+    Swal.fire({
+      icon: "success",
+      title: "OTP Verified!",
+      text: "You may now reset your password.",
+      timer: 2000, // 2 seconds
+      showConfirmButton: false,
+      customClass: {
+        popup: "rounded-xl",
+      },
+      willClose: () => {
         navigate("/reset-password");
-      } else {
+      },
+    });
+  } else {
         Swal.fire({
           icon: "error",
           title: "Invalid OTP",
@@ -137,7 +137,7 @@ const handleSubmit = async (e) => {
           </h1>
           <p className="mt-2 text-sm text-gray-400">
             We sent a code to your email<br />
-<span className="text-gray-400 font-semibold">example@gmail.com</span>
+          <span className="text-gray-400 font-semibold">example@gmail.com</span>
           </p>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Star,
@@ -16,36 +16,94 @@ const AdminStudentProfile = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("assessment");
 
+  // API-sourced state
+  const [assessmentData, setAssessmentData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [programRecommendations, setProgramRecommendations] = useState({ track_aligned: [], cross_track: [] });
+
+  // Load assessment details using either the URL param or sessionStorage
+  useEffect(() => {
+    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+    if (!assessmentId) return;
+
+    let cancelled = false;
+    async function loadDetails() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`);
+        const payload = await res.json();
+        if (cancelled) return;
+        if (!payload || !payload.success) {
+          setError(payload?.message || 'Failed to load assessment details');
+          setAssessmentData(null);
+        } else {
+          setAssessmentData(payload.data || null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error loading assessment details', err);
+          setError(err.message || 'Network error');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadDetails();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  // Fetch program recommendations separately from adminassessmentRoutes
+  useEffect(() => {
+    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+    if (!assessmentId) return;
+
+    let cancelled = false;
+    async function loadPrograms() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/programs`);
+        const body = await res.json();
+        if (cancelled) return;
+        if (body && body.success) {
+          setProgramRecommendations(body.data || { track_aligned: [], cross_track: [] });
+        } else {
+          setProgramRecommendations({ track_aligned: [], cross_track: [] });
+        }
+      } catch (err) {
+        if (!cancelled) console.error('Error loading program recommendations', err);
+        if (!cancelled) setProgramRecommendations({ track_aligned: [], cross_track: [] });
+      }
+    }
+
+    loadPrograms();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  // derive student fields per requested mapping
+  const studentAccountId = assessmentData?.assessmentProfile?.studentAccount_ID || sessionStorage.getItem('selectedStudentAccountId') || assessmentData?.assessmentProfile?.studentAccountId || null;
+
   const student = {
-    id: "STU-0001",
-    name: "Juan Dela Cruz",
-    yearLevel: "Grade 12",
-    strand: "Science, Technology, Engineering, and Mathematics (STEM)",
-    track: "Pre-Computer Science",
-    schoolYear: "2024-2025",
-    status: "Active",
-    generalAverage: 91,
+    id: studentAccountId ? `STU-${studentAccountId}` : 'N/A',
+    name: assessmentData?.assessmentProfile?.name || 'Student Name',
+  yearLevel: assessmentData?.assessmentProfile?.gradeLevel ? `Grade ${assessmentData.assessmentProfile.gradeLevel}` : 'N/A',
+    strand: assessmentData?.assessmentProfile?.strandName || 'N/A',
+    status: 'Active',
+    generalAverage: assessmentData?.assessmentProfile?.genAverageGrade || 0,
     grades: {
-      math: 89,
-      science: 92,
-      english: 95,
+      math: assessmentData?.assessmentProfile?.mathGrade || 0,
+      science: assessmentData?.assessmentProfile?.scienceGrade || 0,
+      english: assessmentData?.assessmentProfile?.englishGrade || 0,
     },
-    alignment: 92,
-    riasec: {
-      realistic: 25,
-      investigate: 35,
-      artistic: 20,
-      social: 30,
-      enterprising: 40,
-      conventional: 15,
-    },
-    bigFive: {
-      openness: 75,
-      conscientiousness: 65,
-      extraversion: 45,
-      agreeableness: 80,
-      neuroticism: 25,
-    },
+    alignment: (() => {
+      const track = (programRecommendations && programRecommendations.track_aligned) || [];
+      if (!track || track.length === 0) return null;
+      const avg = track.reduce((s, p) => s + (p.alignment_score || 0), 0) / track.length;
+      return Math.round(avg);
+    })(),
+    riasec: assessmentData?.riasec || {},
+    bigFive: assessmentData?.bigFive || {},
   };
 
   const [studentFeedback] = useState({
@@ -120,27 +178,8 @@ const AdminStudentProfile = () => {
             </div>
           </div>
 
-          {/* ===== Academic Information ===== */}
+          {/* Semester Grades (simplified - academic information removed) */}
           <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
-            {/* Academic Details */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <ClipboardList className="w-5 h-5 text-orange-500" />
-                Academic Information
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Track</p>
-                  <p className="text-sm font-medium">{student.track}</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">School Year</p>
-                  <p className="text-sm font-medium">{student.schoolYear}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Semester Grades */}
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                 <Star className="w-5 h-5 text-yellow-500" />
@@ -201,7 +240,9 @@ const AdminStudentProfile = () => {
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold mb-4">RIASEC Interest Results</h3>
                     <div className="space-y-3">
-                      {Object.entries(student.riasec).map(([key, value]) => (
+                      {Object.entries(student.riasec)
+                        .filter(([key]) => !/id$/i.test(key) && !/id/i.test(key))
+                        .map(([key, value]) => (
                         <div key={key}>
                           <div className="flex justify-between text-sm font-medium">
                             <span className="capitalize">{key}</span>
@@ -222,7 +263,9 @@ const AdminStudentProfile = () => {
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold mb-4">Big Five Personality Results</h3>
                     <div className="space-y-3">
-                      {Object.entries(student.bigFive).map(([key, value]) => (
+                      {Object.entries(student.bigFive)
+                        .filter(([key]) => !/id$/i.test(key) && !/id/i.test(key))
+                        .map(([key, value]) => (
                         <div key={key}>
                           <div className="flex justify-between text-sm font-medium">
                             <span className="capitalize">{key}</span>
@@ -249,156 +292,78 @@ const AdminStudentProfile = () => {
                       Academic programs that align with your interests and personality
                     </p>
 
-                    {[
-                      {
-                        id: 1,
-                        name: "Computer Science",
-                        match: 92,
-                        reasons: [
-                          "High investigative score",
-                          "Strong analytical thinking",
-                          "Social skills",
-                        ],
-                        paths: [
-                          "Software Engineer",
-                          "AI Researcher",
-                          "Systems Analyst",
-                          "Data Scientist",
-                        ],
-                        icon: <Star className="w-5 h-5 text-green-500" />,
-                        accent: "bg-green-500",
-                      },
-                      {
-                        id: 2,
-                        name: "Business Administration",
-                        match: 85,
-                        reasons: [
-                          "Strong enterprising traits",
-                          "Leadership qualities",
-                          "Social skills",
-                        ],
-                        paths: [
-                          "Marketing Manager",
-                          "Entrepreneur",
-                          "Business Analyst",
-                          "Project Manager",
-                        ],
-                        icon: <TrendingUp className="w-5 h-5 text-blue-500" />,
-                        accent: "bg-blue-500",
-                      },
-                      {
-                        id: 3,
-                        name: "Psychology",
-                        match: 78,
-                        reasons: [
-                          "Strong enterprising traits",
-                          "Leadership qualities",
-                          "Social skills",
-                        ],
-                        paths: [
-                          "Clinical Psychologist",
-                          "Counselor",
-                          "Research Psychologist",
-                          "HR Specialist",
-                        ],
-                        icon: <MessageSquareText className="w-5 h-5 text-yellow-500" />,
-                        accent: "bg-yellow-500",
-                      },
-                      {
-                        id: 4,
-                        name: "Advertising Arts",
-                        match: 72,
-                        reasons: [
-                          "Artistic inclination",
-                          "Creative thinking",
-                          "Visual communication",
-                        ],
-                        paths: [
-                          "Creative Director",
-                          "UI/UX Designer",
-                          "Brand Designer",
-                          "Graphic Designer",
-                        ],
-                        icon: <ClipboardList className="w-5 h-5 text-purple-500" />,
-                        accent: "bg-purple-500",
-                      },
-                      {
-                        id: 5,
-                        name: "Information Technology",
-                        match: 67,
-                        reasons: ["Hands-on learner", "Systems & data driven", "Practical skills"],
-                        paths: ["IT Specialist", "Network Administrator", "Web Developer"],
-                        icon: <Award className="w-5 h-5 text-orange-500" />,
-                        accent: "bg-orange-500",
-                      },
-                    ].map((program) => (
-                      <div
-                        key={program.id}
-                        className="mb-5 border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center ${program.accent} bg-opacity-10`}
-                            >
-                              {program.icon}
-                            </div>
-                            <h4 className="font-semibold text-gray-800 text-base">
-                              {program.id}. {program.name}
-                            </h4>
-                          </div>
-
-                          <div className="text-sm font-semibold">
-                            <span
-                              className={`${
-                                program.match >= 90
-                                  ? "text-green-600"
-                                  : program.match >= 80
-                                  ? "text-blue-600"
-                                  : program.match >= 70
-                                  ? "text-yellow-600"
-                                  : "text-gray-600"
-                              }`}
-                            >
-                              {program.match}%
-                            </span>{" "}
-                            <span className="text-gray-500 font-normal">match</span>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-gray-600 mb-2">
-                          <span className="font-semibold text-gray-700">
-                            Why this program fits you:
-                          </span>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {program.reasons.map((reason, i) => (
-                              <span
-                                key={i}
-                                className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs border border-blue-200"
-                              >
-                                {reason}
-                              </span>
+                    {/* Use programRecommendations fetched from /api/assessment/:id/programs */}
+                    {(!programRecommendations || ((programRecommendations.track_aligned || []).length === 0 && (programRecommendations.cross_track || []).length === 0)) ? (
+                      <div className="text-sm text-gray-500">No program recommendations available.</div>
+                    ) : (
+                      <div className="space-y-6">
+                        {programRecommendations.track_aligned && programRecommendations.track_aligned.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Top track-aligned programs</h4>
+                            {programRecommendations.track_aligned.map((p, idx) => (
+                              <div key={`track-${p.recommendationId || idx}`} className="mb-5 border border-gray-200 rounded-lg p-5 hover:shadow-md transition">
+                                <div className="flex justify-between items-center mb-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-green-100 text-green-700`}>
+                                      <Star className="w-4 h-4" />
+                                    </div>
+                                    <h4 className="font-semibold text-gray-800 text-base">{p.programName}</h4>
+                                  </div>
+                                  <div className="text-sm font-semibold">
+                                    <span className={`${(p.alignment_score || 0) >= 90 ? 'text-green-600' : (p.alignment_score || 0) >= 80 ? 'text-blue-600' : (p.alignment_score || 0) >= 70 ? 'text-yellow-600' : 'text-gray-600'}`}>{p.alignment_score || 0}%</span>
+                                    <span className="text-gray-500 font-normal"> match</span>
+                                  </div>
+                                </div>
+                                {p.programDescription && <div className="text-xs text-gray-600 mb-2">{p.programDescription}</div>}
+                                {p.careerPaths && Array.isArray(p.careerPaths) && (
+                                  <div className="text-xs text-gray-600 mt-3">
+                                    <span className="font-semibold text-gray-700">Potential career paths:</span>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {p.careerPaths.map((path, i) => (
+                                        <span key={i} className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs border border-green-200">{path}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             ))}
                           </div>
-                        </div>
+                        )}
 
-                        <div className="text-xs text-gray-600 mt-3">
-                          <span className="font-semibold text-gray-700">
-                            Potential career paths:
-                          </span>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {program.paths.map((path, i) => (
-                              <span
-                                key={i}
-                                className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs border border-green-200"
-                              >
-                                {path}
-                              </span>
+                        {programRecommendations.cross_track && programRecommendations.cross_track.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Cross-track programs</h4>
+                            {programRecommendations.cross_track.map((p, idx) => (
+                              <div key={`cross-${p.recommendationId || idx}`} className="mb-5 border border-gray-200 rounded-lg p-5 hover:shadow-md transition">
+                                <div className="flex justify-between items-center mb-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 text-gray-700`}>
+                                      <TrendingUp className="w-4 h-4" />
+                                    </div>
+                                    <h4 className="font-semibold text-gray-800 text-base">{p.programName}</h4>
+                                  </div>
+                                  <div className="text-sm font-semibold">
+                                    <span className={`${(p.alignment_score || 0) >= 90 ? 'text-green-600' : (p.alignment_score || 0) >= 80 ? 'text-blue-600' : (p.alignment_score || 0) >= 70 ? 'text-yellow-600' : 'text-gray-600'}`}>{p.alignment_score || 0}%</span>
+                                    <span className="text-gray-500 font-normal"> match</span>
+                                  </div>
+                                </div>
+                                {p.programDescription && <div className="text-xs text-gray-600 mb-2">{p.programDescription}</div>}
+                                {p.careerPaths && Array.isArray(p.careerPaths) && (
+                                  <div className="text-xs text-gray-600 mt-3">
+                                    <span className="font-semibold text-gray-700">Potential career paths:</span>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {p.careerPaths.map((path, i) => (
+                                        <span key={i} className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs border border-green-200">{path}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             ))}
                           </div>
-                        </div>
+                        )}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               ) : (

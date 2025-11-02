@@ -24,7 +24,7 @@ const AdminAssessment = () => {
 
   useEffect(() => {
     fetchDashboardStats();
-  })
+  }, []);
 
   async function fetchDashboardStats(){
     try {
@@ -44,17 +44,10 @@ const AdminAssessment = () => {
     }
   }
 
-  const students = [
-    { id: "STU-0001", strand: "STEM", strandColor: "bg-blue-100 text-blue-600", date: "06/27/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-    { id: "STU-0002", strand: "ABM", strandColor: "bg-green-100 text-green-600", date: "06/20/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-    { id: "STU-0003", strand: "HUMSS", strandColor: "bg-purple-100 text-purple-600", date: "06/13/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-    { id: "STU-0004", strand: "TVL", strandColor: "bg-yellow-100 text-yellow-600", date: "05/30/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-    { id: "STU-0005", strand: "GAS", strandColor: "bg-red-100 text-red-600", date: "05/05/2025", alignment: "N/A", satisfaction: 0, rating: "" },
-    { id: "STU-0006", strand: "STEM", strandColor: "bg-blue-100 text-blue-600", date: "04/11/2025", alignment: "N/A", satisfaction: 0, rating: "" },
-    { id: "STU-0007", strand: "STEM", strandColor: "bg-blue-100 text-blue-600", date: "04/02/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-    { id: "STU-0008", strand: "ABM", strandColor: "bg-green-100 text-green-600", date: "02/14/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-    { id: "STU-0009", strand: "TVL", strandColor: "bg-yellow-100 text-yellow-600", date: "01/23/2025", alignment: "92%", satisfaction: 4, rating: 4.8 },
-  ];
+  // live assessments from the server
+  const [assessments, setAssessments] = useState([]);
+  const [totalAssessments, setTotalAssessments] = useState(0);
+  const [loading, setLoading] = useState(false);
 
    // ✅ Search + Pagination states
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,16 +55,33 @@ const AdminAssessment = () => {
   const itemsPerPage = 10;
 
   // ✅ Filter students by ID or strand
-  const filteredStudents = students.filter(
-    (s) =>
-      s.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.strand.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-    // ✅ Pagination logic
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  // ✅ Pagination logic (server-driven)
+  const totalPages = Math.max(1, Math.ceil((totalAssessments || 0) / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+  const currentStudents = assessments;
+
+  // fetch assessments when page or search changes
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setLoading(true);
+      try {
+        const url = `http://localhost:5000/api/assessments?page=${currentPage}&pageSize=${itemsPerPage}&q=${encodeURIComponent(searchTerm)}`;
+        const res = await fetch(url, { signal: controller.signal });
+        const data = await res.json();
+        if (data && data.success) {
+          setAssessments(data.data || []);
+          setTotalAssessments(data.total != null ? data.total : (data.data || []).length);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('Error fetching assessments:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [currentPage, searchTerm]);
 
   // ✅ Satisfaction stars
   const renderStars = (count) => {
@@ -210,7 +220,7 @@ const AdminAssessment = () => {
               <table className="min-w-full text-sm text-left">
                 <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                   <tr>
-                    <th className="px-6 py-3">Student ID</th>
+                    <th className="px-6 py-3">Assessment ID</th>
                     <th className="px-6 py-3">Strand</th>
                     <th className="px-6 py-3">Assessment Date</th>
                     <th className="px-6 py-3">Alignment Score</th>
@@ -219,25 +229,25 @@ const AdminAssessment = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {students.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{student.id}</td>
+                  {currentStudents.map((student) => (
+                    <tr key={student.assessmentId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-medium text-gray-900">{student.assessmentId}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${student.strandColor}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600`}>
                           {student.strand}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center text-gray-600">
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                          {student.date}
+                          {student.date ? new Date(student.date).toLocaleDateString() : "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {student.alignment !== "N/A" ? (
+                        {student.alignment != null ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
                             <TrendingUp className="w-4 h-4 mr-1" />
-                            {student.alignment}
+                            {Math.round(student.alignment)}%
                           </span>
                         ) : (
                           <span className="text-gray-400">N/A</span>
@@ -246,15 +256,21 @@ const AdminAssessment = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center space-x-1">
-                            {renderStars(student.satisfaction)}
+                            {renderStars(Math.round(student.rating) || 0)}
                           </div>
-                          <span className="text-sm text-gray-500">{student.rating}</span>
+                          <span className="text-sm text-gray-500">{student.rating || ""}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <button
                           className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
-                          onClick={() => navigate(`/admin/assessment/${student.id}`)}
+                          onClick={() => {
+                            try {
+                              sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
+                              if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
+                            } catch (e) { /* ignore */ }
+                            navigate(`/admin/assessment/${student.assessmentId}`)
+                          }}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           Preview
@@ -268,54 +284,60 @@ const AdminAssessment = () => {
 
             {/* Mobile Accordion */}
             <div className="sm:hidden divide-y divide-gray-200">
-              {students.map((student) => (
-                <div key={student.id} className="p-4 hover:bg-gray-50">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-gray-900">{student.id}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${student.strandColor}`}>
-                      {student.strand}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center text-gray-500 text-xs">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                      {student.date}
+                {currentStudents.map((student) => (
+                  <div key={student.assessmentId} className="p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-semibold text-gray-900">{student.assessmentId}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600`}>
+                        {student.strand}
+                      </span>
                     </div>
-                    <div className="flex items-center text-xs">
-                      {student.alignment !== "N/A" ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
-                          <TrendingUp className="w-4 h-4 mr-1" />
-                          {student.alignment}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">N/A</span>
-                      )}
-                    </div>
-                    <div className="flex items-center text-gray-500 text-xs">
-                      <span className="min-w-[80px] font-medium">Satisfaction:</span>
-                      <div className="flex items-center">
-                        {renderStars(student.satisfaction)}
-                        <span>{student.rating}</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-gray-500 text-xs">
+                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                        {student.date ? new Date(student.date).toLocaleDateString() : "-"}
+                      </div>
+                      <div className="flex items-center text-xs">
+                        {student.alignment != null ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                            {Math.round(student.alignment)}%
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">N/A</span>
+                        )}
+                      </div>
+                      <div className="flex items-center text-gray-500 text-xs">
+                        <span className="min-w-[80px] font-medium">Satisfaction:</span>
+                        <div className="flex items-center">
+                          {renderStars(Math.round(student.rating) || 0)}
+                          <span>{student.rating}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center text-blue-600 text-xs mt-3">
+                        <Eye className="w-4 h-4 mr-2" />
+                        <button
+                          className="font-medium hover:text-blue-800"
+                          onClick={() => {
+                            try {
+                              sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
+                              if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
+                            } catch (e) {}
+                            navigate(`/admin/assessment/${student.assessmentId}`)
+                          }}
+                        >
+                          Preview
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center text-blue-600 text-xs mt-3">
-                      <Eye className="w-4 h-4 mr-2" />
-                      <button
-                        className="font-medium hover:text-blue-800"
-                        onClick={() => navigate(`/admin/assessment/${student.id}`)}
-                      >
-                        Preview
-                      </button>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
           {/* ✅ Pagination */}
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-600">
-            <div className="mb-2 sm:mb-0">
-              Showing {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredStudents.length)} of {filteredStudents.length} entries
+              <div className="mb-2 sm:mb-0">
+              Showing {assessments.length === 0 && !loading ? 0 : startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalAssessments || assessments.length)} of {totalAssessments || assessments.length} entries
             </div>
             <div className="flex space-x-1">
               <button

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import json
+from typing import Dict, Any
 
 app = FastAPI()
 
@@ -21,9 +22,17 @@ program_profiles = load_program_profiles()
 # -------------------------------
 # Request Schema
 # -------------------------------
+class StudentGrades(BaseModel):
+    mathGrade: float
+    scienceGrade: float
+    englishGrade: float
+    genAverageGrade: float
+
 class StudentData(BaseModel):
-    riasec: dict
-    bigfive: dict
+    studentGrades: StudentGrades
+    strand: str
+    riasec: Dict[str, float]
+    bigfive: Dict[str, float]
 
 
 # -------------------------------
@@ -50,25 +59,28 @@ def calculate_alignment(student_data, program_data):
             bigfive_score += req["weight"]
     bigfive_final = (bigfive_score / bigfive_max) * 100 if bigfive_max > 0 else 0
 
-    # --- Static Academic Data ---
-    static_grades = {
-        "math_performance": 90,
-        "science_performance": 94,
-        "english_performance": 95,
-        "overall_gen_ave": 94,
+    # --- Academic Grades ---
+    # Use actual student grades instead of static data
+    student_grades = student_data["studentGrades"]
+    academic_performance = {
+        "math_performance": student_grades["mathGrade"],
+        "science_performance": student_grades["scienceGrade"],
+        "english_performance": student_grades["englishGrade"],
+        "overall_gen_ave": student_grades["genAverageGrade"],
     }
 
     acad_score, acad_max = 0.0, 0.0
     for subject, req in program_data.get("academic_requirements", {}).items():
         acad_max += req["weight"]
-        student_val = static_grades.get(subject, 0)
+        student_val = academic_performance.get(subject, 0)
         if student_val >= req["minimum"]:
             acad_score += req["weight"]
     acad_final = (acad_score / acad_max) * 100 if acad_max > 0 else 0
 
-    # --- Static Strand ---
-    strand = "STEM"
-    track_pref = program_data.get("track_preferences", {}).get(strand, 0)
+    # --- Strand Alignment ---
+    # Use actual student strand instead of static value
+    student_strand = student_data["strand"]
+    track_pref = program_data.get("track_preferences", {}).get(student_strand, 0)
     track_final = track_pref  # already in 0–100 range
 
     # --- Weighted Total ---
@@ -96,6 +108,8 @@ def score_student(student: StudentData):
 
     # Convert BaseModel to dictionary
     student_data = {
+        "studentGrades": student.studentGrades.dict(),
+        "strand": student.strand,
         "riasec": student.riasec,
         "bigfive": student.bigfive,
     }
@@ -104,13 +118,13 @@ def score_student(student: StudentData):
         total, breakdown = calculate_alignment(student_data, profile)
         results[program] = {"score": total, "breakdown": breakdown}
 
-    # Separate track-aligned vs cross-track
-    strand = "STEM"  # static for now
+    # Separate track-aligned vs cross-track using actual student strand
+    student_strand = student_data["strand"]
     track_aligned = {
         p: d
         for p, d in results.items()
-        if strand in program_profiles[p]["track_preferences"]
-        and program_profiles[p]["track_preferences"][strand] >= 80
+        if student_strand in program_profiles[p]["track_preferences"]
+        and program_profiles[p]["track_preferences"][student_strand] >= 80
     }
     cross_track = {p: d for p, d in results.items() if p not in track_aligned}
 
@@ -120,8 +134,10 @@ def score_student(student: StudentData):
 
     print("Track-Aligned Recommendations:", track_sorted)
     print("Cross-Track Recommendations:", cross_sorted)
+    
     return {
         "track_aligned": track_sorted,
         "cross_track": cross_sorted,
     }
+
 # To run: uvicorn scoringengine:app --reload

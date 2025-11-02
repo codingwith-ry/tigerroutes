@@ -41,7 +41,7 @@ const Footer = () => {
             <ul className="text-sm space-y-2">
               <li>
                 <a
-                  href="https://www.ust.edu.ph/admission/"
+                  href="https://ustet.ust.edu.ph/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-black hover:underline"
@@ -51,7 +51,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="https://www.ust.edu.ph/academics/"
+                  href="https://www.ust.edu.ph/academics/programs/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-black hover:underline"

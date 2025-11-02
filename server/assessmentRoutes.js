@@ -1,5 +1,4 @@
 const express = require('express');
-const { resolvePath } = require('react-router-dom');
 
 module.exports = (db) => {
     const router = express.Router();
@@ -194,6 +193,13 @@ module.exports = (db) => {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({
+                                                            studentGrades: {
+                                                                mathGrade: profileResults[0].mathGrade,
+                                                                scienceGrade: profileResults[0].scienceGrade,
+                                                                englishGrade: profileResults[0].englishGrade,
+                                                                genAverageGrade: profileResults[0].genAverageGrade
+                                                            },
+                                                            strand: profileResults[0].strandName,
                                                             riasec: riasecResults,
                                                             bigfive: bigFiveResults
                                                         })
@@ -283,7 +289,7 @@ module.exports = (db) => {
                 return res.json({ success: false, message: 'assessmentID is required' });
             }
 
-            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
+            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID, rating, feedback FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
 
             db.query(fetchPsychometricIDs, [assessmentID], (err, result) => {
                 if (err) {
@@ -307,6 +313,9 @@ module.exports = (db) => {
 
                 // Fetch program recommendations
                 const fetchProgramRecoDetails = 'SELECT * FROM tbl_recommendations WHERE studentAssessment_ID = ?';
+
+                // Fetch counselor notes if any
+                const fetchCounselorNotes = 'SELECT cn.counselorNotes, cn.date, s.name AS counselorName, s.email AS counselorEmail FROM tbl_counselornotes AS cn INNER JOIN tbl_staffaccounts AS s ON cn.staffAccount_ID = s.staffAccount_ID WHERE cn.studentAssessment_ID = ? LIMIT 1;';
 
                 // Execute all queries in parallel
                 Promise.all([
@@ -333,20 +342,30 @@ module.exports = (db) => {
                             if (err) reject(err);
                             else resolve(programRecos);
                         });
+                    }),
+                    new Promise((resolve, reject) => {
+                        db.query(fetchCounselorNotes, [assessmentID], (err, counselorNotes) => {
+                            if (err) reject(err);
+                            else resolve(counselorNotes);
+                        });
                     })
-                ]).then(async ([assessmentProfileResults ,riasecResults, bigFiveResults, programRecos]) => {
+                ]).then(async ([assessmentProfileResults ,riasecResults, bigFiveResults, programRecos, counselorNotes]) => {
                     
                     // Convert all results to proper JSON format
                     const responseData = {
                         success: true,
                         data: {
+                            assessmentID: assessmentID,
                             assessmentProfile: assessmentProfileResults.length > 0 ? JSON.parse(JSON.stringify(assessmentProfileResults[0])) : null,
                             riasec: riasecResults.length > 0 ? JSON.parse(JSON.stringify(riasecResults[0])) : null,
                             bigFive: bigFiveResults.length > 0 ? JSON.parse(JSON.stringify(bigFiveResults[0])) : null,
                             programRecommendations: {
                                 track_aligned: [],
                                 cross_track: []
-                            }
+                            },
+                            rating: result[0].rating || null,
+                            feedback: result[0].feedback || null,
+                            counselorNotes: counselorNotes.length > 0 ? JSON.parse(JSON.stringify(counselorNotes[0])) : null
                         }
                     };
 
@@ -476,6 +495,7 @@ module.exports = (db) => {
                         day: dayNames[assessmentDate.getDay()],
                         status: 'Completed', // Assuming all are completed since they're in history
                         satisfaction: assessment.satisfaction || 0,
+                        feedback: assessment.feedback || '',
                         reply: hasCounselorReply ? {
                             counselor: assessment.counselorName,
                             date: assessment.noteDate ? new Date(assessment.noteDate).toLocaleDateString('en-US') : 'No date',
@@ -567,6 +587,32 @@ module.exports = (db) => {
         } catch (error) {
             console.error('Error fetching home analytics:', error);
             res.status(500).json({ error: 'Internal server error' });
+        }
+    });
+
+    router.post('/assessment/submitRating', (req, res) => {
+        try {
+            const { assessmentId, rating, feedback } = req.body;
+            if (!assessmentId) {
+                return res.status(400).json({ success: false, message: 'assessmentID is required' });
+            }
+
+            const updateQuery = `
+                UPDATE tbl_studentassessments 
+                SET rating = ?, feedback = ? 
+                WHERE studentAssessment_ID = ?
+            `
+            db.query(updateQuery, [rating, feedback, assessmentId], (err, result) => {
+                if (err) {
+                    console.error('Error updating rating and feedback:', err);
+                    return res.status(500).json({ success: false, message: 'Database error' });
+                }
+                return res.json({ success: true, message: 'Rating and feedback submitted successfully' });
+            });
+
+        } catch (error) {
+            console.error('Error submitting rating and feedback:', error);
+            res.status(500).json({ success: false, message: 'Internal server error' });
         }
     });
 

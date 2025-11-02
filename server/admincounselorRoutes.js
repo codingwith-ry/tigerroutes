@@ -189,6 +189,35 @@ module.exports = (db) => {
         }
     });
 
+        // GET: Fetch all counselor notes for a specific counselor (staffAccount_ID)
+        router.get('/counselor/:id/notes', async (req, res) => {
+            try {
+                const id = req.params.id;
+                if (!id) return res.status(400).json({ success: false, message: 'id required' });
+
+                const query = `
+                    SELECT
+                        cn.counselorNote_ID,
+                        cn.studentAssessment_ID,
+                        cn.counselorNotes,
+                        cn.date,
+                        sa.studentAccount_ID AS studentAccountId,
+                        st.name AS studentName
+                    FROM tbl_counselornotes cn
+                    LEFT JOIN tbl_studentassessments sa ON cn.studentAssessment_ID = sa.studentAssessment_ID
+                    LEFT JOIN tbl_studentaccounts st ON sa.studentAccount_ID = st.studentAccount_ID
+                    WHERE cn.staffAccount_ID = ?
+                    ORDER BY cn.date DESC
+                `;
+
+                const [rows] = await db.promise().query(query, [id]);
+                return res.json({ success: true, data: rows || [] });
+            } catch (error) {
+                console.error('Error fetching counselor notes by counselor id:', error);
+                res.status(500).json({ success: false, message: 'Server error', error: error.message });
+            }
+        });
+
     router.put('/counselor/:id', async (req, res) => {
         const id = req.params.id;
         const { name, email, strand, status, officeLocation, consultationHours, about } = req.body;

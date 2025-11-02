@@ -123,5 +123,53 @@ module.exports = (db) => {
         }
       });
 
+      // POST /api/assessment/:id/notes
+      // Create a new counselor note for an assessment (admin-only route)
+      router.post('/assessment/:id/notes', async (req, res) => {
+        try {
+          const assessmentId = req.params.id;
+          const { staffAccount_ID, counselorNotes } = req.body;
+          if (!assessmentId || !staffAccount_ID || !counselorNotes) {
+            return res.status(400).json({ success: false, message: 'assessment id, staffAccount_ID and counselorNotes are required' });
+          }
+
+          const insertSql = `INSERT INTO tbl_counselornotes (studentAssessment_ID, staffAccount_ID, counselorNotes, date) VALUES (?, ?, ?, NOW())`;
+          const [result] = await db.promise().query(insertSql, [assessmentId, staffAccount_ID, counselorNotes]);
+
+          return res.json({ success: true, data: { counselorNote_ID: result.insertId } });
+        } catch (err) {
+          console.error('Error inserting counselor note:', err);
+          return res.status(500).json({ success: false, message: err.message });
+        }
+      });
+
+      // DELETE /api/assessment/:id/notes/:noteId
+      // Delete a counselor note only if the staffAccount_ID matches the note's owner
+      router.delete('/assessment/:id/notes/:noteId', async (req, res) => {
+        try {
+          const assessmentId = req.params.id;
+          const noteId = req.params.noteId;
+          // staffAccount_ID may be supplied in query or body
+          const staffAccount_ID = req.query.staffAccount_ID || req.body.staffAccount_ID;
+
+          if (!assessmentId || !noteId || !staffAccount_ID) {
+            return res.status(400).json({ success: false, message: 'assessment id, note id and staffAccount_ID are required' });
+          }
+
+          // Delete only when the note belongs to the staffAccount_ID provided
+          const deleteSql = `DELETE FROM tbl_counselornotes WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?`;
+          const [result] = await db.promise().query(deleteSql, [noteId, assessmentId, staffAccount_ID]);
+
+          if (result.affectedRows && result.affectedRows > 0) {
+            return res.json({ success: true, message: 'Note deleted' });
+          }
+
+          return res.status(403).json({ success: false, message: 'Not authorized to delete this note or note not found' });
+        } catch (err) {
+          console.error('Error deleting counselor note:', err);
+          return res.status(500).json({ success: false, message: err.message });
+        }
+      });
+
   return router;
 };

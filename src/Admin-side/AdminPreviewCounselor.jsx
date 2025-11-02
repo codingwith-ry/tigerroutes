@@ -12,6 +12,7 @@ const CounselorPreview = () => {
   const [counselor, setCounselor] = useState(null);
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState(null);
+  const [recentComments, setRecentComments] = useState([]);
 
   useEffect(() => {
     // Try to read an ID from sessionStorage and fetch fresh data from backend.
@@ -69,6 +70,30 @@ const CounselorPreview = () => {
     setError("No counselor data in sessionStorage");
     return () => { mounted = false; };
   }, [decodedName]);
+
+  // load recent comments for this counselor (by staffAccount_ID)
+  useEffect(() => {
+    const storedId = sessionStorage.getItem('selectedCounselorId');
+    const counselorId = counselor?.staffAccount_ID || storedId;
+    if (!counselorId) return;
+
+    let mounted = true;
+    async function loadComments() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/counselor/${encodeURIComponent(counselorId)}/notes`);
+        const body = await res.json();
+        if (!mounted) return;
+        if (body && body.success) {
+          setRecentComments(body.data || []);
+        }
+      } catch (err) {
+        console.error('Error loading counselor comments:', err);
+      }
+    }
+
+    loadComments();
+    return () => { mounted = false; };
+  }, [counselor]);
 
   // Helper to generate email from name
   const formatEmail = (name) => {
@@ -180,41 +205,28 @@ const CounselorPreview = () => {
           <div className="bg-white rounded-xl p-6 shadow border border-gray-200 mt-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-700">Recent Comments</h3>
-              <span className="text-sm text-gray-500">Total: 2 comments</span>
+              <span className="text-sm text-gray-500">Total: {recentComments.length} comments</span>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 border rounded-lg bg-gray-50">
-                <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquareText className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm">STU-0001</span>
+              {recentComments.length === 0 ? (
+                <div className="text-sm text-gray-500">No recent comments.</div>
+              ) : recentComments.map((note) => (
+                <div key={note.counselorNote_ID} className="p-4 border rounded-lg bg-gray-50">
+                  <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
+                      <div className="flex items-center gap-2">
+                      <MessageSquareText className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm">
+                        {note.studentAccountId ? `STU-${String(note.studentAccountId).padStart(4, '0')} | Assessment-${note.studentAssessment_ID}` : `Assessment-${note.studentAssessment_ID}`}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400">{note.date ? new Date(note.date).toLocaleString() : ''}</span>
                   </div>
-                  <span className="text-xs text-gray-400">2025-09-27 14:30</span>
+                  <p className="text-gray-700 text-sm text-justify max-w-[1000px] leading-relaxed">
+                    {note.counselorNotes}
+                  </p>
                 </div>
-                <p className="text-gray-700 text-sm text-justify max-w-[1000px] leading-relaxed">
-                  With high Investigative and Realistic scores, student fits well in engineering or
-                  computer-related fields. BS Computer Engineering or Electronics Engineering may
-                  provide the challenge and structure they enjoy. Suggested exploring robotics or
-                  AI-focused orgs.
-                </p>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-gray-50">
-                <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                  <div className="flex items-center gap-2">
-                    <MessageSquareText className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm">STU-0026</span>
-                  </div>
-                  <span className="text-xs text-gray-400">2025-09-27 11:20</span>
-                </div>
-                <p className="text-gray-700 text-sm text-justify max-w-[1000px] leading-relaxed">
-                  Student showed a clear interest in problem-solving and digital technology. Based
-                  on the assessment, BS Computer Science or Information Technology aligns well with
-                  their top traits. Recommended joining STEM programs or coding workshops to enhance
-                  readiness.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </main>

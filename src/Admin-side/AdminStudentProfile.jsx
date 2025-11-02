@@ -112,29 +112,115 @@ const AdminStudentProfile = () => {
     comment: "Great session! Very helpful guidance.",
   });
 
-  const [counselorNotes, setCounselorNotes] = useState([
-    {
-      author: "Counselor Smith",
-      date: new Date(),
-      comment: "Student shows strong aptitude for STEM subjects.",
-    },
-    {
-      author: "Counselor Doe",
-      date: new Date(),
-      comment: "Recommended exploring computer science internships.",
-    },
-  ]);
+  const [counselorNotes, setCounselorNotes] = useState([]);
 
   const [newNote, setNewNote] = useState('');
 
-  const handleAddNote = () => {
-    if (newNote.trim()) {
-      setCounselorNotes([...counselorNotes, {
-        author: "Counselor Admin",
-        date: new Date(),
-        comment: newNote.trim(),
-      }]);
-      setNewNote('');
+  // fetch counselor notes for the current assessment
+  useEffect(() => {
+    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+    if (!assessmentId) return;
+
+    let cancelled = false;
+    async function loadNotes() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`);
+        const body = await res.json();
+        if (cancelled) return;
+        if (body && body.success) {
+          // map server rows to UI-friendly shape
+          const notes = (body.data || []).map(n => ({
+            id: n.counselorNote_ID,
+            staffAccount_ID: n.staffAccount_ID,
+            author: n.counselorName || 'Counselor',
+            email: n.counselorEmail || null,
+            date: n.date ? new Date(n.date) : new Date(),
+            comment: n.counselorNotes || ''
+          }));
+          setCounselorNotes(notes);
+        }
+      } catch (err) {
+        console.error('Error loading counselor notes', err);
+      }
+    }
+
+    loadNotes();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  const handleAddNote = async () => {
+    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+    if (!assessmentId) return alert('Assessment ID missing');
+    if (!newNote.trim()) return;
+
+    // determine current staff user from sessionStorage
+    let staffUser = null;
+    try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
+    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+    if (!staffAccount_ID) return alert('Staff account not found. Please login again.');
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffAccount_ID, counselorNotes: newNote.trim() })
+      });
+      const body = await res.json();
+      if (body && body.success) {
+        // reload notes
+        setNewNote('');
+        const refresh = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`);
+        const refreshed = await refresh.json();
+        if (refreshed && refreshed.success) {
+          const notes = (refreshed.data || []).map(n => ({
+            id: n.counselorNote_ID,
+            staffAccount_ID: n.staffAccount_ID,
+            author: n.counselorName || 'Counselor',
+            email: n.counselorEmail || null,
+            date: n.date ? new Date(n.date) : new Date(),
+            comment: n.counselorNotes || ''
+          }));
+          setCounselorNotes(notes);
+        }
+      } else {
+        alert(body?.message || 'Failed to save note');
+      }
+    } catch (err) {
+      console.error('Error saving counselor note', err);
+      alert('Failed to save note');
+    }
+  };
+
+  // delete a note if current staff user is the owner
+  const handleDeleteNote = async (noteId, noteStaffId) => {
+    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+    if (!assessmentId) return alert('Assessment ID missing');
+
+    let staffUser = null;
+    try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
+    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+    if (!staffAccount_ID) return alert('Staff account not found. Please login again.');
+
+    if (String(staffAccount_ID) !== String(noteStaffId)) {
+      return alert('You are not authorized to delete this note');
+    }
+
+  // eslint-disable-next-line no-restricted-globals
+  if (!confirm('Delete this note?')) return;
+
+    try {
+      const url = `http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}?staffAccount_ID=${encodeURIComponent(staffAccount_ID)}`;
+      const res = await fetch(url, { method: 'DELETE' });
+      const body = await res.json();
+      if (body && body.success) {
+        // remove from local state
+        setCounselorNotes((prev) => prev.filter(n => String(n.id) !== String(noteId)));
+      } else {
+        alert(body?.message || 'Failed to delete note');
+      }
+    } catch (err) {
+      console.error('Error deleting counselor note', err);
+      alert('Failed to delete note');
     }
   };
 
@@ -417,9 +503,26 @@ const AdminStudentProfile = () => {
                                 <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="font-semibold text-gray-900 text-sm">{note.author}</span>
-                                    <span className="text-xs text-gray-500">
-                                      {new Date(note.date).toLocaleDateString()}
-                                    </span>
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-xs text-gray-500">{new Date(note.date).toLocaleDateString()}</span>
+                                        {/* show delete button only for the owner */}
+                                        {(() => {
+                                          let staffUser = null;
+                                          try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
+                                          const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+                                          if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
+                                            return (
+                                              <button
+                                                onClick={() => handleDeleteNote(note.id, note.staffAccount_ID)}
+                                                className="text-xs text-red-500 hover:underline"
+                                              >
+                                                Delete
+                                              </button>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
+                                      </div>
                                   </div>
                                   <p className="text-sm text-gray-700">{note.comment}</p>
                                 </div>

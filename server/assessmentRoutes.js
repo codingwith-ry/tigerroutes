@@ -616,5 +616,30 @@ module.exports = (db) => {
         }
     });
 
+    // GET all counselor notes for an assessment
+    router.get('/assessment/:id/notes', (req, res) => {
+        try {
+            const assessmentId = req.params.id;
+            if (!assessmentId) return res.status(400).json({ success: false, message: 'assessment id required' });
+
+            const sql = `
+                SELECT cn.counselorNote_ID, cn.studentAssessment_ID, cn.staffAccount_ID, cn.counselorNotes, cn.date, s.name AS counselorName, s.email AS counselorEmail
+                FROM tbl_counselornotes cn
+                LEFT JOIN tbl_staffaccounts s ON cn.staffAccount_ID = s.staffAccount_ID
+                WHERE cn.studentAssessment_ID = ?
+                ORDER BY cn.date ASC
+            `;
+
+            db.query(sql, [assessmentId], (err, rows) => {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                return res.json({ success: true, data: rows || [] });
+            });
+        } catch (error) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    });
+
+    // NOTE: POST for creating counselor notes moved to admin routes (adminassessmentRoutes.js)
+
     return router;
 };

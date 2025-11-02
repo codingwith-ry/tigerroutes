@@ -4,6 +4,7 @@ import { GiBrain } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar"; 
 import Footer from "../Visitor-side/Footer";
+import Chatbot from "./Chatbot";
 
 const UserHomepage = () => {
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ const UserHomepage = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
     document.title = 'TigerRoutes | Homepage';
@@ -309,8 +313,15 @@ const UserHomepage = () => {
 
           </div>
         </div>
-
+        <Chatbot 
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            onOpen={() => setIsChatOpen(true)}
+            minimized={isMinimized}
+            onMinimize={() => setIsMinimized(!isMinimized)}
+          />
       </main>
+      
 
       <Footer />
     </div>

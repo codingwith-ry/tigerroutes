@@ -153,19 +153,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const updatedCounselor = {
-  //     ...counselor,
-  //     name: `${formData.title} ${formData.firstName} ${formData.lastName}`.trim(),
-  //     strand: formData.strand,
-  //     status: formData.status,
-  //     officeHours: formData.officeHours,
-  //     workHours: formData.workHours,
-  //     about: formData.about,
-  //   };
-  //   onSave(updatedCounselor);
-  // };
+  // (old inline submit implementation removed - kept handleSubmit below)
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -183,6 +171,16 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
       consultationHours: formData.consultationHours,
       about: formData.about,
     };
+
+    // Attach acting admin/staff id if available in sessionStorage so the backend can log the action
+    try {
+      const staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+      if (staffUser && (staffUser.staffAccount_ID || staffUser.id)) {
+        counselorData.adminStaffAccountId = staffUser.staffAccount_ID || staffUser.id;
+      }
+    } catch (e) {
+      // ignore if missing
+    }
 
     onSave(counselorData);
   };

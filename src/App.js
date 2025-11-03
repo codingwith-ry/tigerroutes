@@ -23,6 +23,7 @@ import AdminLogin from "./Admin-side/AdminLogin";
 import AdminAssessment from "./Admin-side/AdminAssessment";
 import AdminCounselors from "./Admin-side/AdminCounselors";
 import AdminStudentProfile from './Admin-side/AdminStudentProfile';
+import ActivityLogs from './Admin-side/ActivityLogs';
 import PrivacyPolicy from './Visitor-side/PrivacyPolicy';
 import TermsOfService from './Visitor-side/TermsOfService';
 import CookiesModal from './Visitor-side/CookiesModal';
@@ -54,6 +55,7 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/assessment" element={<AdminAssessment />} />
           <Route path="/admin/counselors" element={<AdminCounselors />} />
+          <Route path="/admin/activity-logs" element={<ActivityLogs />} />
           <Route path="/admin/assessment/:id" element={<AdminStudentProfile />} /> 
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />

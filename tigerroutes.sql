@@ -201,6 +201,19 @@ CREATE TABLE IF NOT EXISTS `tbl_staffaccounts` (
 INSERT INTO `tbl_staffaccounts` (`staffAccount_ID`, `name`, `email`, `password`, `staffRole_ID`, `staffProfile_ID`, `status`) VALUES
 	(1, 'Owen Trinidad', 'michaelowen.trinidad.cics@ust.edu.ph', 'hello123', NULL, NULL, NULL);
 
+-- Dumping structure for table tigerroutesdb.tbl_stafflogs
+CREATE TABLE IF NOT EXISTS `tbl_stafflogs` (
+  `staffLogs_ID` int NOT NULL AUTO_INCREMENT,
+  `staffAccount_ID` int DEFAULT NULL,
+  `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `date` datetime DEFAULT NULL,
+  PRIMARY KEY (`staffLogs_ID`),
+  KEY `FK_tbl_stafflogs_tbl_staffaccounts` (`staffAccount_ID`),
+  CONSTRAINT `FK_tbl_stafflogs_tbl_staffaccounts` FOREIGN KEY (`staffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Dumping data for table tigerroutesdb.tbl_stafflogs: ~0 rows (approximately)
+
 -- Dumping structure for table tigerroutesdb.tbl_staffprofiles
 CREATE TABLE IF NOT EXISTS `tbl_staffprofiles` (
   `staffProfile_ID` int NOT NULL AUTO_INCREMENT,

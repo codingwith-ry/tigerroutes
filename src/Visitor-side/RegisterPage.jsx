@@ -289,14 +289,14 @@ const handleInputChange = (e) => {
             <label htmlFor="privacyConsent" className="leading-snug">
               I have read and accepted to the{" "}
               <a
-                href="/privacy"
+                href="/privacy-policy"
                 className="underline hover:text-[#F6BE1E] transition-colors"
               >
                 Privacy Policy
               </a>{" "}
               and{" "}
               <a 
-                href="/terms"
+                href="/terms-of-service"
                 className="underline hover:text-[#F6BE1E] transition-colors"
               >
                 Terms of Service

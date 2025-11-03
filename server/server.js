@@ -54,6 +54,10 @@ app.use('/api', admincounselorRoutes);
 const adminassessmentRoutes = require('./adminassessmentRoutes.js')(db);
 app.use('/api', adminassessmentRoutes);
 
+// importing admin logs route
+const adminlogsRoutes = require('./adminlogs.js')(db);
+app.use('/api', adminlogsRoutes);
+
 app.listen(PORT, () => {
     console.log('Server is running on port', PORT)
 })

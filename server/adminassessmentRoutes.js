@@ -136,6 +136,21 @@ module.exports = (db) => {
           const insertSql = `INSERT INTO tbl_counselornotes (studentAssessment_ID, staffAccount_ID, counselorNotes, date) VALUES (?, ?, ?, NOW())`;
           const [result] = await db.promise().query(insertSql, [assessmentId, staffAccount_ID, counselorNotes]);
 
+          // include note snippet in log (trim and remove newlines)
+          const rawSnippet = (counselorNotes || '').toString().replace(/\s+/g, ' ').trim();
+          const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
+
+          // Log creation to tbl_stafflogs (Philippines time)
+          try {
+            const manila = new Date(Date.now() + 8 * 3600 * 1000);
+            const pad = (n) => String(n).padStart(2, '0');
+            const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
+            const actionText = `Create counselor note for assessment id:${assessmentId} (noteId:${result.insertId}) - "${snippet}"`;
+            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [staffAccount_ID || null, actionText, manilaDate]);
+          } catch (logErr) {
+            console.warn('Failed to write staff log for create counselor note:', logErr);
+          }
+
           return res.json({ success: true, data: { counselorNote_ID: result.insertId } });
         } catch (err) {
           console.error('Error inserting counselor note:', err);
@@ -156,11 +171,29 @@ module.exports = (db) => {
             return res.status(400).json({ success: false, message: 'assessment id, note id and staffAccount_ID are required' });
           }
 
+          // Fetch the note content before deleting so we can include it in the log
+          const [noteRows] = await db.promise().query('SELECT counselorNotes FROM tbl_counselornotes WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?', [noteId, assessmentId, staffAccount_ID]);
+          const noteContent = noteRows && noteRows[0] ? (noteRows[0].counselorNotes || '') : '';
+
           // Delete only when the note belongs to the staffAccount_ID provided
           const deleteSql = `DELETE FROM tbl_counselornotes WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?`;
           const [result] = await db.promise().query(deleteSql, [noteId, assessmentId, staffAccount_ID]);
 
           if (result.affectedRows && result.affectedRows > 0) {
+            // prepare snippet
+            const rawSnippet = noteContent.toString().replace(/\s+/g, ' ').trim();
+            const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
+
+            // Log deletion to tbl_stafflogs (Philippines time)
+            try {
+              const manila = new Date(Date.now() + 8 * 3600 * 1000);
+              const pad = (n) => String(n).padStart(2, '0');
+              const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
+              const actionText = `Delete counselor note (noteId:${noteId}) from assessment id:${assessmentId} - "${snippet}"`;
+              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [staffAccount_ID || null, actionText, manilaDate]);
+            } catch (logErr) {
+              console.warn('Failed to write staff log for delete counselor note:', logErr);
+            }
             return res.json({ success: true, message: 'Note deleted' });
           }
 

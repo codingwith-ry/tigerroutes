@@ -7,7 +7,7 @@ module.exports = (db) => {
 
     // POST: Add a new counselor.
     router.post('/counselor/add', async (req, res) => {
-        const { name, email, strand, status, officeLocation, consultationHours, about } = req.body;
+        const { name, email, strand, status, officeLocation, consultationHours, about, adminStaffAccountId } = req.body;
 
         // Validation
         if (!name || !email) {
@@ -60,6 +60,17 @@ module.exports = (db) => {
                 staffProfileId,
                 statusValue
             ]);
+
+            // Log the create action to tbl_stafflogs (use Philippines time)
+            try {
+                const manila = new Date(Date.now() + 8 * 3600 * 1000);
+                const pad = (n) => String(n).padStart(2, '0');
+                const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
+                const actionText = `Create counselor ${name} (id:${accountResult.insertId})`;
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [adminStaffAccountId || null, actionText, manilaDate]);
+            } catch (logErr) {
+                console.warn('Failed to write staff log for create counselor:', logErr);
+            }
 
             res.status(201).json({
                 success: true,
@@ -220,12 +231,31 @@ module.exports = (db) => {
 
     router.put('/counselor/:id', async (req, res) => {
         const id = req.params.id;
-        const { name, email, strand, status, officeLocation, consultationHours, about } = req.body;
+        const { name, email, strand, status, officeLocation, consultationHours, about, adminStaffAccountId } = req.body;
         // db in this project is a Connection (created via mysql.createConnection).
         // The promise() wrapper on a Connection exposes beginTransaction/commit/rollback and query.
         const conn = db.promise();
         try {
             await conn.beginTransaction();
+
+            // Fetch existing values so we can generate a detailed change summary
+            const [existingRows] = await conn.query(`
+                SELECT
+                    sa.name AS name,
+                    sa.email AS email,
+                    sa.status AS status,
+                    sp.officeDetails AS officeDetails,
+                    sp.consultationDetails AS consultationDetails,
+                    sp.about AS about,
+                    s.strandName AS strand
+                FROM tbl_staffaccounts sa
+                LEFT JOIN tbl_staffprofiles sp ON sa.staffProfile_ID = sp.staffProfile_ID
+                LEFT JOIN tbl_strands s ON sp.strand_ID = s.strand_ID
+                WHERE sa.staffAccount_ID = ?
+                LIMIT 1
+            `, [id]);
+            const existing = existingRows && existingRows[0] ? existingRows[0] : {};
+
             // find profile id
             const [acctRows] = await conn.query('SELECT staffProfile_ID FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
             const staffProfileId = acctRows && acctRows[0] ? acctRows[0].staffProfile_ID : null;
@@ -247,6 +277,35 @@ module.exports = (db) => {
             // update account
             await conn.query('UPDATE tbl_staffaccounts SET name=?, email=?, status=? WHERE staffAccount_ID=?', [name, email, status === 'Active' ? 1 : 0, id]);
             await conn.commit();
+
+            // Build a changes list comparing existing -> new
+            try {
+                const changes = [];
+                const oldName = existing.name || '';
+                const oldEmail = existing.email || '';
+                const oldStatus = (existing.status === 1 || existing.status === '1' || existing.status === 'Active') ? 'Active' : 'Inactive';
+                const oldStrand = existing.strand || '';
+                const oldOffice = existing.officeDetails || '';
+                const oldConsult = existing.consultationDetails || '';
+                const oldAbout = existing.about || '';
+
+                if ((oldName || '') !== (name || '')) changes.push(`name: "${oldName}" -> "${name}"`);
+                if ((oldEmail || '') !== (email || '')) changes.push(`email: "${oldEmail}" -> "${email}"`);
+                if ((oldStatus || '') !== (status || '')) changes.push(`status: "${oldStatus}" -> "${status}"`);
+                if ((oldStrand || '') !== (strand || '')) changes.push(`strand: "${oldStrand}" -> "${strand}"`);
+                if ((oldOffice || '') !== (officeLocation || '')) changes.push(`officeLocation: "${oldOffice}" -> "${officeLocation}"`);
+                if ((oldConsult || '') !== (consultationHours || '')) changes.push(`consultationHours: "${oldConsult}" -> "${consultationHours}"`);
+                if ((oldAbout || '') !== (about || '')) changes.push(`about: "${oldAbout}" -> "${about}"`);
+
+                const manila = new Date(Date.now() + 8 * 3600 * 1000);
+                const pad = (n) => String(n).padStart(2, '0');
+                const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
+                const changeSummary = changes.length ? changes.join('; ') : 'no changes';
+                const actionText = `Edit counselor ${name} (id:${id}) -- ${changeSummary}`;
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [adminStaffAccountId || null, actionText, manilaDate]);
+            } catch (logErr) {
+                console.warn('Failed to write staff log for edit counselor:', logErr);
+            }
             res.json({ success: true, message: 'Updated' });
         } catch (err) {
             try { await conn.rollback(); } catch (e) { console.error('Rollback error', e); }
@@ -274,9 +333,10 @@ module.exports = (db) => {
             // Perform delete within a transaction
             await conn.beginTransaction();
 
-            // Get the profile id (if any) of the counselor to delete
-            const [acctRows] = await conn.query('SELECT staffProfile_ID FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
+            // Get the profile id (if any) and name of the counselor to delete
+            const [acctRows] = await conn.query('SELECT staffProfile_ID, name FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
             const staffProfileId = acctRows && acctRows[0] ? acctRows[0].staffProfile_ID : null;
+            const counselorName = acctRows && acctRows[0] ? acctRows[0].name : null;
 
             // Delete the staff account
             const [delResult] = await conn.query('DELETE FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
@@ -287,6 +347,18 @@ module.exports = (db) => {
             }
 
             await conn.commit();
+
+            // Log the delete action to tbl_stafflogs (Philippines time)
+            try {
+                const adminId = adminRows && adminRows[0] ? adminRows[0].staffAccount_ID : null;
+                const manila = new Date(Date.now() + 8 * 3600 * 1000);
+                const pad = (n) => String(n).padStart(2, '0');
+                const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
+                const actionText = counselorName ? `Delete counselor ${counselorName} (id:${id})` : `Delete counselor (id:${id})`;
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [adminId || null, actionText, manilaDate]);
+            } catch (logErr) {
+                console.warn('Failed to write staff log for delete counselor:', logErr);
+            }
 
             return res.json({ success: true, message: 'Counselor deleted' });
         } catch (err) {

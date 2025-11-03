@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, ClipboardCheck, Users, Menu, X, LogOut } from "lucide-react";
+import { Home, ClipboardCheck, Users, Activity, Menu, X, LogOut } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -26,12 +26,20 @@ const AdminSidebar = () => {
       label: "Assessment",
       matches: ["/admin/assessment", "/admin/student"],
     },
-    ...(isSupervisor ? [{  
-      path: "/admin/counselors",
-      icon: <Users className="w-5 h-5 mr-3" />,
-      label: "Manage Counselors",
-      matches: ["/admin/counselors", "/admin/preview"],
-    }] : []),
+    ...(isSupervisor ? [
+      {
+        path: "/admin/counselors",
+        icon: <Users className="w-5 h-5 mr-3" />,
+        label: "Manage Counselors",
+        matches: ["/admin/counselors", "/admin/preview"],
+      },
+      {
+        path: "/admin/activity-logs",
+        icon: <Activity className="w-5 h-5 mr-3" />,
+        label: "Activity Logs",
+        matches: ["/admin/activity-logs", "/admin/logs"],
+      }
+    ] : []),
   ];
 
   const handleLogout = () => {

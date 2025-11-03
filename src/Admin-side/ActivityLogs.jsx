@@ -97,7 +97,7 @@ const ActivityLogs = () => {
 														<td className="px-6 py-4 font-medium text-gray-900">{r.staffLogs_ID}</td>
 														<td className="px-6 py-4">{r.staffName || `#${r.staffAccount_ID}`}</td>
 														<td className="px-6 py-4">{r.action}</td>
-														<td className="px-6 py-4 text-gray-600">{new Date(r.date).toLocaleString()}</td>
+														<td className="px-6 py-4 text-gray-600">{r.date ? new Date(r.date).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : ''}</td>
 													</tr>
 												))
 											)}
@@ -122,7 +122,7 @@ const ActivityLogs = () => {
 												</div>
 												<div className="space-y-2">
 													<div className="text-xs text-gray-600">{r.action}</div>
-													<div className="text-xs text-gray-600">{new Date(r.date).toLocaleString()}</div>
+													<div className="text-xs text-gray-600">{r.date ? new Date(r.date).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : ''}</div>
 												</div>
 											</div>
 										))

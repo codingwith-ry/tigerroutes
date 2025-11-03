@@ -63,11 +63,9 @@ module.exports = (db) => {
 
             // Log the create action to tbl_stafflogs (use Philippines time)
             try {
-                const manila = new Date(Date.now() + 8 * 3600 * 1000);
-                const pad = (n) => String(n).padStart(2, '0');
-                const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
                 const actionText = `Create counselor ${name} (id:${accountResult.insertId})`;
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [adminStaffAccountId || null, actionText, manilaDate]);
+                // Store UTC timestamp in DB; clients should render to local time as needed
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminStaffAccountId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for create counselor:', logErr);
             }
@@ -297,12 +295,10 @@ module.exports = (db) => {
                 if ((oldConsult || '') !== (consultationHours || '')) changes.push(`consultationHours: "${oldConsult}" -> "${consultationHours}"`);
                 if ((oldAbout || '') !== (about || '')) changes.push(`about: "${oldAbout}" -> "${about}"`);
 
-                const manila = new Date(Date.now() + 8 * 3600 * 1000);
-                const pad = (n) => String(n).padStart(2, '0');
-                const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
                 const changeSummary = changes.length ? changes.join('; ') : 'no changes';
                 const actionText = `Edit counselor ${name} (id:${id}) -- ${changeSummary}`;
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [adminStaffAccountId || null, actionText, manilaDate]);
+                // Store UTC timestamp in DB
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminStaffAccountId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for edit counselor:', logErr);
             }
@@ -351,11 +347,9 @@ module.exports = (db) => {
             // Log the delete action to tbl_stafflogs (Philippines time)
             try {
                 const adminId = adminRows && adminRows[0] ? adminRows[0].staffAccount_ID : null;
-                const manila = new Date(Date.now() + 8 * 3600 * 1000);
-                const pad = (n) => String(n).padStart(2, '0');
-                const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
                 const actionText = counselorName ? `Delete counselor ${counselorName} (id:${id})` : `Delete counselor (id:${id})`;
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [adminId || null, actionText, manilaDate]);
+                // Store UTC timestamp in DB
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for delete counselor:', logErr);
             }

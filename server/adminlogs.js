@@ -76,7 +76,37 @@ module.exports = (db) => {
       const dataParams = params.concat([limit, offset]);
       const [rows] = await db.promise().query(dataSql, dataParams);
 
-      return res.json({ success: true, data: rows || [], total, page, limit });
+      // Normalize date values to ISO-8601 UTC strings so clients interpret them as UTC and
+      // render local time correctly. MySQL may return DATETIME as a string like
+      // "YYYY-MM-DD HH:MM:SS" (no timezone) or as a JS Date object depending on driver
+      // settings. Convert both forms to a UTC ISO string with Z suffix.
+      const parseMySQLDateAsUTC = (val) => {
+        if (!val) return null;
+        if (val instanceof Date) return val; // already a Date (assumed correct)
+        if (typeof val !== 'string') return new Date(val);
+        // If looks like ISO already, let Date parse it
+        if (val.includes('T') || val.endsWith('Z')) return new Date(val);
+        // Expected format: YYYY-MM-DD HH:MM:SS
+        const parts = val.split(/[- :]/).map((p) => parseInt(p, 10));
+        // parts: [YYYY, MM, DD, HH, mm, SS]
+        while (parts.length < 6) parts.push(0);
+        return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]));
+      };
+
+      const normalized = (rows || []).map((r) => {
+        const copy = Object.assign({}, r);
+        if (copy.date) {
+          try {
+            const d = parseMySQLDateAsUTC(copy.date);
+            copy.date = d instanceof Date && !isNaN(d) ? d.toISOString() : null;
+          } catch (e) {
+            copy.date = null;
+          }
+        }
+        return copy;
+      });
+
+      return res.json({ success: true, data: normalized, total, page, limit });
     } catch (err) {
       console.error('Error fetching staff logs:', err);
       return res.status(500).json({ success: false, message: 'Server error', error: err.message });

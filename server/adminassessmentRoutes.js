@@ -140,13 +140,10 @@ module.exports = (db) => {
           const rawSnippet = (counselorNotes || '').toString().replace(/\s+/g, ' ').trim();
           const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
 
-          // Log creation to tbl_stafflogs (Philippines time)
+          // Log creation to tbl_stafflogs (store UTC and let clients render local time)
           try {
-            const manila = new Date(Date.now() + 8 * 3600 * 1000);
-            const pad = (n) => String(n).padStart(2, '0');
-            const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
             const actionText = `Create counselor note for assessment id:${assessmentId} (noteId:${result.insertId}) - "${snippet}"`;
-            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [staffAccount_ID || null, actionText, manilaDate]);
+            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
           } catch (logErr) {
             console.warn('Failed to write staff log for create counselor note:', logErr);
           }
@@ -184,13 +181,10 @@ module.exports = (db) => {
             const rawSnippet = noteContent.toString().replace(/\s+/g, ' ').trim();
             const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
 
-            // Log deletion to tbl_stafflogs (Philippines time)
+            // Log deletion to tbl_stafflogs (store UTC and let clients render local time)
             try {
-              const manila = new Date(Date.now() + 8 * 3600 * 1000);
-              const pad = (n) => String(n).padStart(2, '0');
-              const manilaDate = `${manila.getFullYear()}-${pad(manila.getMonth()+1)}-${pad(manila.getDate())} ${pad(manila.getHours())}:${pad(manila.getMinutes())}:${pad(manila.getSeconds())}`;
               const actionText = `Delete counselor note (noteId:${noteId}) from assessment id:${assessmentId} - "${snippet}"`;
-              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, ?)', [staffAccount_ID || null, actionText, manilaDate]);
+              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
             } catch (logErr) {
               console.warn('Failed to write staff log for delete counselor note:', logErr);
             }

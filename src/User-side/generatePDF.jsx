@@ -29,46 +29,46 @@ const ProfilePage = ({ assessmentData }) => {
             <h2 className="text-xl font-bold mb-4 text-gray-800">Student Profile</h2>
             <div className="grid grid-cols-2 gap-4">
                 {/* Personal Information */}
-                <div className="col-span-2 pb-2 border-b">
+                <div className="col-span-2 pb-2">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <p className="font-semibold">Name:</p>
-                            <p className="text-gray-700">{assessmentProfile?.name}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.name}</p>
                         </div>
                         <div>
                             <p className="font-semibold">Email:</p>
-                            <p className="text-gray-700">{assessmentProfile?.email}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.email}</p>
                         </div>
                         <div>
                             <p className="font-semibold">Grade Level:</p>
-                            <p className="text-gray-700">{assessmentProfile?.gradeLevel}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.gradeLevel}</p>
                         </div>
                         <div>
                             <p className="font-semibold">Strand:</p>
-                            <p className="text-gray-700">{assessmentProfile?.strandName}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.strandName}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Academic Grades */}
-                <div className="col-span-2 mt-1">
+                <div className="col-span-2 border-t mt-1">
                     <h3 className="text-lg font-semibold mb-3">Academic Performance</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <p className="font-semibold">Mathematics:</p>
-                            <p className="text-gray-700">{assessmentProfile?.mathGrade}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.mathGrade}</p>
                         </div>
                         <div>
                             <p className="font-semibold">Science:</p>
-                            <p className="text-gray-700">{assessmentProfile?.scienceGrade}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.scienceGrade}</p>
                         </div>
                         <div>
                             <p className="font-semibold">English:</p>
-                            <p className="text-gray-700">{assessmentProfile?.englishGrade}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.englishGrade}</p>
                         </div>
                         <div>
                             <p className="font-semibold">General Average:</p>
-                            <p className="text-gray-700">{assessmentProfile?.genAverageGrade}</p>
+                            <p className="text-sm text-gray-700">{assessmentProfile?.genAverageGrade}</p>
                         </div>
                     </div>
                 </div>
@@ -80,13 +80,13 @@ const ProfilePage = ({ assessmentData }) => {
 
         <div className="grid grid-cols-2 gap-6">
             <div className="p-6 border rounded-lg">
-            <h2 className="text-xl font-bold mb-4 text-blue-600">RIASEC Profile</h2>
+            <h2 className="text-lg font-bold mb-4 text-blue-600">RIASEC Profile</h2>
             {Object.entries(riasec || {}).map(([trait, value]) => (
                 trait !== 'riasecResult_ID' && (
                 <div key={trait} className="mb-3">
                     <div className="flex justify-between mb-1">
-                    <span className="capitalize font-semibold">{trait}</span>
-                    <span>{value}%</span>
+                    <span className="text-sm capitalize font-semibold">{trait}</span>
+                    <span className="text-xs">{value}%</span>
                     </div>
                     <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
                     <div
@@ -100,13 +100,13 @@ const ProfilePage = ({ assessmentData }) => {
         </div>
 
         <div className="p-6 border rounded-lg">
-            <h2 className="text-xl font-bold mb-4 text-purple-600">Big Five Profile</h2>
+            <h2 className="text-lg font-bold mb-4 text-purple-600">Big Five Profile</h2>
             {Object.entries(bigFive || {}).map(([trait, value]) => (
                 trait !== 'bigFiveResult_ID' && (
                 <div key={trait} className="mb-3">
                     <div className="flex justify-between mb-1">
-                    <span className="capitalize font-semibold">{trait}</span>
-                    <span>{value}%</span>
+                    <span className="text-sm capitalize font-semibold">{trait}</span>
+                    <span className="text-xs">{value}%</span>
                     </div>
                     <div className="w-full h-2 bg-gray-200 rounded-full">
                     <div
@@ -141,7 +141,7 @@ const ProgramCard = ({ program, isTrackAligned }) => (
         {program.recommendation?.alignmentScore}%
       </span>
     </div>
-    <span className={ `text-xs font-semibold text-center ${isTrackAligned ? 'bg-green-100 text-green-800' : 'bg-blue-500 text-white'} px-2 pb-3 rounded-full`}>{program.collegeDetails?.collegeName}</span>
+    <span className={ `text-xs font-semibold text-center ${isTrackAligned ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-500'} px-2 pb-3 rounded-full`}>{program.collegeDetails?.collegeName}</span>
     
     <div className="flex-1 space-y-3">
       <div>
@@ -166,7 +166,7 @@ const ProgramCard = ({ program, isTrackAligned }) => (
                                     return careers.slice(0, 4).map((career, careerIdx) => (
                                         <span 
                                             key={careerIdx}
-                                            className={`${isTrackAligned ? 'bg-green-100 text-green-800' : 'bg-blue-500 text-white'} font-medium px-2 pb-3 rounded-full`}
+                                            className={`${isTrackAligned ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-500'} font-medium px-2 pb-3 rounded-full`}
                                         >
                                             {career}
                                         </span>

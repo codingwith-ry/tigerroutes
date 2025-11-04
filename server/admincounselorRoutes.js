@@ -1,5 +1,6 @@
 
 const express = require('express');
+const nodemailer = require('nodemailer');
 
 module.exports = (db) => {
 
@@ -43,8 +44,8 @@ module.exports = (db) => {
             }
 
             // Create staff account
-            // Default password until password field is created for add counselor
-            const defaultPassword = '12345';
+            // Generate a random 6-digit password for the counselor
+            const generatedPassword = String(Math.floor(100000 + Math.random() * 900000));
 
             // staffRole_ID = 1 is for counselor
             const accountQuery = `
@@ -55,7 +56,7 @@ module.exports = (db) => {
             const [accountResult] = await db.promise().query(accountQuery, [
                 name,
                 email,
-                defaultPassword,
+                generatedPassword,
                 1,
                 staffProfileId,
                 statusValue
@@ -77,7 +78,8 @@ module.exports = (db) => {
                     staffAccount_ID: accountResult.insertId,
                     staffProfile_ID: staffProfileId,
                     name,
-                    email
+                    email,
+                    password: generatedPassword
                 }
             });
         } catch (error) {
@@ -310,7 +312,6 @@ module.exports = (db) => {
         }
     });
 
-    // POST: Delete a counselor (requires verifying the requesting admin's password)
     router.post('/counselor/delete', async (req, res) => {
         try {
             const { id, adminEmail, adminPassword } = req.body;
@@ -361,5 +362,108 @@ module.exports = (db) => {
             return res.status(500).json({ success: false, message: 'Server error', error: err.message });
         }
     });
+
+    router.post('/counselor/reveal', async (req, res) => {
+        try {
+            const { adminEmail, adminPassword, counselorId } = req.body;
+            if (!adminEmail || !adminPassword || !counselorId) {
+                return res.status(400).json({ success: false, message: 'Missing required fields' });
+            }
+
+            const conn = db.promise();
+            // Verify admin credentials
+            const [adminRows] = await conn.query('SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?', [adminEmail, adminPassword]);
+            if (!adminRows || adminRows.length === 0) {
+                return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+            }
+
+            // Fetch counselor password
+            const [rows] = await conn.query('SELECT staffAccount_ID, name, email, password FROM tbl_staffaccounts WHERE staffAccount_ID = ? AND staffRole_ID = 1', [counselorId]);
+            if (!rows || rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Counselor not found' });
+            }
+
+            const counselor = rows[0];
+            // Return the stored password to the authenticated admin (note: passwords are stored plaintext in this schema)
+            return res.json({ success: true, data: { staffAccount_ID: counselor.staffAccount_ID, name: counselor.name, email: counselor.email, password: counselor.password } });
+        } catch (err) {
+            console.error('Error revealing counselor password:', err);
+            return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        }
+    });
+
+    router.post('/counselor/send-password', async (req, res) => {
+        try {
+            const { adminEmail, adminPassword, counselorId } = req.body;
+            if (!adminEmail || !adminPassword || !counselorId) {
+                return res.status(400).json({ success: false, message: 'Missing required fields' });
+            }
+
+            const conn = db.promise();
+            //Verify admin credentials
+            const [adminRows] = await conn.query('SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?', [adminEmail, adminPassword]);
+            if (!adminRows || adminRows.length === 0) {
+                return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+            }
+
+            //Fetch counselor password and email
+            const [rows] = await conn.query('SELECT staffAccount_ID, name, email, password FROM tbl_staffaccounts WHERE staffAccount_ID = ? AND staffRole_ID = 1', [counselorId]);
+            if (!rows || rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Counselor not found' });
+            }
+
+            const counselor = rows[0];
+
+            //nodemailer transporter
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'dominicxandy.adino.cics@ust.edu.ph',
+                    pass: 'fdvp mbeg iold wmfe'
+                }
+            });
+
+            const mailOptions = {
+                from: 'dominicxandy.adino.cics@ust.edu.ph',
+                to: counselor.email,
+                subject: 'TigerRoutes Counselor Account Details',
+                html: `
+                    <p>Dear ${counselor.name},</p>
+                    <p>Your TigerRoutes counselor account has been created/updated. Here are your account details:</p>
+                    <ul>
+                      <li><strong>Email:</strong> ${counselor.email}</li>
+                      <li><strong>Password:</strong> <code>${counselor.password}</code></li>
+                    </ul>
+                    <p>You can log in at <a href="http://localhost:3000/login">TigerRoutes Login</a>. For security, please change your password after logging in.</p>
+                    <p>If you did not request this, please contact your administrator immediately.</p>
+                `
+            };
+
+            try {
+                await transporter.sendMail(mailOptions);
+            } catch (mailErr) {
+                console.error('Failed to send counselor password email:', mailErr);
+                return res.status(500).json({ success: false, message: 'Failed to send email' });
+            }
+
+            //Logging
+            try {
+                const adminId = adminRows && adminRows[0] ? adminRows[0].staffAccount_ID : null;
+                const actionText = `Sent counselor password to ${counselor.email} for ${counselor.name} (id:${counselor.staffAccount_ID})`;
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId || null, actionText]);
+            } catch (logErr) {
+                console.warn('Failed to write staff log for send-password:', logErr);
+            }
+
+            return res.json({ success: true });
+        } catch (err) {
+            console.error('Error in send-password:', err);
+            return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        }
+    });
     return router;
 };
+
+// New endpoint to reveal a counselor's password to an authenticated admin.
+// Expects { adminEmail, adminPassword, counselorId } in body.
+// Verifies admin credentials then returns the counselor's password (as stored).

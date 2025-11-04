@@ -60,7 +60,7 @@ const AdminCounselors = () => {
 
   const counselorsWithEmail = counselors.map((c) => ({
     ...c,
-    email: formatEmail(c.name),
+    email: c.email || formatEmail(c.name),
   }));
 
   const filteredCounselors = counselorsWithEmail.filter(
@@ -111,6 +111,7 @@ const AdminCounselors = () => {
                     <th className="w-1/6 px-6 py-4 text-center">STRAND</th>
                     <th className="w-1/6 px-6 py-4 text-center">LAST LOGIN</th>
                     <th className="w-1/6 px-6 py-4 text-center">STATUS</th>
+                    <th className="w-1/6 px-6 py-4 text-center">Password</th>
                     <th className="w-1/6 px-6 py-4 text-center">ACTIONS</th>
                   </tr>
                 </thead>
@@ -167,6 +168,91 @@ const AdminCounselors = () => {
                         >
                           {c.status}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={async () => {
+                            // Reveal password flow: prompt admin for their password, verify, then show counselor password and offer to remind
+                            try {
+                              const staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+                              let adminEmail = staffUser && (staffUser.email || staffUser.emailAddress) ? (staffUser.email || staffUser.emailAddress) : null;
+
+                              const { value: adminPassword } = await Swal.fire({
+                                title: `Confirm Admin Password`,
+                                input: 'password',
+                                inputLabel: 'Enter your admin password to reveal the counselor password',
+                                inputPlaceholder: 'Your password',
+                                showCancelButton: true,
+                                confirmButtonText: 'Verify',
+                                confirmButtonColor: '#FB9724'
+                              });
+
+                              if (!adminPassword) return;
+
+                              if (!adminEmail) {
+                                const { value: emailInput } = await Swal.fire({
+                                  title: 'Enter admin email',
+                                  input: 'email',
+                                  inputLabel: 'Admin email',
+                                  inputPlaceholder: 'you@school.edu',
+                                  showCancelButton: true,
+                                  confirmButtonText: 'Continue',
+                                  confirmButtonColor: '#FB9724'
+                                });
+                                if (!emailInput) return;
+                                adminEmail = emailInput;
+                              }
+
+                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                              const resp = await fetch(`${base}/api/counselor/reveal`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                              });
+                              const data = await resp.json();
+                              if (!resp.ok || !data.success) {
+                                Swal.fire({ icon: 'error', title: 'Unauthorized', text: data.message || 'Invalid admin credentials', confirmButtonColor: '#FB9724' });
+                                return;
+                              }
+
+                              const password = data.data && data.data.password ? data.data.password : null;
+                              if (!password) {
+                                Swal.fire({ icon: 'error', title: 'No password found', confirmButtonColor: '#FB9724' });
+                                return;
+                              }
+
+                              const remind = await Swal.fire({
+                                title: `Counselor Password for ${data.data.name}`,
+                                html: `<div style="font-family: Inter, system-ui; font-size: 16px;">Password: <b>${password}</b></div>`,
+                                showCancelButton: true,
+                                confirmButtonText: 'Remind via Email',
+                                cancelButtonText: 'Close',
+                                confirmButtonColor: '#FB9724'
+                              });
+
+                              if (remind.isConfirmed) {
+                                // Trigger sending the counselor password email via admin endpoint
+                                const mailResp = await fetch(`${base}/api/counselor/send-password`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                });
+                                const mailData = await mailResp.json();
+                                if (mailResp.ok && mailData.success) {
+                                  Swal.fire({ icon: 'success', title: 'Password Sent', text: 'Counselor password has been emailed.', confirmButtonColor: '#FB9724' });
+                                } else {
+                                  Swal.fire({ icon: 'error', title: 'Send Failed', text: mailData.message || 'Failed to send email.', confirmButtonColor: '#FB9724' });
+                                }
+                              }
+                            } catch (err) {
+                              console.error('Reveal password error', err);
+                              Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while revealing password', confirmButtonColor: '#FB9724' });
+                            }
+                          }}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                        >
+                          Reveal
+                        </button>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center space-x-4">
@@ -265,9 +351,24 @@ const AdminCounselors = () => {
                   await fetchCounselors();
                   setIsModalOpen(false);
                   setSelectedCounselor(null);
-                  alert(counselorData.id ? 'Counselor updated successfully!' : 'Counselor added successfully!');
+                  // If server returned generated password, show it to admin
+                  if (result.data && result.data.password) {
+                    const pw = result.data.password;
+                    const remind = await Swal.fire({
+                      title: 'Counselor Created',
+                      html: `<div class="text-left">Password for <b>${result.data.name}</b> is:<div style="margin-top:8px"><code style=\"font-size:18px;\">${pw}</code></div></div>`,
+                      showCancelButton: true,
+                      confirmButtonText: 'Copy & Close',
+                      cancelButtonText: 'Close',
+                      focusConfirm: false,
+                      confirmButtonColor: '#FB9724'
+                    });
+                    try { await navigator.clipboard.writeText(pw); } catch (e) { /* ignore */ }
+                  } else {
+                    Swal.fire({ icon: 'success', title: counselorData.id ? 'Counselor updated!' : 'Counselor added!', showConfirmButton: false, timer: 1500, timerProgressBar: true });
+                  }
                 } else {
-                  alert('Error: ' + (result.message || 'Unknown error'));
+                  Swal.fire({ icon: 'error', title: 'Error', text: result.message || 'Unknown error', confirmButtonColor: '#FB9724' });
                 }
               } catch (error) {
                 console.error('Error saving counselor: ', error);

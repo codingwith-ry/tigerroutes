@@ -76,10 +76,7 @@ module.exports = (db) => {
       const dataParams = params.concat([limit, offset]);
       const [rows] = await db.promise().query(dataSql, dataParams);
 
-      // Normalize date values to ISO-8601 UTC strings so clients interpret them as UTC and
-      // render local time correctly. MySQL may return DATETIME as a string like
-      // "YYYY-MM-DD HH:MM:SS" (no timezone) or as a JS Date object depending on driver
-      // settings. Convert both forms to a UTC ISO string with Z suffix.
+        // Normalize date to ISO string in UTC
       const parseMySQLDateAsUTC = (val) => {
         if (!val) return null;
         if (val instanceof Date) return val; // already a Date (assumed correct)

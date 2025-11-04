@@ -348,9 +348,13 @@ const AssessmentPage = () => {
               />
               <label htmlFor="privacy-consent" className="text-sm text-gray-700">
                 I agree to the{" "}
-                <Link to="/privacy-policy" className="text-[#195FD3] underline">
-                  TigerRoutes Privacy Policy
-                </Link>
+                <Link
+                to="/privacy-policy"
+                state={{ fromAssessment: true }} // pass this flag
+                className="text-[#195FD3] underline"
+              >
+                TigerRoutes Privacy Policy
+              </Link>
               </label>
             </div>
 

@@ -88,10 +88,25 @@ module.exports = (db) => {
             to: email,
             subject: 'TigerRoutes Password Reset',
             html: `
-            <p>Your password reset code is: <b>${code}</b></p>
-            <p>Or click <a href="http://localhost:3000/otp?email=${encodeURIComponent(email)}&code=${code}">here</a> to enter your code.</p>
-            `
-        };
+        <div style="font-family: Arial, sans-serif; background-color: #f3f4f6; padding: 24px;">
+          <div style="max-width: 500px; background: white; margin: auto; padding: 32px; border-radius: 12px; text-align: center;">
+          <img src="public/logo192.png" alt="TigerRoutes Logo" style="width: 100px; margin-bottom: 16px;" />
+            <h2 style="font-size: 24px; color: #111827;">Reset Your Password</h2>
+            <div style="text-align: left;">
+            <p style="color: #374151;">Hello, <br /><br /> Use the following One-Time Password (OTP) to verify your identity. This code is valid for the next 5 minutes:</p>
+            </div>
+            <p style="font-size: 36px; font-weight: bold; letter-spacing: 4px; color: #ea9d2d;">${code}</p>
+            <a href="http://localhost:3000/otp?email=${encodeURIComponent(email)}&code=${code}"
+              style="display:inline-block;background:#ea9d2d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:5px;margin-bottom:8px;font-weight:bold;transition:background-color 0.3s;">
+              Reset Password
+            </a>
+            <p style="color: #6b7280;">If you did not request this code, please ignore this message or contact support.</p>
+            <hr style="border:none;border-top:1px solid #f3f4f6;margin:32px 0;" />
+            <p style="font-size: 12px; color: #9ca3af;">&copy; 2025 TigerRoutes. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    };
 
         try {
             await transporter.sendMail(mailOptions);

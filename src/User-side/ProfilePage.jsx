@@ -375,13 +375,6 @@ const ProfilePage = () => {
             {/* Buttons */}
             <div className="flex justify-end gap-4">
             <button
-                type="button"
-                className="px-10 py-2 text-sm rounded-md border border-black hover:bg-gray-100"
-            >
-                Back
-            </button>
-
-            <button
                 type="submit"
                 disabled={Object.values(errors).some(Boolean)}
                 className={`px-6 py-2 text-sm rounded-md shadow-md ${Object.values(errors).some(Boolean) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#FBBF24] text-white'}`}

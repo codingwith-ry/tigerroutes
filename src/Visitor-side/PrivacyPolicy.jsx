@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../Visitor-side/Navbar";
 import UserNavbar from "../User-side/UserNavbar";
 
@@ -216,20 +216,35 @@ const sections = [
 
 const PrivacyPolicy = () => {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [showBackButton, setShowBackButton] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
     document.title = "Privacy Policy | TigerRoutes";
+
     sessionStorage.getItem("user") ? setLoggedIn(true) : setLoggedIn(false);
+
+    // Determine how Privacy Policy was accessed
+    if (location.state) {
+      // Hide navbar only if from assessment, otherwise show
+      setShowNavbar(!location.state.fromAssessment);
+      // Always show back button if accessed via Assessment or Footer
+      if (location.state.fromAssessment || location.state.fromFooter) {
+        setShowBackButton(true);
+      }
+    }
+
     return () => {
       document.documentElement.style.scrollBehavior = "auto";
     };
-  }, []);
+  }, [location.state]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900" style={{ width: "100%" }}>
-      {loggedIn ? <UserNavbar /> : <Navbar />}
+    <div className="min-h-screen bg-white text-gray-900 w-full">
+      {showNavbar && (loggedIn ? <UserNavbar /> : <Navbar />)}
 
       {/* HEADER */}
       <header className="relative bg-gradient-to-b from-[#FFCC00] to-white text-black text-center py-12">
@@ -251,7 +266,7 @@ const PrivacyPolicy = () => {
       </header>
 
       {/* MAIN CONTENT */}
-<div className="grid grid-cols-1 md:grid-cols-4 gap-12 py-12 max-w-7xl px-6 md:px-16">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 py-12 max-w-7xl px-6 md:px-16">
         {/* SIDE NAVIGATION */}
         <aside className="md:col-span-1 sticky top-6 self-start">
           <nav>
@@ -271,7 +286,7 @@ const PrivacyPolicy = () => {
         </aside>
 
         {/* MAIN SECTIONS */}
-        <main className="md:col-span-3 space-y-10" style={{ width: "100%" }}>
+        <main className="md:col-span-3 space-y-10 w-full">
           {sections.map((section) => (
             <section key={section.id} id={section.id} className="prose prose-sm">
               <h2 className="text-2xl font-semibold mb-3 text-[#CC9900]">
@@ -281,15 +296,17 @@ const PrivacyPolicy = () => {
             </section>
           ))}
 
-          {/* ✅ BACK BUTTON AT THE BOTTOM */}
-          <div className="text-center mt-12 mb-8">
-            <button
-              onClick={() => navigate("/assessment")}
-              className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
-            >
-              ← Back to Assessment
-            </button>
-          </div>
+          {/* BACK BUTTON */}
+          {showBackButton && (
+            <div className="text-center mt-12 mb-8">
+              <button
+                onClick={() => navigate("/assessment")}
+                className="bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base"
+              >
+                ← Back to Assessment
+              </button>
+            </div>
+          )}
         </main>
       </div>
     </div>

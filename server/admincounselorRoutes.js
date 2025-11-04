@@ -434,7 +434,7 @@ module.exports = (db) => {
                       <li><strong>Email:</strong> ${counselor.email}</li>
                       <li><strong>Password:</strong> <code>${counselor.password}</code></li>
                     </ul>
-                    <p>You can log in at <a href="http://localhost:3000/login">TigerRoutes Login</a>. For security, please change your password after logging in.</p>
+                    <p>You can log in at <a href="http://localhost:3000/admin">TigerRoutes Login</a>. For security, please change your password after logging in.</p>
                     <p>If you did not request this, please contact your administrator immediately.</p>
                 `
             };

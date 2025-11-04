@@ -102,13 +102,7 @@ const AdminDashboard = () => {
   }
 
 
-  const mismatchCases = [
-    { id: 1001, from: "STEM", to: "Fine Arts", reason: "Low alignment with current track", rating: 4.8 },
-    { id: 1145, from: "HUMSS", to: "Engineering", reason: "Significant strand mismatch", rating: 4.8 },
-    { id: 1289, from: "ABM", to: "Sports Science", reason: "Unexpected career interest", rating: 4.8 },
-    { id: 1456, from: "GAS", to: "Medicine", reason: "Prerequisites not met", rating: 4.8 },
-    { id: 1765, from: "TVL", to: "Literature", reason: "Complete field change", rating: 4.8 },
-  ];
+  // Program mismatch cases removed — not used in current system
 
   // ✅ Progress Circle Component (responsive)
   const ProgressCircle = ({ value, max, color, children }) => {
@@ -297,58 +291,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
             </div>
           </div>
 
-          {/* Program Mismatch Cases */}
-          <div className="bg-white rounded-2xl shadow p-4 sm:p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center text-red-600">
-              <span className="mr-2">❗</span> Program Mismatch Cases
-            </h2>
-            <div className="space-y-3">
-              {mismatchCases.map((c, i) => {
-                const fullStars = Math.floor(c.rating);
-                const hasHalf = c.rating % 1 >= 0.25 && c.rating % 1 < 0.75;
-                const totalStars = 5;
-
-                return (
-                  <div
-                    key={i}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between border rounded-lg bg-gray-50 p-3 sm:p-4"
-                  >
-                    {/* Left Side */}
-                    <div className="mb-3 sm:mb-0">
-                      <p className="font-medium text-gray-900">Student #{c.id}</p>
-                      <p className="text-sm text-gray-600">{c.from} → {c.to}</p>
-                      <div className="mt-2 bg-white rounded-md px-3 py-2 text-xs sm:text-sm text-gray-500">
-                        {c.reason}
-                      </div>
-                    </div>
-
-                    {/* Right Side - Rating */}
-                    <div className="flex items-center sm:ml-4">
-                      <div className="flex text-yellow-400 mr-2">
-                        {Array.from({ length: totalStars }).map((_, index) => {
-                          if (index < fullStars) {
-                            return <FaStar key={index} />;
-                          } else if (index === fullStars && hasHalf) {
-                            return <FaStarHalfAlt key={index} />;
-                          } else {
-                            return <FaRegStar key={index} />;
-                          }
-                        })}
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-700">{c.rating}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Button */}
-            <div className="mt-6 flex justify-center sm:justify-end">
-              <button className="mt-6 w-full sm:w-auto ml-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 sm:py-3 px-6 rounded-lg">
-                View All
-              </button>
-            </div>
-          </div>
+          {/* Program mismatch cases removed */}
         </main>
       </div>
     </div>

@@ -247,11 +247,11 @@ const handleForgotPassword = () => {
         </form>
 
         <div className="mt-6 text-center text-xs text-gray-500">
-          <a href="/terms" className="hover:underline hover:text-[#F6BE1E]">
+          <a href="/terms-of-service" className="hover:underline hover:text-[#F6BE1E]">
             Terms of Use
           </a>
         <span className="mx-2">|</span>
-          <a href="/privacy" className="hover:underline hover:text-[#F6BE1E]">
+          <a href="/privacy-policy" className="hover:underline hover:text-[#F6BE1E]">
             Privacy Policy
              </a>
         </div>

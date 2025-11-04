@@ -289,7 +289,7 @@ const AssessmentResults = () => {
             <main id="assessment-results-content" className="flex flex-col gap-8 px-6 md:px-16 lg:px-32 pb-16">
                 {/* Profile Section */}
                 <div
-                    className="bg-white rounded-lg shadow p-5 border border-black"
+                    className="bg-white rounded-lg shadow p-5 border"
                     style={{ fontFamily: "SF Pro" }}
                 >
                     <div className="flex flex-col sm:flex-row items-start sm:items-center">

@@ -243,6 +243,8 @@ const AssessmentPage = () => {
               <button
                 type="button"
                 className="ml-auto mt-3 sm:mt-0 p-1 hover:bg-[#FFF7E6] transition"
+                onClick={() => navigate("/profile")} // redirects to Profile page
+
               >
                 <SquarePen className="w-6 h-6 text-[#FBBF24]" />
               </button>

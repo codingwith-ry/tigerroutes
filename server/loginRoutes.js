@@ -225,7 +225,16 @@ module.exports = (db) => {
                 if (err) return res.status(500).json({ error: err.message});
                 if (results.length > 0) {
                     // User Found
-                    res.json({ success: true, user: results[0]});
+                    const staffUser = results[0];
+                    // Log staff login
+                    try {
+                        const actionText = `Staff login: ${staffUser.email} (ID:${staffUser.staffAccount_ID})`;
+                        db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffUser.staffAccount_ID || null, actionText]).catch(() => {});
+                    } catch (e) {
+                        // ignore logging failures
+                    }
+
+                    res.json({ success: true, user: staffUser});
                 } else {
                     //No Match
                     res.json({ success: false, error: 'Invalid email or password '});

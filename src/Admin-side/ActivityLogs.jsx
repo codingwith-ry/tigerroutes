@@ -33,7 +33,9 @@ const ActivityLogs = () => {
 		}
 	};
 
-	useEffect(() => { fetchLogs(1); }, [limit, staffFilter, dateFilter]);
+	useEffect(() => { 
+		document.title = "Admin Dashboard | Activity Logs";
+		fetchLogs(1); }, [limit, staffFilter, dateFilter]);
 
 	const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 

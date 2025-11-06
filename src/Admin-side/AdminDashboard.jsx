@@ -22,6 +22,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = "Admin Dashboard | Overview";
     fetchDashboardStats();
     fetchStrandScores();
     fetchTopPrograms();

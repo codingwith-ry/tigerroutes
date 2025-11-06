@@ -57,6 +57,7 @@ const AdminStudentProfile = () => {
 
   // Fetch program recommendations separately from adminassessmentRoutes
   useEffect(() => {
+    document.title = "Admin Dashboard | Student Profile";
     const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
     if (!assessmentId) return;
 

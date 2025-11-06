@@ -22,6 +22,7 @@ const AdminCounselors = () => {
   ]);
 
   useEffect(() => {
+    document.title = "Admin Dashboard | Manage Counselors";
     fetchCounselors();
   }, []);
 

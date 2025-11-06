@@ -108,7 +108,7 @@ if (loadingUser) {
     >
       <div className="flex justify-between items-center px-6 py-4">
         <img
-          src="/images/TIGER ROUTES.png"
+          src="/images/04_TigerRoutes_Logo.png"
           alt="TigerRoutes Logo"
           className="h-8"
         />

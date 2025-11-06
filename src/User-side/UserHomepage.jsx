@@ -17,7 +17,7 @@ const UserHomepage = () => {
   const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
-    document.title = 'TigerRoutes | Homepage';
+    document.title = 'TigerRoutes | Home';
     fetchAnalytics();
   }, []);
 

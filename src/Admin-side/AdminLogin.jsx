@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom"; // Add this import
 
@@ -9,6 +9,11 @@ const AdminLogin = () => {
     password: ''
   });
   const navigate = useNavigate(); // Add navigation hook
+
+
+  useEffect(() => {
+    document.title = "Admin Login | TigerRoutes";
+  }, []);
 
   // Add form handler
   const handleSubmit = async (e) => {

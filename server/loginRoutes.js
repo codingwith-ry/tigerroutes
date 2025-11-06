@@ -90,7 +90,7 @@ module.exports = (db) => {
             html: `
         <div style="font-family: Arial, sans-serif; background-color: #f3f4f6; padding: 24px;">
           <div style="max-width: 500px; background: white; margin: auto; padding: 32px; border-radius: 12px; text-align: center;">
-          <img src="public/logo192.png" alt="TigerRoutes Logo" style="width: 100px; margin-bottom: 16px;" />
+          <img src="/images/02_TigerRoutes_Logo.png" alt="TigerRoutes Logo" style="width: 100px; margin-bottom: 16px;" />
             <h2 style="font-size: 24px; color: #111827;">Reset Your Password</h2>
             <div style="text-align: left;">
             <p style="color: #374151;">Hello, <br /><br /> Use the following One-Time Password (OTP) to verify your identity. This code is valid for the next 5 minutes:</p>

@@ -78,13 +78,13 @@ module.exports = (db) => {
         let transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'dominicxandy.adino.cics@ust.edu.ph', //change this email
-                pass: 'fdvp mbeg iold wmfe'//put password here
+                user: 'tigerroutes.contact@gmail.com', //change this email
+                pass: 'Tig3rRoutes2025'//put password here
             }
         });
 
         const mailOptions = {
-            from: 'dominicxandy.adino.cics@ust.edu.ph',
+            from: 'tigerroutes.contact@gmail.com',
             to: email,
             subject: 'TigerRoutes Password Reset',
             html: `
@@ -112,7 +112,16 @@ module.exports = (db) => {
             await transporter.sendMail(mailOptions);
             res.json({ success: true });
         } catch (err) {
-            res.status(500).json({ error: 'Failed to send email.' });
+            // Log the full error server-side for debugging
+            console.error('[forgot-password] sendMail error:', err && err.stack ? err.stack : err);
+
+            // In development return the underlying error message to help debug; in production keep it generic
+            const isDev = process.env.NODE_ENV !== 'production';
+            if (isDev) {
+                return res.status(500).json({ error: 'Failed to send email.', detail: err && err.message ? err.message : String(err) });
+            }
+
+            return res.status(500).json({ error: 'Failed to send email.' });
         }
     });
 

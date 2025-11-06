@@ -418,13 +418,13 @@ module.exports = (db) => {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                    user: 'dominicxandy.adino.cics@ust.edu.ph',
-                    pass: 'fdvp mbeg iold wmfe'
+                    user: 'tigerroutes.contact@gmail.com',
+                    pass: 'Tig3rRoutes2025'
                 }
             });
 
             const mailOptions = {
-                from: 'dominicxandy.adino.cics@ust.edu.ph',
+                from: 'tiggerroutes.contact@gmail.com',
                 to: counselor.email,
                 subject: 'TigerRoutes Counselor Account Details',
                 html: `

@@ -93,7 +93,7 @@ const ForgotPassPage = () => {
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
       {/* Logo top-left */}
       <img
-        src="/images/TIGER ROUTES.png"
+        src="/images/04_TigerRoutes_Logo.png"
         alt="TigerRoutes Logo"
         className="absolute top-5 left-6 h-8 cursor-pointer"
         onClick={handleBackToHome}

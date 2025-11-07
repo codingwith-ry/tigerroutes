@@ -10,41 +10,60 @@ module.exports = (db) => {
       const page = Math.max(1, parseInt(req.query.page || '1', 10));
       const pageSize = Math.max(1, parseInt(req.query.pageSize || '10', 10));
       const q = (req.query.q || '').trim();
+      const dateFilter = (req.query.date || '').trim();
       const offset = (page - 1) * pageSize;
 
-      // Base query: fetch assessments with student and strand info
-      let baseQuery = `
-        SELECT
-          sa.studentAssessment_ID AS assessmentId,
-          sa.studentAccount_ID AS studentAccountId,
-          sa.date,
-          sa.rating,
-          st.name AS studentName,
-          s.strandName AS strand
+      // Base FROM clause: assessments joined with student and strand info
+      let baseFrom = `
         FROM tbl_studentassessments sa
         LEFT JOIN tbl_studentaccounts st ON sa.studentAccount_ID = st.studentAccount_ID
         LEFT JOIN tbl_studentprofiles sp ON st.studentProfile_ID = sp.studentProfile_ID
         LEFT JOIN tbl_strands s ON sp.strand_ID = s.strand_ID
       `;
 
-      const params = [];
+      // Build WHERE clauses and params to be reused for data query and count
+      const whereClauses = [];
+      const whereParams = [];
       if (q) {
-        baseQuery += ` WHERE (sa.studentAssessment_ID LIKE ? OR st.name LIKE ? OR s.strandName LIKE ?)`;
+        whereClauses.push(`(sa.studentAssessment_ID LIKE ? OR st.name LIKE ? OR s.strandName LIKE ?)`);
         const like = `%${q}%`;
-        params.push(like, like, like);
+        whereParams.push(like, like, like);
+      }
+      if (dateFilter) {
+        // match the date part only
+        whereClauses.push(`DATE(sa.date) = ?`);
+        whereParams.push(dateFilter);
       }
 
-      baseQuery += ` ORDER BY sa.date DESC LIMIT ? OFFSET ?`;
-      params.push(pageSize, offset);
+      // Data query
+      let dataQuery = `SELECT sa.studentAssessment_ID AS assessmentId, sa.studentAccount_ID AS studentAccountId, sa.date, sa.rating, st.name AS studentName, s.strandName AS strand ${baseFrom}`;
+      if (whereClauses.length > 0) dataQuery += ` WHERE ${whereClauses.join(' AND ')}`;
+      dataQuery += ` ORDER BY sa.date DESC LIMIT ? OFFSET ?`;
 
-      const [rows] = await db.promise().query(baseQuery, params);
+      const dataParams = [...whereParams, pageSize, offset];
+      const [rows] = await db.promise().query(dataQuery, dataParams);
+
+      // Always compute total using the same filters
+      let total = 0;
+      try {
+        let countQuery = `SELECT COUNT(*) AS total ${baseFrom}`;
+        if (whereClauses.length > 0) countQuery += ` WHERE ${whereClauses.join(' AND ')}`;
+        const [countRows] = await db.promise().query(countQuery, whereParams);
+        total = countRows && countRows[0] ? Number(countRows[0].total) : 0;
+      } catch (countErr) {
+        console.warn('Failed to compute total count for assessments:', countErr);
+        total = rows ? rows.length : 0;
+      }
 
       if (!rows || rows.length === 0) {
-        return res.json({ success: true, data: [], total: 0 });
+        return res.json({ success: true, data: [], total });
       }
 
       // compute average alignment for returned assessment IDs
       const ids = rows.map((r) => r.assessmentId);
+      if (ids.length === 0) {
+        return res.json({ success: true, data: [], total });
+      }
       const placeholders = ids.map(() => '?').join(',');
       const recQuery = `SELECT studentAssessment_ID, AVG(alignmentScore) AS avgAlignment FROM tbl_recommendations WHERE track_aligned = 'Y' AND studentAssessment_ID IN (${placeholders}) GROUP BY studentAssessment_ID`;
       const [recRows] = await db.promise().query(recQuery, ids);
@@ -63,13 +82,6 @@ module.exports = (db) => {
         strand: r.strand || 'N/A',
         alignment: alignmentMap[r.assessmentId] != null ? Number(alignmentMap[r.assessmentId]) : null,
       }));
-
-      // total count (for pagination) - simple count without filters when q is empty
-      let total = null;
-      if (!q) {
-        const [countRows] = await db.promise().query('SELECT COUNT(*) AS total FROM tbl_studentassessments');
-        total = countRows && countRows[0] ? countRows[0].total : data.length;
-      }
 
       return res.json({ success: true, data, total });
     } catch (err) {
@@ -197,6 +209,134 @@ module.exports = (db) => {
           return res.status(500).json({ success: false, message: err.message });
         }
       });
+  // GET /api/admin/strand-analytics
+  // Returns per-strand metrics: avgAlignment (avg of per-assessment avg alignment where track_aligned='Y'), assessments_count, avgSatisfaction
+  router.get('/admin/strand-analytics', async (req, res) => {
+    try {
+      // Base numeric aggregation per strand
+      const sql = `
+        SELECT
+          s.strand_ID,
+          s.strandName,
+          ROUND(AVG(pa.avgAlignment), 2) AS avgAlignment,
+          COUNT(DISTINCT a.studentAssessment_ID) AS assessments_count,
+          ROUND(AVG(a.rating), 2) AS avgSatisfaction
+        FROM tbl_strands s
+        LEFT JOIN tbl_studentprofiles sp ON sp.strand_ID = s.strand_ID
+        LEFT JOIN tbl_studentaccounts sa ON sa.studentProfile_ID = sp.studentProfile_ID
+        LEFT JOIN tbl_studentassessments a ON a.studentAccount_ID = sa.studentAccount_ID
+        LEFT JOIN (
+          SELECT studentAssessment_ID, AVG(alignmentScore) AS avgAlignment
+          FROM tbl_recommendations
+          WHERE track_aligned = 'Y'
+          GROUP BY studentAssessment_ID
+        ) pa ON pa.studentAssessment_ID = a.studentAssessment_ID
+        GROUP BY s.strand_ID, s.strandName
+        ORDER BY s.strandName
+      `;
+
+      const [rows] = await db.promise().query(sql);
+
+      // For each strand, fetch top RIASEC traits, top BigFive traits and top 5 programs
+      const results = await Promise.all((rows || []).map(async (r) => {
+        const strandId = r.strand_ID;
+
+        // Aggregate RIASEC trait sums for the strand
+        const riasecSql = `
+          SELECT
+            SUM(rr.realistic) AS realistic,
+            SUM(rr.investigative) AS investigative,
+            SUM(rr.artistic) AS artistic,
+            SUM(rr.social) AS social,
+            SUM(rr.enterprising) AS enterprising,
+            SUM(rr.conventional) AS conventional
+          FROM tbl_riasecresults rr
+          JOIN tbl_studentassessments sa ON rr.riasecResult_ID = sa.riasecResult_ID
+          JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
+          JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+          WHERE sp.strand_ID = ?
+        `;
+
+        const [riasecRows] = await db.promise().query(riasecSql, [strandId]);
+        const riasecTotals = riasecRows && riasecRows[0] ? riasecRows[0] : null;
+
+        const riasecList = [];
+        if (riasecTotals) {
+          Object.entries(riasecTotals).forEach(([k, v]) => {
+            riasecList.push({ trait: k, value: v != null ? Number(v) : 0 });
+          });
+        }
+        riasecList.sort((a, b) => b.value - a.value);
+        const topRiasec = riasecList.slice(0, 2).map((t) => t.trait.charAt(0).toUpperCase() + t.trait.slice(1));
+
+        // Aggregate BigFive trait sums for the strand
+        const bigFiveSql = `
+          SELECT
+            SUM(bf.openness) AS openness,
+            SUM(bf.conscientiousness) AS conscientiousness,
+            SUM(bf.extraversion) AS extraversion,
+            SUM(bf.agreeableness) AS agreeableness,
+            SUM(bf.neuroticism) AS neuroticism
+          FROM tbl_bigfiveresults bf
+          JOIN tbl_studentassessments sa ON bf.bigFiveResult_ID = sa.bigFiveResult_ID
+          JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
+          JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+          WHERE sp.strand_ID = ?
+        `;
+
+        const [bigFiveRows] = await db.promise().query(bigFiveSql, [strandId]);
+        const bigFiveTotals = bigFiveRows && bigFiveRows[0] ? bigFiveRows[0] : null;
+
+        const bigFiveList = [];
+        if (bigFiveTotals) {
+          Object.entries(bigFiveTotals).forEach(([k, v]) => {
+            bigFiveList.push({ trait: k, value: v != null ? Number(v) : 0 });
+          });
+        }
+        bigFiveList.sort((a, b) => b.value - a.value);
+        const topBigFive = bigFiveList.slice(0, 2).map((t) => t.trait.charAt(0).toUpperCase() + t.trait.slice(1));
+
+        // Top 5 programs for the strand (by recommendation count, include avg alignment)
+        const programsSql = `
+          SELECT p.program_ID, p.programName, COUNT(*) AS reco_count, ROUND(AVG(r.alignmentScore),2) AS avgAlignment
+          FROM tbl_recommendations r
+          JOIN tbl_programs p ON r.program_ID = p.program_ID
+          JOIN tbl_studentassessments sa ON r.studentAssessment_ID = sa.studentAssessment_ID
+          JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
+          JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+          WHERE sp.strand_ID = ?
+          GROUP BY p.program_ID, p.programName
+          ORDER BY reco_count DESC, avgAlignment DESC
+          LIMIT 5
+        `;
+
+        const [progRows] = await db.promise().query(programsSql, [strandId]);
+        const topPrograms = (progRows || []).map((p) => ({
+          programId: p.program_ID,
+          programName: p.programName,
+          count: p.reco_count != null ? Number(p.reco_count) : 0,
+          avgAlignment: p.avgAlignment != null ? Number(p.avgAlignment) : 0,
+        }));
+
+        return {
+          strand: r.strandName,
+          strandId: strandId,
+          avgAlignment: r.avgAlignment != null ? Number(r.avgAlignment) : 0,
+          assessments: r.assessments_count != null ? Number(r.assessments_count) : 0,
+          avgSatisfaction: r.avgSatisfaction != null ? Number(r.avgSatisfaction) : 0,
+          topRiasec,
+          topBigFive,
+          topPrograms,
+        };
+      }));
+
+      return res.json({ success: true, data: results });
+    } catch (err) {
+      console.error('Error fetching strand analytics:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  });
 
   return router;
 };
+

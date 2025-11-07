@@ -23,18 +23,29 @@ const AdminAssessment = () => {
 
   useEffect(() => {
     document.title = "Admin Dashboard | Student Assessments";
-
     fetchDashboardStats();
   }, []);
 
   async function fetchDashboardStats(){
-    // MOCK DATA FETCH for Assessments Dashboard Stats (Replace with actual fetch)
-    const mockStats = {
-      totalStudents: 45,
-      completedAssessments: 32,
-      overallAlignment: 88.5,
-    };
-    setStats(mockStats);
+    try {
+      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${base}/api/admin/dashboard-stats`);
+      const data = await res.json();
+      if (data && data.success && data.data) {
+        setStats(prev => ({
+          ...prev,
+          totalStudents: data.data.totalStudents || 0,
+          completedAssessments: data.data.completedAssessments || 0,
+          overallAlignment: data.data.overallAlignment || 0
+        }));
+        // Ensure totalAssessments uses the DB count from dashboard-stats
+        if (typeof data.data.completedAssessments === 'number') {
+          setTotalAssessments(data.data.completedAssessments);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+    }
     /*
     try {
       const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
@@ -58,7 +69,11 @@ const AdminAssessment = () => {
   const [totalAssessments, setTotalAssessments] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // Filters (ActivityLogs-style)
+  const [filterText, setFilterText] = useState("");
+  // Debounced copy of filterText to avoid firing requests on every keystroke
+  const [debouncedFilterText, setDebouncedFilterText] = useState(filterText);
+  const [dateFilter, setDateFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -66,155 +81,82 @@ const AdminAssessment = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentStudents = assessments;
 
-  // fetch assessments when page or search changes
+  
+
+  // Debounce filterText -> debouncedFilterText (300ms)
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedFilterText(filterText), 300);
+    return () => clearTimeout(id);
+  }, [filterText]);
+
+  // fetch assessments when page or debounced filters change
   useEffect(() => {
     if (activeTab !== 'assessments') return;
 
     const controller = new AbortController();
     async function load() {
       setLoading(true);
-      // MOCK DATA FETCH for Assessments Table (Replace with actual fetch)
-      const mockAssessments = [
-        { assessmentId: 'A001', studentAccountId: 101, studentName: 'Alice Johnson', strand: 'STEM', date: new Date().toISOString(), alignment: 92, rating: 5 },
-        { assessmentId: 'A002', studentAccountId: 102, studentName: 'Bob Smith', strand: 'HUMSS', date: new Date(Date.now() - 86400000).toISOString(), alignment: 85, rating: 4 },
-        { assessmentId: 'A003', studentAccountId: 103, studentName: 'Charlie Brown', strand: 'ABM', date: new Date(Date.now() - 172800000).toISOString(), alignment: 78, rating: 3 },
-        { assessmentId: 'A004', studentAccountId: 104, studentName: 'Diana Prince', strand: 'TVL', date: new Date(Date.now() - 259200000).toISOString(), alignment: 95, rating: 5 },
-      ];
-      if (searchTerm) {
-        setAssessments(mockAssessments.filter(a => a.studentName.toLowerCase().includes(searchTerm.toLowerCase())));
-      } else {
-        setAssessments(mockAssessments);
-      }
-      setTotalAssessments(mockAssessments.length);
-      setLoading(false);
-      
-      /*
       try {
-        const url = `http://localhost:5000/api/assessments?page=${currentPage}&pageSize=${itemsPerPage}&q=${encodeURIComponent(searchTerm)}`;
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const params = new URLSearchParams({ page: String(currentPage), pageSize: String(itemsPerPage) });
+        if (debouncedFilterText) params.set('q', debouncedFilterText);
+        if (dateFilter) params.set('date', dateFilter);
+
+        const url = `${base}/api/assessments?${params.toString()}`;
         const res = await fetch(url, { signal: controller.signal });
         const data = await res.json();
         if (data && data.success) {
-          setAssessments(data.data || []);
-          setTotalAssessments(data.total != null ? data.total : (data.data || []).length);
+          const list = data.data || [];
+          setAssessments(list);
+          if (data.total != null) setTotalAssessments(data.total);
+        } else {
+          setAssessments([]);
+          setTotalAssessments(0);
         }
       } catch (err) {
         if (err.name !== 'AbortError') console.error('Error fetching assessments:', err);
+        setAssessments([]);
+        setTotalAssessments(0);
       } finally {
         setLoading(false);
       }
-      */
     }
     load();
     return () => controller.abort();
-  }, [currentPage, searchTerm, activeTab]);
+  }, [currentPage, debouncedFilterText, dateFilter, activeTab]);
+
+  // (debounce handled directly on input change using ref)
 
   // --- Strand Analytics Data ---
 
-  // MOCK DATA for Strand Analytics
-  const mockStrandAnalytics = [
-    {
-      strand: 'STEM',
-      totalAssessments: 12,
-      averageSatisfaction: 4.8,
-      averageAlignment: 92,
-      riasecTraits: 'Investigative, Realistic',
-      bigFiveTraits: 'Openness, Conscientiousness',
-      riasecColor: 'bg-blue-100 text-blue-800',
-      bigFiveColor: 'bg-purple-100 text-purple-800',
-      recommendedPrograms: [
-        { program: 'BS Computer Science', score: 95 },
-        { program: 'BS Civil Engineering', score: 93 },
-        { program: 'BS Information Technology', score: 92 },
-        { program: 'BS Physics', score: 91 },
-        { program: 'BS Mathematics', score: 90 },
-      ],
-    },
-    {
-      strand: 'HUMSS',
-      totalAssessments: 8,
-      averageSatisfaction: 4.2,
-      averageAlignment: 85,
-      riasecTraits: 'Social, Artistic',
-      bigFiveTraits: 'Extraversion, Agreeableness',
-      riasecColor: 'bg-blue-100 text-blue-800',
-      bigFiveColor: 'bg-purple-100 text-purple-800',
-      recommendedPrograms: [
-        { program: 'BA Political Science', score: 88 },
-        { program: 'BA Sociology', score: 86 },
-        { program: 'BS Psychology', score: 85 },
-        { program: 'BA History', score: 83 },
-        { program: 'B Secondary Education', score: 82 },
-      ],
-    },
-    {
-      strand: 'ABM',
-      totalAssessments: 10,
-      averageSatisfaction: 3.9,
-      averageAlignment: 78,
-      riasecTraits: 'Enterprising, Conventional',
-      bigFiveTraits: 'Conscientiousness, Extraversion',
-      riasecColor: 'bg-blue-100 text-blue-800',
-      bigFiveColor: 'bg-purple-100 text-purple-800',
-      recommendedPrograms: [
-        { program: 'BS Accountancy', score: 82 },
-        { program: 'BS Business Administration', score: 80 },
-        { program: 'BS Real Estate Management', score: 79 },
-        { program: 'BS Marketing Management', score: 77 },
-        { program: 'BS Entrepreneurship', score: 75 },
-      ],
-    },
-    {
-      strand: 'Health-Allied',
-      totalAssessments: 6,
-      averageSatisfaction: 4.5,
-      averageAlignment: 88,
-      riasecTraits: 'Social, Investigative',
-      bigFiveTraits: 'Agreeableness, Conscientiousness',
-      riasecColor: 'bg-blue-100 text-blue-800',
-      bigFiveColor: 'bg-purple-100 text-purple-800',
-      recommendedPrograms: [
-        { program: 'BS Nursing', score: 90 },
-        { program: 'BS Medical Technology', score: 88 },
-        { program: 'BS Pharmacy', score: 87 },
-        { program: 'BS Radiologic Technology', score: 85 },
-        { program: 'BS Physical Therapy', score: 84 },
-      ],
-    },
-    {
-      strand: 'MAD',
-      totalAssessments: 9,
-      averageSatisfaction: 3.5,
-      averageAlignment: 76,
-      riasecTraits: 'Artistic, Conventional',
-      bigFiveTraits: 'Openness, Conscientiousness',
-      riasecColor: 'bg-blue-100 text-blue-800',
-      bigFiveColor: 'bg-purple-100 text-purple-800',
-      recommendedPrograms: [
-        { program: 'BS Advertising Arts', score: 94 },
-        { program: 'BS Interior Design', score: 90 },
-        { program: 'BS Fine Arts', score: 88 },
-        { program: 'Bachelor of Music in Music Theathre', score: 87 },
-        { program: 'Bachelor of Music in Performance', score: 82 },
-      ],
-    },
-    {
-      strand: 'PE and Sports',
-      totalAssessments: 4,
-      averageSatisfaction: 2.8,
-      averageAlignment: 86,
-      riasecTraits: 'Realistic, Social',
-      bigFiveTraits: 'Extraversion, Agreeableness',
-      riasecColor: 'bg-blue-100 text-blue-800',
-      bigFiveColor: 'bg-purple-100 text-purple-800',
-      recommendedPrograms: [
-        { program: 'BS Fitness and Sports Management', score: 95 },
-        { program: 'Bachelor of Physical Education', score: 92 },
-      ],
-    },
-  ];
+  // Real strand analytics fetched from the server
+  const [strandAnalytics, setStrandAnalytics] = useState([]);
 
-  const totalStrands = mockStrandAnalytics.length;
-  const overallAvgAlignment = mockStrandAnalytics.reduce((acc, curr) => acc + curr.averageAlignment, 0) / totalStrands;
+  // Effective data source: use backend data (empty array if none)
+  const effectiveStrandData = strandAnalytics || [];
+
+  const totalStrands = effectiveStrandData.length;
+  const overallAvgAlignment = effectiveStrandData.reduce((acc, curr) => acc + (curr.avgAlignment ?? curr.averageAlignment ?? 0), 0) / (totalStrands || 1);
+
+  // Fetch strand analytics when user opens the strand analytics tab
+  useEffect(() => {
+    if (activeTab !== 'strandAnalytics') return;
+    let cancelled = false;
+    async function load() {
+      try {
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const res = await fetch(`${base}/api/admin/strand-analytics`);
+        const json = await res.json();
+        if (!cancelled && json && json.success && Array.isArray(json.data)) {
+          setStrandAnalytics(json.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching strand analytics:', err);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [activeTab]);
 
   // --- Common Components ---
 
@@ -235,26 +177,6 @@ const AdminAssessment = () => {
     return (
       <div className="relative w-16 h-16 sm:w-12 sm:h-12 md:w-16 md:h-16">
         <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 64 64">
-          <circle
-            stroke="#e5e7eb"
-            fill="transparent"
-            strokeWidth={strokeWidth}
-            r={normalizedRadius}
-            cx="32"
-            cy="32"
-          />
-          <circle
-            stroke={color}
-            fill="transparent"
-            strokeWidth={strokeWidth}
-            strokeDasharray={`${circumference} ${circumference}`}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            r={normalizedRadius}
-            cx="32"
-            cy="32"
-            className="transition-all duration-700 ease-out"
-          />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           {children}
@@ -332,20 +254,29 @@ const AdminAssessment = () => {
         />
       </div>
 
-      {/* Search Bar inside Card */}
+      {/* Search Bar inside Card (text + date filters like ActivityLogs) */}
       <div className="bg-white p-4 mb-4 rounded-xl shadow border border-gray-200">
-        <input
-          type="text"
-          placeholder="Search students..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // reset to first page on search
-          }}
-          className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:outline-none mb-6"
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3">
+          <input
+            type="text"
+            data-testid="assessments-search"
+            placeholder="Search students or assessment ID..."
+            value={filterText}
+            onChange={(e) => { setFilterText(e.target.value); setCurrentPage(1); }}
+            className="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:outline-none mb-3 sm:mb-0"
+          />
+          <div className="flex items-center space-x-2">
+            <label className="text-gray-600 text-sm">Date:</label>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => { setDateFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-2 border rounded-lg bg-white"
+            />
+          </div>
+        </div>
 
-        <div className="bg-white rounded-xl shadow border border-gray-200">
+  <div className="bg-white rounded-xl shadow border border-gray-200 mt-4">
           {/* Desktop Table */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="min-w-full text-sm text-left">
@@ -524,118 +455,147 @@ const AdminAssessment = () => {
 
   // --- Strand Analytics Tab Content ---
 
-  const StrandAnalyticsTab = () => (
-    <div className="p-4 sm:p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Strand Analytics Overview</h2>
-      
-      {/* Stats Grid for Strands */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-        <StatCard
-          title="Total Strands"
-          value={totalStrands}
-          subtitle="Active academic tracks"
-          subtitleColor="text-indigo-600"
-          progress={totalStrands}
-          max={5} // Max a reasonable number for display
-          icon={<GitBranch className="w-6 h-6 text-indigo-600" />}
-          color="#4f46e5"
-        />
-        <StatCard
-          title="Average Strand Alignment"
-          value={`${overallAvgAlignment.toFixed(1)}%`}
-          subtitle="Overall mean alignment score"
-          subtitleColor="text-red-600"
-          progress={overallAvgAlignment}
-          max={100}
-          icon={<BarChart2 className="w-6 h-6 text-red-600" />}
-          color="#ef4444"
-        />
-        {/* Placeholder for two more stats if needed */}
-        <StatCard
-          title="Avg. Assessments / Strand"
-          value={(stats.completedAssessments / (totalStrands || 1)).toFixed(1)}
-          subtitle="Completed assessments per strand"
-          subtitleColor="text-gray-600"
-          progress={stats.completedAssessments / (totalStrands || 1)}
-          max={20}
-          icon={<LayoutGrid className="w-6 h-6 text-gray-500" />}
-          color="#6b7280"
-        />
-        <StatCard
-          title="Avg. Satisfaction / Strand"
-          value={`${(mockStrandAnalytics.reduce((acc, curr) => acc + curr.averageSatisfaction, 0) / (totalStrands || 1)).toFixed(1)} / 5`}
-          subtitle="Mean satisfaction rating"
-          subtitleColor="text-yellow-600"
-          progress={(mockStrandAnalytics.reduce((acc, curr) => acc + curr.averageSatisfaction, 0) / (totalStrands || 1)) * 20}
-          max={100}
-          icon={<Star className="w-6 h-6 text-yellow-600" />}
-          color="#f59e0b"
-        />
-      </div>
+  const StrandAnalyticsTab = () => {
+    return (
+      <div className="p-4 sm:p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Strand Analytics Overview</h2>
 
-      {/* Strand-Specific Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {mockStrandAnalytics.map((strandData) => (
-          <div key={strandData.strand} className="bg-white p-6 rounded-xl shadow border border-gray-200">
-            <h3 className="text-xl font-extrabold text-indigo-700 mb-3 flex items-center">
-              <GitBranch className="w-5 h-5 mr-2" />
-              {strandData.strand} Strand
-            </h3>
-
-            <div className="space-y-3 mb-4">
-              <div className="p-3 rounded-lg border">
-                <p className="text-xs font-semibold uppercase text-gray-500 mb-1">RIASEC Traits</p>
-                <span className={`text-sm font-bold ${strandData.riasecColor} px-2 py-0.5 rounded`}>
-                  {strandData.riasecTraits || "N/A"}
-                </span>
-              </div>
-              <div className="p-3 rounded-lg border">
-                <p className="text-xs font-semibold uppercase text-gray-500 mb-1">Big Five Traits</p>
-                <span className={`text-sm font-bold ${strandData.bigFiveColor} px-2 py-0.5 rounded`}>
-                  {strandData.bigFiveTraits || "N/A"}
-                </span>
-              </div>
+        {effectiveStrandData.length === 0 ? (
+          <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-center text-gray-600">
+            <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center rounded-full bg-gray-100">
+              <GitBranch className="w-6 h-6 text-gray-400" />
             </div>
-            
-            <div className="flex justify-between items-center text-sm font-medium mb-3 border-b pb-2">
-                <span className="text-gray-600">Alignment Score:</span>
-                <span className="text-2xl font-bold text-red-600">{strandData.averageAlignment}%</span>
-            </div>
-
-            <div className="space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">Total Assessments:</span>
-                    <span className="font-semibold">{strandData.totalAssessments}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">Average Satisfaction:</span>
-                    <div className="flex items-center space-x-1">
-                        {renderStars(Math.round(strandData.averageSatisfaction))}
-                        <span className="font-semibold text-gray-700">({strandData.averageSatisfaction.toFixed(1)})</span>
-                    </div>
-                </div>
-            </div>
-
-            <h4 className="text-lg font-bold text-gray-800 mt-4 border-t pt-4">
-              Top 5 Recommended Programs
-            </h4>
-            
-            <ul className="mt-2 space-y-2">
-              {strandData.recommendedPrograms.map((program, index) => (
-                <li key={index} className="flex justify-between items-center text-sm p-2 rounded-lg bg-gray-50 hover:bg-yellow-50 transition-colors">
-                  <span className="font-medium text-gray-700">{index + 1}. {program.program}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${program.score > 90 ? 'bg-green-100 text-green-700' : program.score > 80 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                    {program.score}%
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-lg font-medium">No strand analytics available</p>
+            <p className="text-sm mt-1">Strand analytics will appear here once assessments are recorded.</p>
           </div>
-        ))}
-      </div>
+        ) : (
+          <>
+            {/* Stats Grid for Strands */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+              <StatCard
+                title="Total Strands"
+                value={totalStrands}
+                subtitle="Active academic tracks"
+                subtitleColor="text-indigo-600"
+                progress={totalStrands}
+                max={5} // Max a reasonable number for display
+                icon={<GitBranch className="w-6 h-6 text-indigo-600" />}
+                color="#4f46e5"
+              />
+              <StatCard
+                title="Average Strand Alignment"
+                value={`${overallAvgAlignment.toFixed(1)}%`}
+                subtitle="Overall mean alignment score"
+                subtitleColor="text-red-600"
+                progress={overallAvgAlignment}
+                max={100}
+                icon={<BarChart2 className="w-6 h-6 text-red-600" />}
+                color="#ef4444"
+              />
+              {/* Placeholder for two more stats if needed */}
+              <StatCard
+                title="Avg. Assessments / Strand"
+                value={(stats.completedAssessments / (totalStrands || 1)).toFixed(1)}
+                subtitle="Completed assessments per strand"
+                subtitleColor="text-gray-600"
+                progress={stats.completedAssessments / (totalStrands || 1)}
+                max={20}
+                icon={<LayoutGrid className="w-6 h-6 text-gray-500" />}
+                color="#6b7280"
+              />
+              <StatCard
+                title="Avg. Satisfaction / Strand"
+                value={`${(effectiveStrandData.reduce((acc, curr) => acc + (curr.avgSatisfaction ?? curr.averageSatisfaction ?? 0), 0) / (totalStrands || 1)).toFixed(1)} / 5`}
+                subtitle="Mean satisfaction rating"
+                subtitleColor="text-yellow-600"
+                progress={(effectiveStrandData.reduce((acc, curr) => acc + (curr.avgSatisfaction ?? curr.averageSatisfaction ?? 0), 0) / (totalStrands || 1)) * 20}
+                max={100}
+                icon={<Star className="w-6 h-6 text-yellow-600" />}
+                color="#f59e0b"
+              />
+            </div>
 
-    </div>
-  );
+            {/* Strand-Specific Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {effectiveStrandData.map((strandData) => {
+                const name = strandData.strand || strandData.strandName || 'Unknown';
+                const riasecDisplay = Array.isArray(strandData.topRiasec) ? strandData.topRiasec.join(', ') : strandData.riasecTraits || 'N/A';
+                const bigFiveDisplay = Array.isArray(strandData.topBigFive) ? strandData.topBigFive.join(', ') : strandData.bigFiveTraits || 'N/A';
+                const alignment = strandData.avgAlignment ?? strandData.averageAlignment ?? 0;
+                const totalAssess = strandData.assessments ?? strandData.totalAssessments ?? 0;
+                const avgSat = strandData.avgSatisfaction ?? strandData.averageSatisfaction ?? 0;
+                const programs = Array.isArray(strandData.topPrograms) ? strandData.topPrograms : (strandData.recommendedPrograms || []);
+
+                return (
+                  <div key={name} className="bg-white p-6 rounded-xl shadow border border-gray-200">
+                    <h3 className="text-xl font-extrabold text-indigo-700 mb-3 flex items-center">
+                      <GitBranch className="w-5 h-5 mr-2" />
+                      {name} Strand
+                    </h3>
+
+                    <div className="space-y-3 mb-4">
+                      <div className="p-3 rounded-lg border">
+                        <p className="text-xs font-semibold uppercase text-gray-500 mb-1">RIASEC Traits</p>
+                        <span className={`text-sm font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded`}>
+                          {riasecDisplay}
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-lg border">
+                        <p className="text-xs font-semibold uppercase text-gray-500 mb-1">Big Five Traits</p>
+                        <span className={`text-sm font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded`}>
+                          {bigFiveDisplay}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-sm font-medium mb-3 border-b pb-2">
+                        <span className="text-gray-600">Alignment Score:</span>
+                        <span className="text-2xl font-bold text-red-600">{alignment}%</span>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Total Assessments:</span>
+                            <span className="font-semibold">{totalAssess}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Average Satisfaction:</span>
+                            <div className="flex items-center space-x-1">
+                                {renderStars(Math.round(avgSat))}
+                                <span className="font-semibold text-gray-700">({Number(avgSat).toFixed(1)})</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 className="text-lg font-bold text-gray-800 mt-4 border-t pt-4">
+                      Top 5 Recommended Programs
+                    </h4>
+                    
+                    <ul className="mt-2 space-y-2">
+                      {programs.map((program, index) => {
+                        const programName = program.programName ?? program.program ?? 'Unknown Program';
+                        // Use explicit recommendation count when available. fall back to `program.count` or other numeric fields.
+                        const count = program.count ?? program.recommendationCount ?? program.recs ?? program.score ?? 0;
+                        return (
+                          <li key={index} className="flex justify-between items-center text-sm p-2 rounded-lg bg-gray-50 hover:bg-yellow-50 transition-colors">
+                            <span className="font-medium text-gray-700">{index + 1}. {programName}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700`}>
+                              {count}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+      </div>
+    );
+  };
 
 
   return (
@@ -676,8 +636,8 @@ const AdminAssessment = () => {
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto">
-          {activeTab === 'assessments' && <AssessmentsTab />}
-          {activeTab === 'strandAnalytics' && <StrandAnalyticsTab />}
+          {activeTab === 'assessments' && AssessmentsTab()}
+          {activeTab === 'strandAnalytics' && StrandAnalyticsTab()}
         </main>
       </div>
     </div>

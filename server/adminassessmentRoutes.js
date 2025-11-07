@@ -304,7 +304,7 @@ module.exports = (db) => {
           JOIN tbl_studentassessments sa ON r.studentAssessment_ID = sa.studentAssessment_ID
           JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
           JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
-          WHERE sp.strand_ID = ?
+          WHERE sp.strand_ID = ? AND r.track_aligned = 'Y'
           GROUP BY p.program_ID, p.programName
           ORDER BY reco_count DESC, avgAlignment DESC
           LIMIT 5

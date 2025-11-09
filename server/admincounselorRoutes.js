@@ -44,8 +44,23 @@ module.exports = (db) => {
             }
 
             // Create staff account
-            // Generate a random 6-digit password for the counselor
-            const generatedPassword = String(Math.floor(100000 + Math.random() * 900000));
+            // Generate a random 6-character password (letters, numbers, special chars)
+            const generatePassword = () => {
+                const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const numbers = '0123456789';
+                const specials = '!@#$%^&*()-_=+[]{};:<>?,.';
+                const all = letters + numbers + specials;
+                let pw = '';
+                // ensure at least one letter, one number and one special
+                pw += letters[Math.floor(Math.random() * letters.length)];
+                pw += numbers[Math.floor(Math.random() * numbers.length)];
+                pw += specials[Math.floor(Math.random() * specials.length)];
+                for (let i = 3; i < 6; i++) pw += all[Math.floor(Math.random() * all.length)];
+                // shuffle
+                pw = pw.split('').sort(() => 0.5 - Math.random()).join('');
+                return pw;
+            };
+            const generatedPassword = generatePassword();
 
             // staffRole_ID = 1 is for counselor
             const accountQuery = `
@@ -419,12 +434,13 @@ module.exports = (db) => {
                 service: 'gmail',
                 auth: {
                     user: 'tigerroutes.contact@gmail.com',
-                    pass: 'Tig3rRoutes2025'
+                    pass: 'epki kwhr jdff egaj'
                 }
             });
 
             const mailOptions = {
-                from: 'tiggerroutes.contact@gmail.com',
+                // ensure 'from' matches the authenticated SMTP user
+                from: 'tigerroutes.contact@gmail.com',
                 to: counselor.email,
                 subject: 'TigerRoutes Counselor Account Details',
                 html: `
@@ -442,8 +458,11 @@ module.exports = (db) => {
             try {
                 await transporter.sendMail(mailOptions);
             } catch (mailErr) {
+                // Log full error for debugging (stack/response if available)
                 console.error('Failed to send counselor password email:', mailErr);
-                return res.status(500).json({ success: false, message: 'Failed to send email' });
+                if (mailErr && mailErr.response) console.error('Mailer response:', mailErr.response);
+                // Return the error message to the caller to aid debugging during development
+                return res.status(500).json({ success: false, message: 'Failed to send email', error: mailErr.message || String(mailErr) });
             }
 
             //Logging
@@ -458,6 +477,63 @@ module.exports = (db) => {
             return res.json({ success: true });
         } catch (err) {
             console.error('Error in send-password:', err);
+            return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        }
+    });
+
+    // POST: Change counselor password (generates a new random password and updates DB)
+    router.post('/counselor/change-password', async (req, res) => {
+        try {
+            const { adminEmail, adminPassword, counselorId } = req.body;
+            if (!adminEmail || !adminPassword || !counselorId) {
+                return res.status(400).json({ success: false, message: 'Missing required fields' });
+            }
+
+            const conn = db.promise();
+            // Verify admin credentials
+            const [adminRows] = await conn.query('SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?', [adminEmail, adminPassword]);
+            if (!adminRows || adminRows.length === 0) {
+                return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+            }
+
+            // ensure counselor exists
+            const [rows] = await conn.query('SELECT staffAccount_ID FROM tbl_staffaccounts WHERE staffAccount_ID = ? AND staffRole_ID = 1', [counselorId]);
+            if (!rows || rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Counselor not found' });
+            }
+
+            // generate new 6-character password (letters, numbers, special chars)
+            const generatePassword = () => {
+                const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const numbers = '0123456789';
+                const specials = '!@#$%^&*()-_=+[]{};:<>?,.';
+                const all = letters + numbers + specials;
+                let pw = '';
+                pw += letters[Math.floor(Math.random() * letters.length)];
+                pw += numbers[Math.floor(Math.random() * numbers.length)];
+                pw += specials[Math.floor(Math.random() * specials.length)];
+                for (let i = 3; i < 6; i++) pw += all[Math.floor(Math.random() * all.length)];
+                pw = pw.split('').sort(() => 0.5 - Math.random()).join('');
+                return pw;
+            };
+
+            const newPassword = generatePassword();
+
+            // Update counselor password
+            await conn.query('UPDATE tbl_staffaccounts SET password = ? WHERE staffAccount_ID = ?', [newPassword, counselorId]);
+
+            // Log the change
+            try {
+                const adminId = adminRows && adminRows[0] ? adminRows[0].staffAccount_ID : null;
+                const actionText = `Changed counselor password for id:${counselorId}`;
+                await conn.query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId || null, actionText]);
+            } catch (logErr) {
+                console.warn('Failed to write staff log for change-password:', logErr);
+            }
+
+            return res.json({ success: true, data: { newPassword } });
+        } catch (err) {
+            console.error('Error in change-password:', err);
             return res.status(500).json({ success: false, message: 'Server error', error: err.message });
         }
     });

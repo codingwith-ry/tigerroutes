@@ -227,9 +227,12 @@ const AdminCounselors = () => {
                                 title: `Counselor Password for ${data.data.name}`,
                                 html: `<div style="font-family: Inter, system-ui; font-size: 16px;">Password: <b>${password}</b></div>`,
                                 showCancelButton: true,
+                                showDenyButton: true,
                                 confirmButtonText: 'Remind via Email',
+                                denyButtonText: 'Change password',
                                 cancelButtonText: 'Close',
-                                confirmButtonColor: '#FB9724'
+                                confirmButtonColor: '#FB9724',
+                                denyButtonColor: '#d33'
                               });
 
                               if (remind.isConfirmed) {
@@ -244,6 +247,50 @@ const AdminCounselors = () => {
                                   Swal.fire({ icon: 'success', title: 'Password Sent', text: 'Counselor password has been emailed.', confirmButtonColor: '#FB9724' });
                                 } else {
                                   Swal.fire({ icon: 'error', title: 'Send Failed', text: mailData.message || 'Failed to send email.', confirmButtonColor: '#FB9724' });
+                                }
+                              } else if (remind.isDenied) {
+                                // Admin chose to change the counselor's password
+                                try {
+                                  const changeResp = await fetch(`${base}/api/counselor/change-password`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                  });
+                                  const changeData = await changeResp.json();
+                                  if (changeResp.ok && changeData.success) {
+                                    const newPw = changeData.data && changeData.data.newPassword ? changeData.data.newPassword : null;
+                                    if (newPw) {
+                                      const show = await Swal.fire({
+                                        title: 'Password Changed',
+                                        html: `<div style="font-family: Inter, system-ui; font-size: 16px;">New Password: <b>${newPw}</b></div>`,
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Email new password',
+                                        cancelButtonText: 'Close',
+                                        confirmButtonColor: '#FB9724'
+                                      });
+                                      if (show.isConfirmed) {
+                                        // send the new password via email
+                                        const mailResp2 = await fetch(`${base}/api/counselor/send-password`, {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                        });
+                                        const mailData2 = await mailResp2.json();
+                                        if (mailResp2.ok && mailData2.success) {
+                                          Swal.fire({ icon: 'success', title: 'Password Sent', text: 'New password has been emailed.', confirmButtonColor: '#FB9724' });
+                                        } else {
+                                          Swal.fire({ icon: 'error', title: 'Send Failed', text: mailData2.message || 'Failed to send email.', confirmButtonColor: '#FB9724' });
+                                        }
+                                      }
+                                    } else {
+                                      Swal.fire({ icon: 'error', title: 'No password returned', confirmButtonColor: '#FB9724' });
+                                    }
+                                  } else {
+                                    Swal.fire({ icon: 'error', title: 'Change Failed', text: changeData.message || 'Failed to change password', confirmButtonColor: '#FB9724' });
+                                  }
+                                } catch (err) {
+                                  console.error('Change password error', err);
+                                  Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while changing password', confirmButtonColor: '#FB9724' });
                                 }
                               }
                             } catch (err) {

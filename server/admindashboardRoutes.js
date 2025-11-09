@@ -45,13 +45,24 @@ module.exports = (db) => {
 
 
 
-                    res.json({
-                        success: true,
-                        data: {
-                            totalStudents: studentsResult[0].totalStudents,
-                            completedAssessments: assessmentsResult[0].completedAssessments,
-                            overallAlignment: alignmentResult[0].overallAlignment || 0
+                    // Count total counselors (staffRole_ID = 1) and include in response
+                    const counselorsQuery = 'SELECT COUNT(*) AS totalCounselors FROM tbl_staffaccounts WHERE staffRole_ID = 1';
+                    db.query(counselorsQuery, (err4, counselorsResult) => {
+                        if (err4) {
+                            console.warn('Failed to fetch total counselors:', err4.message || err4);
                         }
+
+                        const totalCounselors = (counselorsResult && counselorsResult[0] && Number(counselorsResult[0].totalCounselors)) || 0;
+
+                        res.json({
+                            success: true,
+                            data: {
+                                totalStudents: studentsResult[0].totalStudents,
+                                completedAssessments: assessmentsResult[0].completedAssessments,
+                                overallAlignment: alignmentResult[0].overallAlignment || 0,
+                                totalCounselors: totalCounselors
+                            }
+                        });
                     });
                 });
             });

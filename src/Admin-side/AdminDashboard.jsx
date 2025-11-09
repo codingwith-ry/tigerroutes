@@ -18,6 +18,7 @@ const AdminDashboard = () => {
     completedAssessments: 0,
     pendingAssessments: 0,
     overallAlignment: 0,
+    totalCounselors: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +39,8 @@ const AdminDashboard = () => {
           ...prevStats,
           totalStudents: data.data.totalStudents,
           completedAssessments: data.data.completedAssessments,
-          overallAlignment: data.data.overallAlignment
+          overallAlignment: data.data.overallAlignment,
+          totalCounselors: data.data.totalCounselors || 0
         }))
       }
     } catch (error) {
@@ -243,6 +245,16 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               max={100}
               icon={<BarChart2 className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-600" />}
               color="#9333ea"
+            />
+            <StatCard
+              title="Total Counselors"
+              value={stats.totalCounselors}
+              subtitle="Active counselors"
+              subtitleColor="text-indigo-600"
+              progress={stats.totalCounselors}
+              max={50}
+              icon={<Users className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-600" />}
+              color="#4f46e5"
             />
           </div>
 

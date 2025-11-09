@@ -147,7 +147,7 @@ module.exports = (db) => {
                 service: 'gmail',
                 auth: {
                     user: 'tigerroutes.contact@gmail.com', // change as needed
-                    pass: 'T!g3rRoutes2025'
+                    pass: 'epki kwhr jdff egaj'
                 }
             });
 

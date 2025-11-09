@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import { useParams } from "react-router-dom";
 
 const AdminStudentProfile = () => {
@@ -136,6 +138,8 @@ const AdminStudentProfile = () => {
             author: n.counselorName || 'Counselor',
             email: n.counselorEmail || null,
             date: n.date ? new Date(n.date) : new Date(),
+            // convert edited_date (TIMESTAMP or ISO string) to JS Date if present
+            editedDate: n.edited_date ? (typeof n.edited_date === 'number' ? new Date(Number(n.edited_date) * 1000) : new Date(n.edited_date)) : null,
             comment: n.counselorNotes || ''
           }));
           setCounselorNotes(notes);
@@ -151,14 +155,24 @@ const AdminStudentProfile = () => {
 
   const handleAddNote = async () => {
     const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
-    if (!assessmentId) return alert('Assessment ID missing');
-    if (!newNote.trim()) return;
+    if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
+    if (!newNote.trim()) return Swal.fire('Empty note', 'Please enter a note before replying.', 'warning');
 
     // determine current staff user from sessionStorage
     let staffUser = null;
     try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
     const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
-    if (!staffAccount_ID) return alert('Staff account not found. Please login again.');
+    if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
+
+    const confirm = await Swal.fire({
+      title: 'Add counselor note?',
+      text: 'Are you sure you want to add this note?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, add it',
+      cancelButtonText: 'Cancel'
+    });
+    if (!confirm.isConfirmed) return;
 
     try {
       const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, {
@@ -179,35 +193,44 @@ const AdminStudentProfile = () => {
             author: n.counselorName || 'Counselor',
             email: n.counselorEmail || null,
             date: n.date ? new Date(n.date) : new Date(),
+            editedDate: n.edited_date ? (typeof n.edited_date === 'number' ? new Date(Number(n.edited_date) * 1000) : new Date(n.edited_date)) : null,
             comment: n.counselorNotes || ''
           }));
           setCounselorNotes(notes);
         }
+        await Swal.fire('Saved', 'Counselor note added', 'success');
       } else {
-        alert(body?.message || 'Failed to save note');
+        Swal.fire('Error', body?.message || 'Failed to save note', 'error');
       }
     } catch (err) {
       console.error('Error saving counselor note', err);
-      alert('Failed to save note');
+      Swal.fire('Error', 'Failed to save note', 'error');
     }
   };
 
   // delete a note if current staff user is the owner
   const handleDeleteNote = async (noteId, noteStaffId) => {
-    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
-    if (!assessmentId) return alert('Assessment ID missing');
+  const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+  if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
 
     let staffUser = null;
     try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
     const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
-    if (!staffAccount_ID) return alert('Staff account not found. Please login again.');
+  if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
     if (String(staffAccount_ID) !== String(noteStaffId)) {
-      return alert('You are not authorized to delete this note');
+      return Swal.fire('Unauthorized', 'You are not authorized to delete this note', 'error');
     }
 
-  // eslint-disable-next-line no-restricted-globals
-  if (!confirm('Delete this note?')) return;
+    const confirmed = await Swal.fire({
+      title: 'Delete this note?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      cancelButtonText: 'Cancel'
+    });
+    if (!confirmed.isConfirmed) return;
 
     try {
       const url = `http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}?staffAccount_ID=${encodeURIComponent(staffAccount_ID)}`;
@@ -216,12 +239,71 @@ const AdminStudentProfile = () => {
       if (body && body.success) {
         // remove from local state
         setCounselorNotes((prev) => prev.filter(n => String(n.id) !== String(noteId)));
+        await Swal.fire('Deleted', 'Counselor note deleted', 'success');
       } else {
-        alert(body?.message || 'Failed to delete note');
+        Swal.fire('Error', body?.message || 'Failed to delete note', 'error');
       }
     } catch (err) {
       console.error('Error deleting counselor note', err);
-      alert('Failed to delete note');
+      Swal.fire('Error', 'Failed to delete note', 'error');
+    }
+  };
+
+  // Inline edit state and handlers
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+
+  const handleStartEdit = (note) => {
+    setEditingNoteId(note.id);
+    setEditingText(note.comment || '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNoteId(null);
+    setEditingText('');
+  };
+
+  const handleSaveEdit = async (noteId, noteStaffId) => {
+  const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+  if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
+
+    let staffUser = null;
+    try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
+    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+  if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
+
+    if (String(staffAccount_ID) !== String(noteStaffId)) return Swal.fire('Unauthorized', 'You are not authorized to edit this note', 'error');
+
+    const confirmed = await Swal.fire({
+      title: 'Save changes?',
+      text: 'Do you want to save your changes to this note?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Save',
+      cancelButtonText: 'Cancel'
+    });
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffAccount_ID, counselorNotes: editingText.trim() })
+      });
+      const body = await res.json();
+      if (body && body.success) {
+        const ed = body.data && body.data.edited_date ? body.data.edited_date : null;
+        const editedDateObj = ed ? (typeof ed === 'number' ? new Date(Number(ed) * 1000) : new Date(ed)) : null;
+        setCounselorNotes(prev => prev.map(n => n.id === noteId ? { ...n, comment: editingText.trim(), editedDate: editedDateObj || n.editedDate } : n));
+        setEditingNoteId(null);
+        setEditingText('');
+        await Swal.fire('Saved', 'Note updated', 'success');
+      } else {
+        Swal.fire('Error', body?.message || 'Failed to save edit', 'error');
+      }
+    } catch (err) {
+      console.error('Error editing counselor note', err);
+      Swal.fire('Error', 'Failed to save edit', 'error');
     }
   };
 
@@ -505,27 +587,43 @@ const AdminStudentProfile = () => {
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="font-semibold text-gray-900 text-sm">{note.author}</span>
                                       <div className="flex items-center gap-3">
-                                        <span className="text-xs text-gray-500">{new Date(note.date).toLocaleDateString()}</span>
-                                        {/* show delete button only for the owner */}
+                                        <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
+                                        {note.editedDate ? (
+                                          <span className="text-xs text-gray-400">· edited {note.editedDate.toLocaleString()}</span>
+                                        ) : null}
+                                        {/* show Edit/Delete buttons only for the owner */}
                                         {(() => {
                                           let staffUser = null;
                                           try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
                                           const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
                                           if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
                                             return (
-                                              <button
-                                                onClick={() => handleDeleteNote(note.id, note.staffAccount_ID)}
-                                                className="text-xs text-red-500 hover:underline"
-                                              >
-                                                Delete
-                                              </button>
+                                              <>
+                                                {editingNoteId === note.id ? (
+                                                  <>
+                                                    <button onClick={() => handleSaveEdit(note.id, note.staffAccount_ID)} className="text-xs text-blue-600 hover:underline">Save</button>
+                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-500 ml-2 hover:underline">Cancel</button>
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
+                                                    <button onClick={() => handleDeleteNote(note.id, note.staffAccount_ID)} className="text-xs text-red-500 ml-2 hover:underline">Delete</button>
+                                                  </>
+                                                )}
+                                              </>
                                             );
                                           }
                                           return null;
                                         })()}
                                       </div>
                                   </div>
-                                  <p className="text-sm text-gray-700">{note.comment}</p>
+                                  {editingNoteId === note.id ? (
+                                    <div>
+                                      <textarea rows={3} value={editingText} onChange={(e) => setEditingText(e.target.value)} className="w-full text-sm border rounded p-2" />
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-gray-700">{note.comment}</p>
+                                  )}
                                 </div>
                               </div>
                             </div>

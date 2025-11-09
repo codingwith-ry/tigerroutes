@@ -60,16 +60,36 @@ const AdminDashboard = () => {
 
   async function fetchStrandScores() {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/strand-alignment');
-      const json = await res.json();
-      console.log('Strand scores response:', json); // Debug log
-      if (json.success) {
-        setStrandScores(json.data.map(r => ({
-          name: r.strandName,
-          score: Number(r.avgAlignment)
-        })));
-        console.log('Strand scores set:', json.data); // Debug log
-      }
+      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      // Fetch canonical strands and analytics in parallel
+      const [strandsRes, analyticsRes] = await Promise.all([
+        fetch(`${base}/api/strands`),
+        fetch(`${base}/api/admin/strand-alignment`)
+      ]);
+
+      const strandsJson = await strandsRes.json().catch(() => null);
+      const analyticsJson = await analyticsRes.json().catch(() => null);
+
+      const strandsList = Array.isArray(strandsJson) ? strandsJson : (strandsJson && strandsJson.data ? strandsJson.data : []);
+      const analyticsList = analyticsJson && analyticsJson.success && Array.isArray(analyticsJson.data) ? analyticsJson.data : [];
+
+      const analyticsMap = {};
+      (analyticsList || []).forEach(a => {
+        const key = (a.strandName || a.strand || '').toString();
+        analyticsMap[key] = a;
+      });
+
+      const merged = (strandsList || []).map(s => {
+        const name = s.strandName || s.name || s.strand || '';
+        const a = analyticsMap[name] || null;
+        return {
+          name: name,
+          score: a && a.avgAlignment != null ? Number(a.avgAlignment) : 0
+        };
+      });
+
+      setStrandScores(merged);
+      console.log('Strand scores merged and set:', merged);
     } catch (e) {
       console.error('Error fetching strand alignment:', e);
     }

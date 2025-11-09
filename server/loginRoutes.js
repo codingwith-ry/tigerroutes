@@ -79,7 +79,7 @@ module.exports = (db) => {
             service: 'gmail',
             auth: {
                 user: 'tigerroutes.contact@gmail.com', //change this email
-                pass: 'Tig3rRoutes2025'//put password here
+                pass: 'epki kwhr jdff egaj'//put password here
             }
         });
 
@@ -122,6 +122,57 @@ module.exports = (db) => {
             }
 
             return res.status(500).json({ error: 'Failed to send email.' });
+        }
+    });
+
+    // Staff forgot password -> notify admin email for manual reset
+    router.post('/staff-forgot-password', async (req, res) => {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
+        try {
+            // Check staff account exists
+            const [rows] = await db.promise().query('SELECT * FROM tbl_staffaccounts WHERE email = ?', [email]);
+            if (!rows || rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Staff account not found' });
+            }
+
+            const staff = rows[0];
+
+            // Admin notify email (can be configured via ENV)
+            const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'dominicadino23@gmail.com';
+
+            // Nodemailer transporter (reuse existing configuration)
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'tigerroutes.contact@gmail.com', // change as needed
+                    pass: 'T!g3rRoutes2025'
+                }
+            });
+
+            const mailOptions = {
+                from: 'tigerroutes.contact@gmail.com',
+                to: ADMIN_NOTIFY_EMAIL,
+                subject: 'Staff Password Change Request',
+                html: `
+                    <p>Dear Admin,</p>
+                    <p>The following staff account has requested a password change:</p>
+                    <ul>
+                      <li><strong>Email:</strong> ${staff.email}</li>
+                      <li><strong>Name:</strong> ${staff.name || ''}</li>
+                      <li><strong>Staff ID:</strong> ${staff.staffAccount_ID || ''}</li>
+                    </ul>
+                    <p>Please follow your internal procedures to reset the account password.</p>
+                    <p>Timestamp: ${new Date().toISOString()}</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            return res.json({ success: true, message: 'Request sent to admin' });
+        } catch (err) {
+            console.error('[staff-forgot-password] error:', err);
+            return res.status(500).json({ success: false, message: 'Failed to notify admin' });
         }
     });
 

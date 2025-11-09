@@ -1,18 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Home, ClipboardCheck, Users, Activity, Menu, X, LogOut } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
+import { fetchStaffProfile } from '../utils/staffProfile';
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const staffUser = (() => {
-    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null');} catch { return null; }
-  })();
-  
-  const isSupervisor = staffUser?.staffRole_ID === 2 || staffUser?.role?.toLowerCase() === 'supervisor';
+  const [staffUser, setStaffUser] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; }
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const p = await fetchStaffProfile();
+      if (mounted && p) setStaffUser(p);
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const isSupervisor = staffUser?.staffRole_ID === 2 || (staffUser?.role || '').toString().toLowerCase() === 'supervisor';
 
   const links = [
     {

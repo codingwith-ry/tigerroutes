@@ -209,6 +209,47 @@ module.exports = (db) => {
           return res.status(500).json({ success: false, message: err.message });
         }
       });
+
+      // PUT /api/assessment/:id/notes/:noteId
+      // Edit a counselor note only if the staffAccount_ID matches the note's owner
+      router.put('/assessment/:id/notes/:noteId', async (req, res) => {
+        try {
+          const assessmentId = req.params.id;
+          const noteId = req.params.noteId;
+          const { staffAccount_ID, counselorNotes } = req.body;
+
+          if (!assessmentId || !noteId || !staffAccount_ID || typeof counselorNotes === 'undefined') {
+            return res.status(400).json({ success: false, message: 'assessment id, note id, staffAccount_ID and counselorNotes are required' });
+          }
+
+          // Update only when the note belongs to the staffAccount_ID provided
+          const updateSql = `UPDATE tbl_counselornotes SET counselorNotes = ?, edited_date = UTC_TIMESTAMP() WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?`;
+          const [updateResult] = await db.promise().query(updateSql, [counselorNotes, noteId, assessmentId, staffAccount_ID]);
+
+          if (updateResult.affectedRows && updateResult.affectedRows > 0) {
+            // Fetch the new edited_date to return to client
+            const [rows] = await db.promise().query('SELECT edited_date FROM tbl_counselornotes WHERE counselorNote_ID = ?', [noteId]);
+            const edited = rows && rows[0] ? rows[0].edited_date : null;
+
+            // Log edit action
+            try {
+              const rawSnippet = (counselorNotes || '').toString().replace(/\s+/g, ' ').trim();
+              const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
+              const actionText = `Edit counselor note (noteId:${noteId}) on assessment id:${assessmentId} - "${snippet}"`;
+              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
+            } catch (logErr) {
+              console.warn('Failed to write staff log for edit counselor note:', logErr);
+            }
+
+            return res.json({ success: true, data: { edited_date: edited } });
+          }
+
+          return res.status(403).json({ success: false, message: 'Not authorized to edit this note or note not found' });
+        } catch (err) {
+          console.error('Error editing counselor note:', err);
+          return res.status(500).json({ success: false, message: err.message });
+        }
+      });
   // GET /api/admin/strand-analytics
   // Returns per-strand metrics: avgAlignment (avg of per-assessment avg alignment where track_aligned='Y'), assessments_count, avgSatisfaction
   router.get('/admin/strand-analytics', async (req, res) => {

@@ -1,7 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { fetchStaffProfile } from '../utils/staffProfile';
 
 const AdminHeader = ({ title }) => {
-  // notifications removed
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const p = await fetchStaffProfile();
+      if (mounted) setProfile(p);
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const initials = (() => {
+    try {
+      const staffUser = profile || JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+      if (!staffUser) return 'AU';
+      const name = staffUser.firstName || staffUser.first_name || staffUser.lastName || staffUser.last_name || staffUser.name || staffUser.fullName || staffUser.displayName || staffUser.staffName || staffUser.email || '';
+      let base = String(name || '').trim();
+      if (!base && staffUser.email) base = String(staffUser.email).split('@')[0];
+      const words = base.split(/\s+/).filter(Boolean);
+      let i = '';
+      if (words.length >= 2) {
+        i = (words[0][0] || '') + (words[1][0] || '');
+      } else if (words.length === 1) {
+        i = (words[0][0] || '') + (words[0][1] || '');
+      }
+      i = (i || 'AU').toUpperCase();
+      return i;
+    } catch (e) {
+      return 'AU';
+    }
+  })();
 
   return (
     <header className="flex justify-between items-start sm:items-center p-4 sm:p-6 border-b">
@@ -9,30 +40,7 @@ const AdminHeader = ({ title }) => {
       <div className="flex items-center space-x-4">
         {/* Show logged in user's initials in the top-right avatar */}
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-base font-semibold text-gray-700">
-          {(() => {
-            try {
-              const staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
-              if (!staffUser) return 'AU';
-              // Possible name fields
-              const name = staffUser.firstName || staffUser.first_name || staffUser.lastName || staffUser.last_name || staffUser.name || staffUser.fullName || staffUser.displayName || staffUser.staffName || staffUser.email || '';
-              // If name looks like an email, take prefix
-              let base = String(name || '').trim();
-              if (!base && staffUser.email) base = String(staffUser.email).split('@')[0];
-              // Derive initials from words
-              const words = base.split(/\s+/).filter(Boolean);
-              let initials = '';
-              if (words.length >= 2) {
-                initials = (words[0][0] || '') + (words[1][0] || '');
-              } else if (words.length === 1) {
-                // take first two characters of single word (e.g., username)
-                initials = (words[0][0] || '') + (words[0][1] || '');
-              }
-              initials = (initials || 'AU').toUpperCase();
-              return initials;
-            } catch (e) {
-              return 'AU';
-            }
-          })()}
+          {initials}
         </div>
       </div>
     </header>

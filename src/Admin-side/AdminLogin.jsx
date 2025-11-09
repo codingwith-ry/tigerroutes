@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom"; // Add this import
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,8 +30,13 @@ const AdminLogin = () => {
       const data = await resp.json();
 
       if (data.success && data.user) {
-        // Persist staff info for role-based UI
-        sessionStorage.setItem('staffUser', JSON.stringify(data.user));
+        // Persist only the staffAccount_ID in sessionStorage (do not store other profile details)
+        try {
+          const minimal = { staffAccount_ID: data.user.staffAccount_ID || data.user.staffAccountId || data.user.id };
+          sessionStorage.setItem('staffUser', JSON.stringify(minimal));
+        } catch (e) {
+          // ignore storage errors
+        }
         navigate('/admin/dashboard');
       } else {
         alert(data.error || 'Invalid email or password');
@@ -110,7 +117,39 @@ const AdminLogin = () => {
               </button>
             </div>
             <div className="text-sm text-[#F6BE1E] font-semibold cursor-pointer hover:underline text-right">
-              <a href="#">Forgot Password?</a>
+              <button type="button" onClick={async () => {
+                const { value: email } = await Swal.fire({
+                  title: 'Forgot Password',
+                  input: 'email',
+                  inputLabel: 'Enter your staff email',
+                  inputValue: formData.email || '',
+                  inputPlaceholder: 'staff@example.edu',
+                  showCancelButton: true,
+                  confirmButtonText: 'Send request',
+                  confirmButtonColor: '#ea9d2d',
+                });
+
+                if (email) {
+                  try {
+                    const res = await fetch('http://localhost:5000/api/staff-forgot-password', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email })
+                    });
+                    const body = await res.json();
+                    if (res.ok && body && body.success) {
+                      Swal.fire('Sent', 'Your request has been sent to the admin.', 'success');
+                    } else if (res.status === 404) {
+                      Swal.fire('Not found', (body && body.message) || 'No staff account found for that email.', 'warning');
+                    } else {
+                      Swal.fire('Error', (body && body.message) || 'Failed to send request.', 'error');
+                    }
+                  } catch (err) {
+                    console.error('Error sending staff forgot password request', err);
+                    Swal.fire('Error', 'Failed to send request. Please try again later.', 'error');
+                  }
+                }
+              }} className="underline">Forgot Password?</button>
             </div>
             <button
               type="submit"

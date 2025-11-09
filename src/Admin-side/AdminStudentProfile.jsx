@@ -13,6 +13,7 @@ import AdminHeader from "./AdminHeader";
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { useParams } from "react-router-dom";
+import { fetchStaffProfile } from '../utils/staffProfile';
 
 const AdminStudentProfile = () => {
   const { id } = useParams();
@@ -119,6 +120,20 @@ const AdminStudentProfile = () => {
 
   const [newNote, setNewNote] = useState('');
 
+  // Local cached staff profile (fetched when sessionStorage only contains id)
+  const [staffUserProfile, setStaffUserProfile] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; }
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const p = await fetchStaffProfile();
+      if (mounted && p) setStaffUserProfile(p);
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   // fetch counselor notes for the current assessment
   useEffect(() => {
     const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
@@ -159,9 +174,8 @@ const AdminStudentProfile = () => {
     if (!newNote.trim()) return Swal.fire('Empty note', 'Please enter a note before replying.', 'warning');
 
     // determine current staff user from sessionStorage
-    let staffUser = null;
-    try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
-    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+  const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+  const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
     if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
     const confirm = await Swal.fire({
@@ -213,9 +227,8 @@ const AdminStudentProfile = () => {
   const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
   if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
 
-    let staffUser = null;
-    try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
-    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+  const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+  const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
   if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
     if (String(staffAccount_ID) !== String(noteStaffId)) {
@@ -267,9 +280,8 @@ const AdminStudentProfile = () => {
   const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
   if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
 
-    let staffUser = null;
-    try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
-    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+  const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+  const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
   if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
     if (String(staffAccount_ID) !== String(noteStaffId)) return Swal.fire('Unauthorized', 'You are not authorized to edit this note', 'error');
@@ -592,9 +604,8 @@ const AdminStudentProfile = () => {
                                           <span className="text-xs text-gray-400">· edited {note.editedDate.toLocaleString()}</span>
                                         ) : null}
                                         {/* show Edit/Delete buttons only for the owner */}
-                                        {(() => {
-                                          let staffUser = null;
-                                          try { staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { staffUser = null; }
+                                          {(() => {
+                                          const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
                                           const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
                                           if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
                                             return (

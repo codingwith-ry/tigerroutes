@@ -5,6 +5,7 @@ import { Search, Edit, Eye, UserPlus, ChevronLeft, ChevronRight } from "lucide-r
 import { useNavigate } from "react-router-dom";
 import CounselorModal from "./CounselorModal";
 import Swal from "sweetalert2";
+import { fetchStaffProfile } from '../utils/staffProfile';
 
 
 const AdminCounselors = () => {
@@ -174,8 +175,8 @@ const AdminCounselors = () => {
                         <button
                           onClick={async () => {
                             // Reveal password flow: prompt admin for their password, verify, then show counselor password and offer to remind
-                            try {
-                              const staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+                              try {
+                              const staffUser = await fetchStaffProfile();
                               let adminEmail = staffUser && (staffUser.email || staffUser.emailAddress) ? (staffUser.email || staffUser.emailAddress) : null;
 
                               const { value: adminPassword } = await Swal.fire({

@@ -11,6 +11,7 @@ import {
   Trash2,
   Lock,
 } from "lucide-react";
+import { fetchStaffProfile } from '../utils/staffProfile';
 
 const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving = false }) => {
   const [formData, setFormData] = useState({
@@ -155,7 +156,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
 
   // (old inline submit implementation removed - kept handleSubmit below)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const counselorData = {
@@ -172,20 +173,20 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
       about: formData.about,
     };
 
-    // Attach acting admin/staff id if available in sessionStorage so the backend can log the action
+    // Attach acting admin/staff id by fetching profile
     try {
-      const staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+      const staffUser = await fetchStaffProfile();
       if (staffUser && (staffUser.staffAccount_ID || staffUser.id)) {
         counselorData.adminStaffAccountId = staffUser.staffAccount_ID || staffUser.id;
       }
     } catch (e) {
-      // ignore if missing
+      // ignore
     }
 
     onSave(counselorData);
   };
 
-  const handleConfirmDelete = (e) => {
+  const handleConfirmDelete = async (e) => {
     e.preventDefault();
 
     if (!confirmPassword) {
@@ -200,7 +201,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
     // Determine admin identity from sessionStorage set at login
     let staffUser = null;
     try {
-      staffUser = JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+      staffUser = await fetchStaffProfile();
     } catch (err) {
       staffUser = null;
     }

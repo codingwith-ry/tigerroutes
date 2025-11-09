@@ -1,0 +1,178 @@
+Mounting and Profile Fetch — TigerRoutes
+
+Purpose
+-------
+This document explains how admin-side React components fetch the full staff profile on mount while sessionStorage contains only the staff id (privacy change). It includes the helper code and example useEffect patterns used across the app.
+
+Contract
+--------
+Inputs:
+- sessionStorage.getItem('staffUser') — either a full profile object or a minimal object containing staffAccount_ID.
+
+Operation:
+- If the stored object has profile fields, return it.
+- Otherwise call GET /api/counselor/:id to fetch the profile.
+
+Outputs:
+- A profile object { staffAccount_ID, name, email, role, staffRole_ID, ... } or null on failure.
+
+Error modes:
+- Malformed JSON in sessionStorage -> helper returns null.
+- Missing id -> helper returns null.
+- Network / server error -> helper returns null.
+
+Helper code (src/utils/staffProfile.js)
+-------------------------------------
+export async function fetchStaffProfile() {
+  try {
+    const raw = sessionStorage.getItem('staffUser');
+    if (!raw) return null;
+    let parsed = null;
+    try { parsed = JSON.parse(raw); } catch { parsed = null; }
+    if (!parsed) return null;
+
+    // If it already contains profile fields, return as-is
+    if (parsed.name || parsed.email || parsed.role || parsed.staffRole_ID) return parsed;
+
+    // Otherwise expect { staffAccount_ID }
+    const id = parsed.staffAccount_ID || parsed.staffAccountId || parsed.id;
+    if (!id) return null;
+
+    const res = await fetch(`http://localhost:5000/api/counselor/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (!body || !body.success) return null;
+    return body.data || null;
+  } catch (err) {
+    console.error('fetchStaffProfile error', err);
+    return null;
+  }
+}
+
+Mounting pattern in components (useEffect)
+------------------------------------------
+// Example: AdminHeader.jsx
+import React, { useEffect, useState } from 'react';
+import { fetchStaffProfile } from '../utils/staffProfile';
+
+const AdminHeader = ({ title }) => {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const p = await fetchStaffProfile();
+      if (mounted) setProfile(p);
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // derive initials from profile or fallback to sessionStorage
+  // ... render UI
+}
+
+Why this works (step-by-step)
+-----------------------------
+1. Component mounts (first render). React runs useEffect(..., []) after painting.
+2. The effect creates a `mounted` flag and calls `fetchStaffProfile()` asynchronously.
+3. The helper reads sessionStorage — returns parsed profile if present or fetches from server using the stored id.
+4. When helper resolves, the effect checks `if (mounted)` before calling setState to avoid updating state after unmount.
+5. Component re-renders using profile in local state. If profile is null, component uses safe fallbacks (initials derived from email or placeholder) and hides role-restricted controls.
+
+Why use a mounted flag?
+------------------------
+- Prevents calling setState on an unmounted component when an inflight async fetch resolves after the component unmounted.
+- Avoids React warnings and potential memory leaks.
+
+Edge cases to consider
+---------------------
+- Missing or malformed sessionStorage -> helper returns null; UI must handle null.
+- Network errors -> helper returns null. Consider retry or show a small notice.
+- Multiple concurrent mounts -> duplicate GET calls. Consider caching.
+- Stale profile data -> refresh endpoint or context to update app-wide when server-side changes.
+
+Recommended improvements
+------------------------
+1. Small in-memory cache inside helper to dedupe concurrent calls.
+2. Implement `StaffProfileProvider` React context and `useStaffProfile()` hook to fetch once and share across components.
+3. Expose loading/error state from provider so components can show spinners or retry.
+4. Move sensitive mail credentials to environment variables on server side and ensure profile endpoint doesn't leak sensitive data.
+5. Add unit tests for the helper and shallow render tests for components to verify mounting behavior.
+
+Quick checklist for reviewers
+---------------------------
+- Confirm sessionStorage only contains the staff id after login.
+- Open admin pages and verify initials and role-based links appear (server must respond to GET /api/counselor/:id).
+- Simulate server offline and verify no crashes; components should show safe defaults.
+
+Short explanation for non-technical stakeholders
+-----------------------------------------------
+"We only keep the staff id in the browser for privacy. When a page loads, React components ask the server for the staff's name and role and keep it in memory only while the page is open — nothing personal is stored persistently in the browser."
+
+
+Saved at: docs/MOUNTING_AND_PROFILE_FETCH.txt
+
+You can re-open this file any time from the project: docs/MOUNTING_AND_PROFILE_FETCH.txt
+
+
+Admin-side mount use cases (complete)
+-------------------------------------
+Below are the actual admin-side components in this repository that use mounting (useEffect) and what each effect does on mount or when its dependencies change. This is intended to be a complete checklist of the mount-time behaviors you should be aware of.
+
+- `AdminHeader.jsx`
+  - On mount: calls `fetchStaffProfile()` and caches the returned profile in local state so the header can render initials and other quick identity info.
+  - Purpose: show user initials/placeholder safely while sessionStorage only stores the id.
+
+- `AdminSidebar.jsx`
+  - On mount: calls `fetchStaffProfile()` and caches profile to determine role (e.g., supervisor) and show/hide links.
+  - Purpose: role-based navigation and responsive mobile sidebar state.
+
+- `AdminLogin.jsx`
+  - On mount: sets `document.title` to the login page title.
+  - Purpose: small UX polish; no profile fetch since login page.
+
+- `AdminDashboard.jsx`
+  - On mount: sets document title and triggers three parallel fetches:
+    - `fetchDashboardStats()` → GET `/api/admin/dashboard-stats` (total students, completed assessments, overall alignment, total counselors)
+    - `fetchStrandScores()` → GET `/api/strands` and GET `/api/admin/strand-alignment` (merge canonical strands with analytics and default missing strands to zero)
+    - `fetchTopPrograms()` → GET `/api/admin/top-programs` (top recommended programs)
+  - Purpose: populate dashboard stats, strand cards, and top programs at page load.
+
+- `AdminAssessment.jsx`
+  - On mount / when `activeTab` switches: set document title, fetch dashboard stats.
+  - On mount / when page or filters change: fetch paginated assessments using `AbortController` (so requests are aborted on cleanup); uses 300ms debounce for search input.
+  - When user opens strand analytics tab: fetch `/api/admin/strand-analytics` (with a cancellation guard) and set `strandAnalytics`.
+  - Purpose: provide assessments table, debounced server search, and strand analytics view.
+
+- `ActivityLogs.jsx`
+  - On mount and whenever `limit`, `staffFilter`, or `dateFilter` change: set document title and call `fetchLogs()` to load activity logs with pagination and filters.
+  - Purpose: server-backed filtering and pagination for admin activity logs.
+
+- `AdminCounselors.jsx`
+  - On mount: set document title and call `fetchCounselors()` → GET `/api/counselors` to populate the counselors list.
+  - Purpose: show counselors table and wire up reveal/send-password flows that call `fetchStaffProfile()` when needed.
+
+- `CounselorModal.jsx`
+  - When opening (effect dependent on `isOpen` and `counselor` prop): fetch canonical counselor record via GET `/api/counselor/:id` if an id is present; otherwise populate form from the passed `counselor` prop.
+  - Purpose: ensure the modal shows latest server-side counselor details when editing.
+
+- `AdminPreviewCounselor.jsx`
+  - On mount: tries to read `selectedCounselorId` from sessionStorage; if present, fetch fresh counselor data; otherwise attempts to read `selectedCounselor` from sessionStorage and parse it.
+  - Also mounts an effect to fetch recent comments/notes for that counselor via GET `/api/counselor/:id/notes` (guarded by a `mounted` flag).
+  - Purpose: preview a counselor's profile and recent notes; supports id-based canonical fetch or fallback to cached session data.
+
+- `AdminStudentProfile.jsx`
+  - On mount / when `id` param changes: several effects run:
+    1. fetch assessment details → GET `/api/assessment/assessmentDetails?assessmentID=` (sets loading/error and `assessmentData`).
+    2. fetch program recommendations → GET `/api/assessment/:id/programs` (sets `programRecommendations`).
+    3. fetch counselor notes → GET `/api/assessment/:id/notes` (maps `edited_date` to JS Date and sets `counselorNotes`).
+    4. fetch staff profile → calls `fetchStaffProfile()` to obtain the acting user's profile for note ownership checks and admin actions.
+  - Each fetch uses a mounted/cancellation guard to avoid setting state after unmount; notes and edited_date parsing handle both legacy numeric timestamps and ISO/TIMESTAMP strings.
+  - Purpose: render a complete student assessment profile, recommendations, and a threaded view of counselor notes with inline edit/delete.
+
+Notes
+-----
+- These use cases cover all admin-side components that use mounting effects (as of this commit) and the reasons they run on mount. The common patterns are: set document.title, fetch server data needed for initial render, and initialize component-level UI state (lists, pagination, stats).
+- For network fetches the project uses both mounted-flag guards and AbortController in places where aborting the HTTP request is beneficial (e.g., `AdminAssessment` paginated fetch). For consistency and resource-savings consider standardizing on AbortController for fetches and adding a shared provider for commonly-requested data like the staff profile.
+
+End of Admin-side mount use cases

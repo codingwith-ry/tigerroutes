@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { FiBarChart2, FiAlertCircle, FiChevronRight, FiFileText } from "react-icons/fi";
 import { GiBrain } from "react-icons/gi";
+import { BookOpen, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar"; 
 import Footer from "../Visitor-side/Footer";
 import Chatbot from "./Chatbot";
+
 
 const UserHomepage = () => {
   const navigate = useNavigate();
@@ -12,14 +14,21 @@ const UserHomepage = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // New state for recent assessment
+  const [recentAssessment, setRecentAssessment] = useState(null);
+  const [loadingAssessment, setLoadingAssessment] = useState(true);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
+
   useEffect(() => {
     document.title = 'TigerRoutes | Home';
     fetchAnalytics();
+    fetchRecentAssessment();
   }, []);
+
 
   const fetchAnalytics = async () => {
     try {
@@ -35,6 +44,7 @@ const UserHomepage = () => {
 
       const data = await response.json();
       setAnalytics(data);
+      setRecentAssessment(data.recentAssessmentData || null);
     } catch (err) {
       console.error('Error fetching analytics:', err);
       setError(err.message);
@@ -43,19 +53,46 @@ const UserHomepage = () => {
     }
   };
 
+  // New function to fetch recent assessment
+  const fetchRecentAssessment = async () => {
+    try {
+      if (!user || !user.studentAccount_ID) {
+        setLoadingAssessment(false);
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/assessment/recent?studentAccountId=${user.studentAccount_ID}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRecentAssessment(data);
+      }
+    } catch (err) {
+      console.error('Error fetching recent assessment:', err);
+    } finally {
+      setLoadingAssessment(false);
+    }
+  };
+
+
   const startAssessment = () => {
     navigate("/assessment");
   };
+
 
   // Helper function to calculate progress bar width
   const getProgressWidth = (value, maxValue = 5) => {
     return `${(value / maxValue) * 100}%`;
   };
 
+
   // Helper function for engagement progress (percentage)
   const getEngagementProgress = (engagement) => {
     return `${engagement}%`;
   };
+
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -189,6 +226,127 @@ const UserHomepage = () => {
             )}
           </div>
         </div>
+
+        {!loading && analytics?.recentAssessmentData && (
+          <div className="bg-white rounded-xl shadow p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <FiFileText className="text-yellow-600 text-2xl" />
+                <h3 className="font-bold text-lg text-gray-800">Most Recent Assessment</h3>
+              </div>
+              <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {new Date(analytics.recentAssessmentData.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
+
+            {/* Assessment ID */}
+            <div className="mb-5 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <span className="text-sm font-semibold text-gray-700">Assessment ID: </span>
+              <span className="text-sm text-gray-600 font-mono break-all">
+                {analytics.recentAssessmentData.studentAssessment_ID}
+              </span>
+            </div>
+
+            {/* Results Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+              {/* RIASEC Results Card */}
+              <div className="border border-blue-200 rounded-lg p-4 bg-blue-50 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <BookOpen size={20} className="text-blue-600 mr-2" />
+                  <h4 className="font-semibold text-base text-blue-800">RIASEC Results</h4>
+                </div>
+                <div className="space-y-2">
+                  {analytics.recentAssessmentData.riasec_top3?.map((result, index) => (
+                    <div key={index} className="flex justify-between items-center bg-white p-2 rounded">
+                      <span className="text-sm font-medium text-blue-700">
+                        {index + 1}. {result.trait}
+                      </span>
+                      <span className="text-sm text-blue-600 font-bold bg-blue-100 px-2 py-1 rounded">
+                        {result.value}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Big Five Results Card */}
+              <div className="border border-purple-200 rounded-lg p-4 bg-purple-50 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <Brain size={20} className="text-purple-600 mr-2" />
+                  <h4 className="font-semibold text-base text-purple-800">Big Five Results</h4>
+                </div>
+                <div className="space-y-2">
+                  {analytics.recentAssessmentData.bigfive_top3?.map((result, index) => (
+                    <div key={index} className="flex justify-between items-center bg-white p-2 rounded">
+                      <span className="text-sm font-medium text-purple-700">
+                        {result.trait}
+                      </span>
+                      <span className="text-sm text-purple-600 font-bold bg-purple-100 px-2 py-1 rounded">
+                        {result.value}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Top 3 Track-Aligned Programs */}
+            <div className="border-t border-gray-200 pt-5">
+              <h4 className="font-semibold text-base text-gray-800 mb-3 flex items-center gap-2">
+                <span className="text-yellow-600">🎯</span>
+                Top 3 Track-Aligned Programs
+              </h4>
+              <div className="space-y-3">
+                {analytics.recentAssessmentData.top_programs?.map((program, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-start justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-sm font-bold mr-3 shadow flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <h5 className="font-semibold text-sm text-gray-800 group-hover:text-yellow-700 transition-colors">
+                          {program.programName}
+                        </h5>
+                      </div>
+                      <p className="text-xs text-gray-600 ml-10 mb-1 flex items-center gap-1">
+                        <span className="text-yellow-600">📚</span>
+                        {program.collegeName}
+                      </p>
+                      <p className="text-xs text-gray-500 ml-10 line-clamp-2">
+                        {program.description}
+                      </p>
+                    </div>
+                    <div className="ml-4 text-right flex-shrink-0">
+                      <div className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">
+                        {program.alignmentScore}%
+                      </div>
+                      <div className="text-xs text-gray-500 font-medium">match</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* View Full Results Button */}
+            <div className="mt-5 flex justify-center pt-4 border-t border-gray-200">
+              <button
+                onClick={() => navigate(`/assessment/results/${analytics.recentAssessmentData.studentAssessment_ID}`)}
+                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-full font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+              >
+                View Full Assessment Results
+                <FiChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Complete Profile Banner */}
         <div className="bg-yellow-100 p-6 rounded-xl shadow flex flex-col md:flex-row items-start md:items-center justify-between">

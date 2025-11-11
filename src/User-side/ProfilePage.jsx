@@ -302,85 +302,96 @@ const ProfilePage = () => {
 
         {/* Semester Grades */}
             <div className="bg-[#FFF9F3] rounded-lg p-5 shadow-sm space-y-4">
-            <h3 className="flex items-center space-x-4 text-lg font-semibold text-gray-700">
-          <Star className="w-6 h-6 text-[#FB9724]" />
-                <span>Semester Grades</span>
-            </h3>
+                <h3 className="flex items-center space-x-4 text-lg font-semibold text-gray-700">
+                <Star className="w-6 h-6 text-[#FB9724]" />
+                    <span>Semester Grades</span>
+                </h3>
+                {/* Section explaining the grade guidelines for Grade 11 and 12 Students */}
 
-            {/* General Average */}
-            <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-600">General Average</label>
-                <input
-                type="text"
-                placeholder="e.g., 90"
-                value={generalAverage}
-                onChange={handleGradeChange(setGeneralAverage, 'generalAverage')}
-                inputMode="numeric"
-                maxLength={2}
-                pattern="\d{1,2}"
-                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.generalAverage ? 'border-red-500' : 'border-gray-400'}`}
-                />
-                {errors.generalAverage && <p className="text-xs text-red-600 mt-1">{errors.generalAverage}</p>}
+                <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-4" role="alert">
+                    <p className="font-bold">Grade Input Guidelines</p>
+                    <p className="text-sm">
+                    For Grade 11 Students: Please use your Grade 10 final grades as a reference for input.
+                    </p>
+                    <p className="text-sm">
+                    For Grade 12 Students: Please input your final grades of your Grade 11 semester, formatted based on the <a class="hover:underline" href='https://drive.google.com/file/d/1CLinN_cFoKkGyozd-_7ZWISqlecnUDvb/view' target='_blank'><b>USTET Guidelines</b></a>.
+                    </p>
+                </div>
+
+                {/* General Average */}
+                <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-600">General Average</label>
+                    <input
+                    type="text"
+                    placeholder="e.g., 90"
+                    value={generalAverage}
+                    onChange={handleGradeChange(setGeneralAverage, 'generalAverage')}
+                    inputMode="numeric"
+                    maxLength={2}
+                    pattern="\d{1,2}"
+                    className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.generalAverage ? 'border-red-500' : 'border-gray-400'}`}
+                    />
+                    {errors.generalAverage && <p className="text-xs text-red-600 mt-1">{errors.generalAverage}</p>}
+                </div>
+
+                {/* Mathematics */}
+                <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-600">Mathematics</label>
+                    <input
+                    type="text"
+                    placeholder="e.g., 95"
+                    value={mathGrade}
+                    onChange={handleGradeChange(setMathGrade, 'mathGrade')}
+                    inputMode="numeric"
+                    maxLength={2}
+                    pattern="\d{1,2}"
+                    className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.mathGrade ? 'border-red-500' : 'border-gray-400'}`}
+                    />
+                    {errors.mathGrade && <p className="text-xs text-red-600 mt-1">{errors.mathGrade}</p>}
+                </div>
+
+                {/* Science */}
+                <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-600">Science</label>
+                    <input
+                    type="text"
+                    placeholder="e.g., 95"
+                    value={scienceGrade}
+                    onChange={handleGradeChange(setScienceGrade, 'scienceGrade')}
+                    inputMode="numeric"
+                    maxLength={2}
+                    pattern="\d{1,2}"
+                    className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.scienceGrade ? 'border-red-500' : 'border-gray-400'}`}
+                    />
+                    {errors.scienceGrade && <p className="text-xs text-red-600 mt-1">{errors.scienceGrade}</p>}
+                </div>
+
+                {/* English */}
+                <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-600">English</label>
+                    <input
+                    type="text"
+                    placeholder="e.g., 95"
+                    value={englishGrade}
+                    onChange={handleGradeChange(setEnglishGrade, 'englishGrade')}
+                    inputMode="numeric"
+                    maxLength={2}
+                    pattern="\d{1,2}"
+                    className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.englishGrade ? 'border-red-500' : 'border-gray-400'}`}
+                    />
+                    {errors.englishGrade && <p className="text-xs text-red-600 mt-1">{errors.englishGrade}</p>}
+                </div>
             </div>
 
-            {/* Mathematics */}
-            <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-600">Mathematics</label>
-                <input
-                type="text"
-                placeholder="e.g., 95"
-                value={mathGrade}
-                onChange={handleGradeChange(setMathGrade, 'mathGrade')}
-                inputMode="numeric"
-                maxLength={2}
-                pattern="\d{1,2}"
-                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.mathGrade ? 'border-red-500' : 'border-gray-400'}`}
-                />
-                {errors.mathGrade && <p className="text-xs text-red-600 mt-1">{errors.mathGrade}</p>}
-            </div>
-
-            {/* Science */}
-            <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-600">Science</label>
-                <input
-                type="text"
-                placeholder="e.g., 95"
-                value={scienceGrade}
-                onChange={handleGradeChange(setScienceGrade, 'scienceGrade')}
-                inputMode="numeric"
-                maxLength={2}
-                pattern="\d{1,2}"
-                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.scienceGrade ? 'border-red-500' : 'border-gray-400'}`}
-                />
-                {errors.scienceGrade && <p className="text-xs text-red-600 mt-1">{errors.scienceGrade}</p>}
-            </div>
-
-            {/* English */}
-            <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-600">English</label>
-                <input
-                type="text"
-                placeholder="e.g., 95"
-                value={englishGrade}
-                onChange={handleGradeChange(setEnglishGrade, 'englishGrade')}
-                inputMode="numeric"
-                maxLength={2}
-                pattern="\d{1,2}"
-                className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#FB9724] ${errors.englishGrade ? 'border-red-500' : 'border-gray-400'}`}
-                />
-                {errors.englishGrade && <p className="text-xs text-red-600 mt-1">{errors.englishGrade}</p>}
-            </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex justify-end gap-4">
-            <button
-                type="submit"
-                disabled={Object.values(errors).some(Boolean)}
-                className={`px-6 py-2 text-sm rounded-md shadow-md ${Object.values(errors).some(Boolean) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#FBBF24] text-white'}`}
-            >
-                Save Profile
-            </button>
+                {/* Buttons */}
+                <div className="flex justify-end gap-4">
+                <button
+                    type="submit"
+                    disabled={Object.values(errors).some(Boolean)}
+                    className={`px-6 py-2 text-sm rounded-md shadow-md ${Object.values(errors).some(Boolean) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#FBBF24] text-white'}`}
+                >
+                    Save Profile
+                </button>
             </div>
         </form>
     </main>

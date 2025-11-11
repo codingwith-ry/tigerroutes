@@ -1,7 +1,7 @@
 // src/pages/AssessmentResults.jsx
 import React from "react";
 import { useState, useEffect } from "react";
-import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX } from "react-icons/fi";
+import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX, FiGift, FiInfo, FiAlertTriangle } from "react-icons/fi";
 import { UserCircle2, SquarePen } from "lucide-react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
@@ -14,7 +14,7 @@ const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
     const [hoverRating, setHoverRating] = useState(0);
     const [feedback, setFeedback] = useState('');
     const textareaRef = React.useRef(null);
-
+    
     useEffect(() => {
         if (isOpen && textareaRef.current) {
             textareaRef.current.focus();
@@ -31,6 +31,7 @@ const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
         setRating(0);
         setHoverRating(0);
         setFeedback('');
+        onClose();
     };
 
     const handleClose = () => {
@@ -140,13 +141,17 @@ const AssessmentResults = () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(ratingData)
-                }).then((response) => response.json())
+                })
+                .then((response) => response.json())
                 .then((data) => {
                     if (data.success) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Thank You!',
                             text: 'Your rating has been submitted successfully.',
+                        }).then(() => {
+                            // reload the page after user closes the success modal
+                            window.location.reload();
                         });
                     } else {
                         Swal.fire({
@@ -155,6 +160,13 @@ const AssessmentResults = () => {
                             text: data.message || 'There was an error submitting your rating. Please try again later.',
                         });
                     }
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Submission Failed',
+                        text: 'There was an error submitting your rating. Please try again later.',
+                    });
                 });
             }
         });
@@ -506,6 +518,80 @@ const AssessmentResults = () => {
                             <p>No program recommendations available at this time.</p>
                         </div>
                     )}
+                </div>
+
+                {/* Congratulatory Section */}
+                <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-100 rounded-xl shadow-lg p-8 border-2 border-yellow-200">
+                    {/* Celebration Icon */}
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 shadow-lg">
+                            <FiGift size={36} className="text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                            Congratulations on Completing Your Assessment!
+                        </h3>
+                        <p className="text-gray-600 text-base">
+                            You've taken an important step in discovering your career path
+                        </p>
+                    </div>
+
+                    {/* Main Message */}
+                    <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
+                        <div className="space-y-4 text-gray-700">
+                            <p className="text-base leading-relaxed">
+                                You've successfully completed your career assessment and received personalized program recommendations based on your unique interests, personality traits, and academic background. This is a significant milestone in your journey toward finding the right college program at UST.
+                            </p>
+                            
+                            <div className="flex items-start gap-3 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <div className="flex-shrink-0 mt-1">
+                                    <FiInfo className="text-2xl text-blue-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-800 mt-1 mb-2">Next Steps: Seek Professional Guidance</h4>
+                                    <p className="text-sm text-gray-700 leading-relaxed">
+                                        While these recommendations provide valuable insights, we strongly encourage you to schedule a consultation with your <a class="hover:underline" href="https://www.ust.edu.ph/senior-high-school/" target='_blank'><strong>guidance counselor</strong></a> to discuss your results in detail. They can help you understand your assessment better and guide you through the decision-making process.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3 bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                <div className="flex-shrink-0 mt-1">
+                                    <FiAlertTriangle className="text-2xl text-yellow-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-800 mt-1 mb-2">Important Reminder</h4>
+                                    <p className="text-sm text-gray-700 leading-relaxed">
+                                        TigerRoutes is a <strong>recommendation system</strong> designed to provide guidance based on psychometric assessments and academic data. These recommendations should not be your sole basis for decision-making. Your final choice should combine:
+                                    </p>
+                                    <ul className="mt-2 space-y-1 text-sm text-gray-700 ml-4">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-yellow-600 font-bold">•</span>
+                                            <span>Professional advice from guidance counselors and career advisors</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-yellow-600 font-bold">•</span>
+                                            <span>Your personal interests, values, and long-term goals</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-yellow-600 font-bold">•</span>
+                                            <span>Family considerations and practical circumstances</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-yellow-600 font-bold">•</span>
+                                            <span>Further research about the programs and career paths</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Message */}
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-gray-600 italic">
+                            Remember: The right program is the one that aligns with your passions, strengths, and future aspirations. Trust your journey! 🌟
+                        </p>
+                    </div>
                 </div>
                 {assessmentData?.rating || assessmentData?.feedback ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -695,7 +695,7 @@ const AssessmentResults = () => {
                 <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between bg-white rounded-2xl shadow p-6">
                     <div>
                         <h3 className="font-semibold text-lg">What's Next?</h3>
-                        <p className="text-sm text-gray-500">Download your report and share your feedback!</p>
+                        <p className="text-sm text-gray-500">Share your feedback and donwload your results!</p>
                     </div>
                     <div className="flex gap-4">
                         <button 
@@ -704,27 +704,25 @@ const AssessmentResults = () => {
                         >
                             <FiStar className="text-base"/> Rate Experience
                         </button>
-                        <button 
-                            onClick={handleDownload}
-                            disabled={isGeneratingPDF}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                                isGeneratingPDF 
-                                    ? 'bg-gray-400 cursor-not-allowed text-white' 
-                                    : 'bg-yellow-400 hover:bg-yellow-500 text-white'
-                            }`}
-                        >
-                            {isGeneratingPDF ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    Generating PDF...
-                                </>
-                            ) : (
-                                <>
-                                    <FiDownload className="text-base" />
-                                    Download Results
-                                </>
-                            )}
-                        </button>
+
+                        {/* Disabled download with hover tooltip explaining requirement */}
+                        <div className="relative group">
+                            <button
+                                onClick={handleDownload}
+                                disabled={true}
+                                aria-disabled="true"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-gray-400 cursor-not-allowed text-white opacity-90"
+                            >
+                                <FiDownload className="text-base" />
+                                Download Results
+                            </button>
+
+                            <div className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 hidden group-hover:block z-50">
+                                <div className="bg-gray-800 text-white text-xs rounded py-2 px-3 shadow">
+                                    Please submit your rating and feedback before downloading your results.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

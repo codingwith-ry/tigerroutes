@@ -24,20 +24,32 @@ const AdminLogin = () => {
       const resp = await fetch('http://localhost:5000/api/staff-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // include credentials so the browser accepts the Set-Cookie for the server session
+        credentials: 'include',
         // using username as the email field
         body: JSON.stringify({ email: formData.email, password: formData.password })
       });
       const data = await resp.json();
 
       if (data.success && data.user) {
-        // Persist only the staffAccount_ID in sessionStorage (do not store other profile details)
+        // Server should have established a server-side session (HttpOnly cookie).
+        // Fetch the authoritative profile from /api/staff/me to populate client state.
         try {
-          const minimal = { staffAccount_ID: data.user.staffAccount_ID || data.user.staffAccountId || data.user.id };
-          sessionStorage.setItem('staffUser', JSON.stringify(minimal));
-        } catch (e) {
-          // ignore storage errors
+          const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+          const meRes = await fetch(`${base}/api/staff/me`, { credentials: 'include' });
+          if (meRes.ok) {
+            // let components fetch the profile via fetchStaffProfile() when they mount
+            navigate('/admin/dashboard');
+          } else {
+            // session not available yet - warn but continue to dashboard where fetchStaffProfile will fallback
+            Swal.fire('Notice', 'Logged in but session not yet available. Some admin data may be delayed.', 'info');
+            navigate('/admin/dashboard');
+          }
+        } catch (err) {
+          console.error('Error fetching /api/staff/me after login', err);
+          // Proceed to dashboard; components will fall back to legacy sessionStorage if needed
+          navigate('/admin/dashboard');
         }
-        navigate('/admin/dashboard');
       } else {
         alert(data.error || 'Invalid email or password');
       }

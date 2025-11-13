@@ -298,7 +298,7 @@ module.exports = (db) => {
             [email, password],
             (err, results) => {
                 if (err) return res.status(500).json({ error: err.message});
-                if (results.length > 0) {
+                                if (results.length > 0) {
                     // User Found
                     const staffUser = results[0];
                     // Log staff login
@@ -309,7 +309,28 @@ module.exports = (db) => {
                         // ignore logging failures
                     }
 
-                    res.json({ success: true, user: staffUser});
+                                        // Create server-side session for staff user (safe authoritative identity)
+                                        try {
+                                            if (req.session) {
+                                                req.session.regenerate(() => {
+                                                    req.session.staffUser = {
+                                                        staffAccount_ID: staffUser.staffAccount_ID,
+                                                        staffRole_ID: staffUser.staffRole_ID,
+                                                        staffEmail: staffUser.email,
+                                                        staffName: staffUser.name || staffUser.staffName || ''
+                                                    };
+                                                    req.session.loggedIn = true;
+                                                    // respond with user but do not rely on client to store id
+                                                    return res.json({ success: true, user: staffUser });
+                                                });
+                                            } else {
+                                                return res.json({ success: true, user: staffUser });
+                                            }
+                                        } catch (sessErr) {
+                                            console.error('Session error on staff-login:', sessErr);
+                                            // still return success but warn in logs
+                                            return res.json({ success: true, user: staffUser });
+                                        }
                 } else {
                     //No Match
                     res.json({ success: false, error: 'Invalid email or password '});
@@ -317,6 +338,14 @@ module.exports = (db) => {
             }
         )
     })
+
+        // Return current staff profile from server-side session
+        router.get('/staff/me', (req, res) => {
+            if (req.session && req.session.staffUser) {
+                return res.json({ success: true, data: req.session.staffUser });
+            }
+            return res.status(401).json({ success:false, message: 'Not authenticated' });
+        });
 
     return router;
 };

@@ -18,6 +18,21 @@ const PORT = 5000;
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+// Session support (store sessions server-side; cookie contains opaque session id)
+const session = require('express-session');
+app.use(session({
+    name: process.env.SESSION_COOKIE_NAME || 'tigerroutes.sid',
+    secret: process.env.SESSION_SECRET || 'change-this-in-prod',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 1000 * 60 * 60 * 2 // 2 hours
+    }
+}));
+
 //Google Stuffs
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client();

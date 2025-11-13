@@ -1,0 +1,202 @@
+Admin session migration & security (staff/admin login)
+
+Overview
+--------
+This document describes the new server-side session authentication flow for admin/staff logins in TigerRoutes. The goal is to move away from storing staff profile/IDs in browser storage (sessionStorage/localStorage) and instead use server-side sessions (HttpOnly cookies) as the authoritative identity source.
+
+What changed
+------------
+- Server now enables express-session and issues an HttpOnly session cookie when a staff user successfully logs in via POST /api/staff-login.
+- On successful staff login the server sets req.session.staffUser = { staffAccount_ID, staffRole_ID, staffEmail, staffName }.
+- A new endpoint GET /api/staff/me returns the currently-authenticated staff profile from the server session.
+- The frontend helper fetchStaffProfile() was updated to prefer /api/staff/me (credentials: 'include') and fall back to legacy sessionStorage for migration compatibility.
+- Admin login (src/Admin-side/AdminLogin.jsx) now posts credentials with credentials: 'include' and does not write the staffUser object into sessionStorage anymore.
+
+Why this is more secure
+------------------------
+- Anything stored in sessionStorage or localStorage can be modified by a user with access to the browser console. By keeping the authoritative staff identity on the server and only issuing an opaque HttpOnly cookie, users cannot tamper with their identity or escalate privileges by editing a client-stored ID.
+- HttpOnly cookies cannot be read or written by JavaScript, preventing easy client-side tampering.
+- Critical actions (password changes, showing other users' data) should now rely on req.session.staffUser instead of client-supplied IDs.
+
+Environment & config
+--------------------
+- New packages required (already installed): express-session, cookie-parser
+- Recommended environment variables (set in your deployment):
+  - SESSION_SECRET: strong secret for signing session IDs
+  - SESSION_COOKIE_NAME: (optional) cookie name, default: tigerroutes.sid
+  - NODE_ENV: set to 'production' in production to enable secure cookies
+- In production you must use a persistent session store (Redis/DB) — the default MemoryStore is not suitable for production.
+  Example: connect-redis + ioredis or connect-redis + redis client.
+
+Server-side notes
+-----------------
+- Session setup is in server/server.js using express-session. Cookie options:
+  - httpOnly: true
+  - secure: process.env.NODE_ENV === 'production'
+  - sameSite: 'lax'
+  - maxAge: 2 hours (configurable)
+- staff login uses POST /api/staff-login. After verifying credentials, the route regenerates the session and sets req.session.staffUser.
+- GET /api/staff/me returns { success: true, data: req.session.staffUser } when a valid session exists.
+
+Frontend migration path
+-----------------------
+- fetchStaffProfile() now tries GET /api/staff/me with credentials: 'include'. This requires the login POST to include credentials: 'include' so the browser accepts the Set-Cookie header.
+- If /api/staff/me fails (401 or network error), fetchStaffProfile() falls back to the legacy sessionStorage-based logic to preserve compatibility during rollout.
+- AdminLogin.jsx no longer writes staffUser to sessionStorage. After a successful staff-login response, it calls /api/staff/me (credentials included) and navigates to the dashboard.
+
+How to test locally
+-------------------
+1. Start the server and frontend (dev server on localhost:3000 and API on localhost:5000).
+2. Open browser DevTools -> Application -> Cookies for http://localhost:3000.
+3. Log in via Admin Login page. In Network tab, POST /api/staff-login should return Set-Cookie header for the session cookie and the cookie should appear in the Application -> Cookies panel. The cookie will be HttpOnly (so it won't be accessible from JS).
+4. GET /api/staff/me should return 200 and the staff profile.
+5. Try protected admin actions and verify they use req.session.staffUser on the server (check logs if server logs identify session-sourced identity).
+
+Migration strategy & rollback
+-----------------------------
+- This migration was implemented to be non-breaking. The frontend still falls back to sessionStorage if /api/staff/me is unavailable.
+- Phase 1: Deploy sessions + updated fetchStaffProfile + login change, keep fallback enabled and add logging (server logs or tbl_stafflogs entries) whenever a legacy client-supplied staffAccount_ID is used.
+- Phase 2: Update all frontend components to stop reading sessionStorage.staffUser and rely on fetchStaffProfile() only.
+- Phase 3: Flip server-side enforcement: require req.session.staffUser in critical routes (remove fallback). Monitor for errors.
+- Rollback: Re-enable the legacy fallback temporarily or revert the server commit. Because fetchStaffProfile still falls back, immediate rollback shouldn't block users fully.
+
+Server-side enforcement examples
+--------------------------------
+- During migration prefer session id but accept client id (logged): use a helper getStaffAccountIdFromReq(req, {allowLegacy:true}).
+- After migration, use middleware requireStaffSession that returns 401 when req.session.staffUser is missing.
+
+Security best practices
+-----------------------
+- Store SESSION_SECRET and any mailer credentials in environment variables (never commit them).
+- Use HTTPS in production and set cookie.secure = true.
+- Move session store to Redis for production (connect-redis).
+- Perform role/permission checks server-side even when an authenticated session exists; never assume the session user has privilege for any action without checking roles.
+- Log sensitive actions (password resets, counselor password reveal/change) with staffAccount_ID from the session and include IP/time.
+
+Additional notes
+----------------
+- If you use other login flows (Google OAuth, student login) ensure those flows also issue the server session cookie (include credentials and set(req.session) after authentication).
+- Consider removing legacy sessionStorage writes entirely after migration complete.
+
+
+Important code locations and snippets
+-------------------------------------
+Below are the main files changed for the admin session migration and short snippets showing the key lines. Use these paths when searching the repo.
+
+- server/server.js
+  - Purpose: enable cookie parsing and server-side sessions using express-session.
+  - Key snippet:
+    const cookieParser = require('cookie-parser');
+    app.use(cookieParser());
+    const session = require('express-session');
+    app.use(session({
+      name: process.env.SESSION_COOKIE_NAME || 'tigerroutes.sid',
+      secret: process.env.SESSION_SECRET || 'change-this-in-prod',
+      resave: false,
+      saveUninitialized: false,
+      cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7200000 }
+    }));
+
+- server/loginRoutes.js
+  - Purpose: set server-side session on staff login and expose GET /api/staff/me.
+  - Key snippets:
+    // inside POST /staff-login success branch
+    req.session.regenerate(() => {
+      req.session.staffUser = { staffAccount_ID: staffUser.staffAccount_ID, staffRole_ID: staffUser.staffRole_ID, staffEmail: staffUser.email, staffName: staffUser.name };
+      req.session.loggedIn = true;
+      return res.json({ success: true, user: staffUser });
+    });
+
+    // new endpoint
+    router.get('/staff/me', (req, res) => {
+      if (req.session && req.session.staffUser) return res.json({ success: true, data: req.session.staffUser });
+      return res.status(401).json({ success:false, message: 'Not authenticated' });
+    });
+
+- src/utils/staffProfile.js
+  - Purpose: frontend helper that now prefers the server-side session endpoint and falls back to legacy sessionStorage during migration.
+  - Key snippet:
+    const res = await fetch(`${base}/api/staff/me`, { credentials: 'include' });
+    if (res.ok) { const body = await res.json(); if (body && body.success) return body.data; }
+
+- src/Admin-side/AdminLogin.jsx
+  - Purpose: admin login now includes credentials when POSTing (so browser will accept Set-Cookie) and no longer writes full profile into sessionStorage.
+  - Key snippet:
+    const resp = await fetch('http://localhost:5000/api/staff-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ email, password }) });
+    // then call /api/staff/me (credentials included) or let fetchStaffProfile() pick it up on mount
+
+Notes on searching the repo
+--------------------------
+- To find these files quickly, use your editor or the command line from the repo root:
+  - grep -n "staff-login" -R
+  - rg "session" server | sed -n '1,200p'
+  - rg "fetchStaffProfile" -n src
+
+How role-based access (RBAC) works with server-side sessions
+-----------------------------------------------------------
+This section explains, in plain terms, how RBAC is enforced when the application uses server-side sessions (express-session) and HttpOnly cookies. Add this to your ops/security notes and share with teammates.
+
+1) End-to-end flow (login → request)
+ - Login: client sends credentials to POST /api/staff-login.
+ - Server: verifies credentials, creates a server-side session object and stores the minimal authenticated profile inside it, e.g.:
+     req.session.staffUser = {
+       staffAccount_ID: 42,
+       staffRole_ID: 1, // numeric role or role string
+       staffEmail: 'admin@example.edu',
+       staffName: 'Ada Admin'
+     };
+ - Server returns a Set-Cookie header with an opaque session id (cookie is HttpOnly). The browser stores the cookie and cannot read or modify it from JS.
+ - Subsequent requests: browser sends the cookie automatically; server middleware (express-session) looks up the session id in the session store and reconstructs req.session and req.session.staffUser.
+ - Authorization: server-side route handlers and middleware read req.session.staffUser.staffRole_ID (or permissions list) and decide whether the action is allowed.
+
+2) What is stored where
+ - Client: only an opaque HttpOnly cookie (session id). No user id or role is stored in JS-accessible storage.
+ - Server: full session object in a session store (MemoryStore for dev; Redis/DB for production). Session contains the authoritative role and identity.
+
+3) Credentials and secrets you must protect
+ - SESSION_SECRET (express-session secret): used to sign the session id cookie; keep it in env and rotate if compromised.
+ - Session store credentials (Redis/DB): protect with environment variables or secret manager.
+ - TLS certificates and HTTPS configuration: required in production so cookie.secure works and traffic is encrypted.
+
+4) Cookie settings that matter
+ - httpOnly: true (prevents JS access)
+ - secure: true in production (only sent via HTTPS)
+ - sameSite: 'lax' or 'strict' (limits cross-site requests; mitigates CSRF)
+ - maxAge/expires: defines session lifetime
+
+5) Enforcing RBAC on the server (recommended pattern)
+ - Centralize checks in middleware instead of scattering `if` statements in routes.
+ - Example middleware (requireRole):
+     function requireRole(role) {
+       return (req, res, next) => {
+         const user = req.session?.staffUser;
+         if (!user) return res.status(401).json({ success:false, message:'Not authenticated' });
+         if (user.staffRole_ID !== role) return res.status(403).json({ success:false, message:'Forbidden' });
+         req.user = user; // attach to request for handlers
+         next();
+       };
+     }
+ - Use requireRole or requirePermission on sensitive routes (password changes, staff management, etc.).
+
+6) Why this is safer than client-side storage
+ - Client storage (sessionStorage/localStorage) is editable by the user. Server-side sessions keep authoritative identity server-side where it cannot be forged.
+ - You can revoke sessions instantly (destroy session in store) — JWTs stored client-side are harder to revoke unless you maintain a blacklist.
+
+7) Scaling & production
+ - Use a persistent session store (Redis) for multiple server instances. Example: connect-redis + ioredis.
+ - Secure Redis with ACLs, network controls, and a password.
+
+8) JWT alternative (if you prefer stateless tokens)
+ - You may encode role into a signed JWT and send it to client in an HttpOnly cookie. Server verifies signature and trusts the role claim.
+ - Downsides: token revocation requires additional logic (blacklist) or short token lifetimes + refresh tokens.
+
+9) Quick security checklist
+ - SESSION_SECRET in environment variables and not in repo.
+ - Use HTTPS and set cookie.secure = true in production.
+ - Move to Redis for production sessions (MemoryStore is dev-only).
+ - Use requireRole/requirePermission middleware and avoid trusting client-sent ids.
+ - Log critical actions (who, what, when, IP) using the staffAccount_ID from the session.
+
+10) Auditing and migration tracking
+ - During migration keep a short-term log entry when a legacy client-supplied staffAccount_ID is used; query `tbl_stafflogs` to find remaining callers and remove them.
+

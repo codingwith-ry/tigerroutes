@@ -569,19 +569,94 @@ module.exports = (db) => {
                 }
 
                 const analytics = results[0];
+
+                const recentAssessmentData = `
+                SELECT
+                    sa.studentAssessment_ID,
+                    sa.date,
+
+                    /* top 3 RIASEC traits as JSON (requires MySQL 8+ for JSON_ARRAYAGG ORDER BY) */
+                    ( SELECT JSON_ARRAYAGG(JSON_OBJECT('trait', t.trait, 'value', t.value))
+                        FROM (
+                        SELECT trait, value FROM (
+                            SELECT 'Realistic'      AS trait, r.realistic      AS value UNION ALL
+                            SELECT 'Investigative'  AS trait, r.investigative  AS value UNION ALL
+                            SELECT 'Artistic'       AS trait, r.artistic       AS value UNION ALL
+                            SELECT 'Social'         AS trait, r.social         AS value UNION ALL
+                            SELECT 'Enterprising'   AS trait, r.enterprising   AS value UNION ALL
+                            SELECT 'Conventional'   AS trait, r.conventional   AS value
+                        ) as unpvt
+                        ORDER BY value DESC
+                        LIMIT 3
+                        ) AS t
+                    ) AS riasec_top3,
+
+                    /* top 3 Big Five traits as JSON */
+                    ( SELECT JSON_ARRAYAGG(JSON_OBJECT('trait', t.trait, 'value', t.value))
+                        FROM (
+                        SELECT trait, value FROM (
+                            SELECT 'Openness'          AS trait, b.openness         AS value UNION ALL
+                            SELECT 'Conscientiousness' AS trait, b.conscientiousness AS value UNION ALL
+                            SELECT 'Extraversion'      AS trait, b.extraversion      AS value UNION ALL
+                            SELECT 'Agreeableness'     AS trait, b.agreeableness     AS value UNION ALL
+                            SELECT 'Neuroticism'       AS trait, b.neuroticism       AS value
+                        ) as unpvt
+                        ORDER BY value DESC
+                        LIMIT 3
+                        ) AS t
+                    ) AS bigfive_top3,
+
+                    /* top 3 recommended programs (program name, college name, description, alignment score) as JSON array */
+                    ( SELECT JSON_ARRAYAGG(JSON_OBJECT(
+                            'programName', x.programName,
+                            'collegeName',  x.collegeName,
+                            'description',  x.programDescription,
+                            'alignmentScore', x.alignmentScore
+                        ))
+                        FROM (
+                        SELECT p.programName, c.collegeName, p.programDescription, rec.alignmentScore
+                        FROM tbl_recommendations rec
+                        JOIN tbl_programs p ON rec.program_ID = p.program_ID
+                        LEFT JOIN tbl_colleges c ON p.collegeID = c.collegeID
+                        WHERE rec.studentAssessment_ID = sa.studentAssessment_ID
+                        AND rec.track_aligned = 'Y'
+                        ORDER BY rec.alignmentScore DESC
+                        LIMIT 3
+                        ) AS x
+                    ) AS top_programs
+
+                    FROM tbl_studentassessments sa
+                    LEFT JOIN tbl_riasecresults r ON sa.riasecResult_ID = r.riasecResult_ID
+                    LEFT JOIN tbl_bigfiveresults b ON sa.bigFiveResult_ID = b.bigFiveResult_ID
+                    WHERE sa.studentAccount_ID = ?
+                    ORDER BY sa.date DESC
+                    LIMIT 1`;
+                
+                db.query(recentAssessmentData, [studentAccountId], (error, recentResults) => {
+                    if (error) {
+                        console.error('Database error fetching recent assessment data:', error);
+                        return res.status(500).json({ error: 'Database error' });
+                    }
+                    if (recentResults.length > 0) {
+                        analytics.recentAssessmentData = recentResults[0];
+                    }
+                    const response = {
+                        totalAssessments: analytics.totalAssessments || 0,
+                        averageEngagement: analytics.averageEngagement ? Math.round(analytics.averageEngagement) : 0,
+                        averageSatisfaction: analytics.averageSatisfaction ? Math.round(analytics.averageSatisfaction * 10) / 10 : 0, // Round to 1 decimal
+                        ratedAssessments: analytics.ratedAssessments || 0,
+                        unratedAssessments: analytics.unratedAssessments || 0,
+                        highestRating: analytics.highestRating || 0,
+                        lowestRating: analytics.lowestRating || 0,
+                        recentAssessmentData: analytics.recentAssessmentData || null
+                    };
+
+                    res.json(response);
+                });
+                
                 
                 // Format the response
-                const response = {
-                    totalAssessments: analytics.totalAssessments || 0,
-                    averageEngagement: analytics.averageEngagement ? Math.round(analytics.averageEngagement) : 0,
-                    averageSatisfaction: analytics.averageSatisfaction ? Math.round(analytics.averageSatisfaction * 10) / 10 : 0, // Round to 1 decimal
-                    ratedAssessments: analytics.ratedAssessments || 0,
-                    unratedAssessments: analytics.unratedAssessments || 0,
-                    highestRating: analytics.highestRating || 0,
-                    lowestRating: analytics.lowestRating || 0
-                };
-
-                res.json(response);
+                
             });
 
         } catch (error) {

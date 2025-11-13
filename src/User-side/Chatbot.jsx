@@ -3,14 +3,22 @@ import { useState } from 'react';
 import { FiX, FiChevronDown, FiUser, FiMessageCircle, FiSend} from 'react-icons/fi';
 import { RiRobot2Fill } from 'react-icons/ri';
 
+const TypingAnimation = () => (
+    <div className="flex gap-2 px-3 py-5">
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+    </div>
+);
+
 const Chatbot = ({ 
     isOpen, 
     onClose, 
     minimized, 
     onMinimize,
-    onOpen,
-    onSendMessage
+    onOpen
 }) => {
+    const [isLoading, setIsLoading] = useState(false);
     const [messages, setMessages] = useState([
         {
             type: 'bot',
@@ -21,29 +29,45 @@ const Chatbot = ({
     const [inputMessage, setInputMessage] = useState('');
     const messagesEndRef = React.useRef(null);
 
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!inputMessage.trim()) return;
 
-        // Add user message
         const newMessage = {
             type: 'user',
             content: inputMessage,
             timestamp: new Date()
         };
         setMessages(prev => [...prev, newMessage]);
-        setInputMessage(''); // Clear input
+        setInputMessage('');
+        setIsLoading(true); 
 
-        // Simulate bot response
-        setTimeout(() => {
+        try {
+            const response = await fetch('https://YOUR_API_GATEWAY_URL/ai-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: inputMessage })
+            });
+
+            const data = await response.json();
             const botResponse = {
                 type: 'bot',
-                content: 'Thank you for your message. How can I assist you?',
+                content: data.reply,
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, botResponse]);
-        }, 1000);
+        } catch (error) {
+            const botResponse = {
+                type: 'bot',
+                content: "Sorry, I couldn't reach the server.",
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, botResponse]);
+        } finally {
+            setIsLoading(false); // Stop loading
+        }
     };
+
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -120,12 +144,26 @@ const Chatbot = ({
                                 }`}>
                                     <p className="text-sm">{message.content}</p>
                                     <span className="text-xs opacity-75 mt-1 block">
-                                        {new Date(message.timestamp).toLocaleTimeString()}
+                                        {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
                             </div>
                         </div>
                     ))}
+
+                    {isLoading && (
+                        <div className="flex justify-start">
+                            <div className="flex items-start gap-2 max-w-[80%]">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
+                                    <RiRobot2Fill className="text-gray-600" />
+                                </div>
+                                <div className="bg-gray-100 rounded-lg">
+                                    <TypingAnimation />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div ref={messagesEndRef} />
                 </div>
 

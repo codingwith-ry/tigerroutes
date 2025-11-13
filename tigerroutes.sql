@@ -245,15 +245,19 @@ INSERT INTO `tbl_staffroles` (`staffRole_ID`, `role`) VALUES
 CREATE TABLE IF NOT EXISTS `tbl_strands` (
   `strand_ID` int NOT NULL AUTO_INCREMENT,
   `strandName` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `gradeLevel` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`strand_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table tigerroutesdb.tbl_strands: ~4 rows (approximately)
-INSERT INTO `tbl_strands` (`strand_ID`, `strandName`) VALUES
-	(7, 'STEM'),
-	(8, 'ABM'),
-	(9, 'HUMSS'),
-	(10, 'Health-Allied');
+-- Dumping data for table tigerroutesdb.tbl_strands: ~6 rows (approximately)
+INSERT INTO `tbl_strands` (`strand_ID`, `strandName`, `gradeLevel`) VALUES
+	(7, 'STEM', '12'),
+	(8, 'ABM', '12'),
+	(9, 'HUMSS', '12'),
+	(10, 'Health-Allied', '12'),
+	(11, 'Music, Arts, Design', '12'),
+	(12, 'Physical Education and Sports', '12');
+
 
 -- Dumping structure for table tigerroutesdb.tbl_studentaccounts
 CREATE TABLE IF NOT EXISTS `tbl_studentaccounts` (

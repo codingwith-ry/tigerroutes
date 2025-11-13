@@ -536,15 +536,23 @@ const AdminAssessment = () => {
                     <div className="space-y-3 mb-4">
                       <div className="p-3 rounded-lg border">
                         <p className="text-xs font-semibold uppercase text-gray-500 mb-1">RIASEC Traits</p>
-                        <span className={`text-sm font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded`}>
-                          {riasecDisplay}
-                        </span>
+                        {totalAssess > 0 && riasecDisplay && riasecDisplay !== 'N/A' ? (
+                          <span className={`text-sm font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded`}>
+                            {riasecDisplay}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-500 bg-gray-50 px-2 py-0.5 rounded">No data</span>
+                        )}
                       </div>
                       <div className="p-3 rounded-lg border">
                         <p className="text-xs font-semibold uppercase text-gray-500 mb-1">Big Five Traits</p>
-                        <span className={`text-sm font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded`}>
-                          {bigFiveDisplay}
-                        </span>
+                        {totalAssess > 0 && bigFiveDisplay && bigFiveDisplay !== 'N/A' ? (
+                          <span className={`text-sm font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded`}>
+                            {bigFiveDisplay}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-500 bg-gray-50 px-2 py-0.5 rounded">No data</span>
+                        )}
                       </div>
                     </div>
                     

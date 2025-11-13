@@ -41,8 +41,21 @@ const AdminStudentProfile = () => {
         if (!payload || !payload.success) {
           setError(payload?.message || 'Failed to load assessment details');
           setAssessmentData(null);
+          setStudentFeedback(null);
         } else {
           setAssessmentData(payload.data || null);
+          // populate studentFeedback from server fields (rating, feedback)
+          const rating = payload.data && typeof payload.data.rating !== 'undefined' ? payload.data.rating : null;
+          const feedbackText = payload.data && typeof payload.data.feedback !== 'undefined' ? payload.data.feedback : null;
+          if ((rating !== null && rating !== undefined) || (feedbackText && String(feedbackText).trim() !== '')) {
+            setStudentFeedback({
+              rating: rating || 0,
+              date: payload.data && payload.data.assessmentProfile && payload.data.assessmentProfile.date ? new Date(payload.data.assessmentProfile.date) : new Date(),
+              comment: feedbackText || ''
+            });
+          } else {
+            setStudentFeedback(null);
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -110,11 +123,9 @@ const AdminStudentProfile = () => {
     bigFive: assessmentData?.bigFive || {},
   };
 
-  const [studentFeedback] = useState({
-    rating: 4,
-    date: new Date(),
-    comment: "Great session! Very helpful guidance.",
-  });
+  // Student feedback comes from the assessment record (tbl_studentassessments.feedback and rating)
+  // If absent, set to null and disable counselor commenting
+  const [studentFeedback, setStudentFeedback] = useState(null);
 
   const [counselorNotes, setCounselorNotes] = useState([]);
 
@@ -552,9 +563,9 @@ const AdminStudentProfile = () => {
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h3 className="text-lg font-semibold mb-4">Counselor Notes</h3>
 
-                  {studentFeedback ? (
-                    <div className="space-y-4">
-                      {/* Student’s Feedback - Root Comment */}
+                  <div className="space-y-4">
+                    {/* Student’s Feedback - Root Comment (if present) */}
+                    {studentFeedback ? (
                       <div className="flex space-x-3">
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
@@ -583,103 +594,104 @@ const AdminStudentProfile = () => {
                           </div>
                         </div>
                       </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">No student feedback recorded for this assessment.</div>
+                    )}
 
-                      {/* Counselor Notes - Replies */}
-                      {counselorNotes && counselorNotes.length > 0 ? (
-                        <div className="ml-13 space-y-3">
-                          {counselorNotes.map((note, index) => (
-                            <div key={index} className="flex space-x-3">
-                              <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                                  {note.author.split(' ').map(n => n[0]).join('')}
-                                </div>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="font-semibold text-gray-900 text-sm">{note.author}</span>
-                                      <div className="flex items-center gap-3">
-                                        <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
-                                        {note.editedDate ? (
-                                          <span className="text-xs text-gray-400">· edited {note.editedDate.toLocaleString()}</span>
-                                        ) : null}
-                                        {/* show Edit/Delete buttons only for the owner */}
-                                          {(() => {
-                                          const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
-                                          const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
-                                          if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
-                                            return (
-                                              <>
-                                                {editingNoteId === note.id ? (
-                                                  <>
-                                                    <button onClick={() => handleSaveEdit(note.id, note.staffAccount_ID)} className="text-xs text-blue-600 hover:underline">Save</button>
-                                                    <button onClick={handleCancelEdit} className="text-xs text-gray-500 ml-2 hover:underline">Cancel</button>
-                                                  </>
-                                                ) : (
-                                                  <>
-                                                    <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
-                                                    <button onClick={() => handleDeleteNote(note.id, note.staffAccount_ID)} className="text-xs text-red-500 ml-2 hover:underline">Delete</button>
-                                                  </>
-                                                )}
-                                              </>
-                                            );
-                                          }
-                                          return null;
-                                        })()}
-                                      </div>
-                                  </div>
-                                  {editingNoteId === note.id ? (
-                                    <div>
-                                      <textarea rows={3} value={editingText} onChange={(e) => setEditingText(e.target.value)} className="w-full text-sm border rounded p-2" />
-                                    </div>
-                                  ) : (
-                                    <p className="text-sm text-gray-700">{note.comment}</p>
-                                  )}
-                                </div>
+                    {/* Counselor Notes - Replies (always show existing notes) */}
+                    {counselorNotes && counselorNotes.length > 0 ? (
+                      <div className="ml-13 space-y-3">
+                        {counselorNotes.map((note, index) => (
+                          <div key={index} className="flex space-x-3">
+                            <div className="flex-shrink-0">
+                              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                                {note.author.split(' ').map(n => n[0]).join('')}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      {/* Reply Box */}
-                      <div className="ml-13 mt-4">
-                        <div className="flex space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                              A
+                            <div className="flex-1 min-w-0">
+                              <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-semibold text-gray-900 text-sm">{note.author}</span>
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
+                                      {note.editedDate ? (
+                                        <span className="text-xs text-gray-400">· edited {note.editedDate.toLocaleString()}</span>
+                                      ) : null}
+                                      {/* show Edit/Delete buttons only for the owner */}
+                                        {(() => {
+                                        const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+                                        const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+                                        if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
+                                          return (
+                                            <>
+                                              {editingNoteId === note.id ? (
+                                                <>
+                                                  <button onClick={() => handleSaveEdit(note.id, note.staffAccount_ID)} className="text-xs text-blue-600 hover:underline">Save</button>
+                                                  <button onClick={handleCancelEdit} className="text-xs text-gray-500 ml-2 hover:underline">Cancel</button>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
+                                                  <button onClick={() => handleDeleteNote(note.id, note.staffAccount_ID)} className="text-xs text-red-500 ml-2 hover:underline">Delete</button>
+                                                </>
+                                              )}
+                                            </>
+                                          );
+                                        }
+                                        return null;
+                                      })()}
+                                    </div>
+                                </div>
+                                {editingNoteId === note.id ? (
+                                  <div>
+                                    <textarea rows={3} value={editingText} onChange={(e) => setEditingText(e.target.value)} className="w-full text-sm border rounded p-2" />
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-700">{note.comment}</p>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <textarea
-                                rows={2}
-                                placeholder="Add a counselor note..."
-                                value={newNote}
-                                onChange={(e) => setNewNote(e.target.value)}
-                                className="w-full bg-transparent text-sm resize-none focus:outline-none placeholder-gray-500"
-                              />
-                              <div className="flex justify-end mt-2">
-                                <button
-                                  onClick={handleAddNote}
-                                  className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
-                                >
-                                  Reply
-                                </button>
-                              </div>
-                            </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {/* Reply Box: only enabled if studentFeedback exists */}
+                    <div className="ml-13 mt-4">
+                      <div className="flex space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                            A
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                            {studentFeedback ? (
+                              <>
+                                <textarea
+                                  rows={2}
+                                  placeholder="Add a counselor note..."
+                                  value={newNote}
+                                  onChange={(e) => setNewNote(e.target.value)}
+                                  className="w-full bg-transparent text-sm resize-none focus:outline-none placeholder-gray-500"
+                                />
+                                <div className="flex justify-end mt-2">
+                                  <button
+                                    onClick={handleAddNote}
+                                    className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
+                                  >
+                                    Reply
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-sm text-gray-500 py-6 text-center">This assessment has no student feedback. Counselor commenting is disabled until feedback is provided.</div>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <MessageSquareText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-sm text-gray-500">
-                        No notes available yet. Counselors can add observations and recommendations here.
-                      </p>
-                    </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>

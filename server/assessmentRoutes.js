@@ -691,13 +691,296 @@ module.exports = (db) => {
         }
     });
 
+    router.post('/assessment/post-PendingAssessment', (req, res) => {
+        try {
+            const {
+            studentAccount_ID,
+            assessmentID,
+            riasec_responses,
+            riasec_progress,
+            bigfive_responses,
+            bigfive_progress
+            } = req.body;
+
+            // Validate required fields
+            if (!studentAccount_ID) {
+            return res.status(400).json({
+                success: false,
+                message: 'Student account ID is required'
+            });
+            }
+
+            // Check if a pending assessment already exists for this student
+            const checkQuery = `
+            SELECT pendingAssessment_ID, assessmentProfile_ID 
+            FROM tbl_pendingassessments 
+            WHERE studentAccount_ID = ?
+            ORDER BY created_at DESC 
+            LIMIT 1
+            `;
+
+            db.query(checkQuery, [studentAccount_ID], (checkError, checkResults) => {
+            if (checkError) {
+                console.error('Database error:', checkError);
+                return res.status(500).json({
+                success: false,
+                message: 'Database error occurred',
+                error: checkError.message
+                });
+            }
+
+            // If pending assessment exists, update it; otherwise, insert new record
+            if (checkResults.length > 0) {
+                // UPDATE existing record
+                const pendingAssessmentId = checkResults[0].pendingAssessment_ID;
+                const assessmentProfile_ID = checkResults[0].assessmentProfile_ID;
+                
+                const updateQuery = `
+                UPDATE tbl_pendingassessments 
+                SET 
+                    assessmentProfile_ID = ?,
+                    riasec_responses = ?,
+                    riasec_progress = ?,
+                    bigfive_responses = ?,
+                    bigfive_progress = ?,
+                    last_Updated = NOW()
+                WHERE pendingAssessment_ID = ?
+                `;
+
+                const updateValues = [
+                assessmentProfile_ID || null,
+                JSON.stringify(riasec_responses),
+                riasec_progress || 0,
+                bigfive_responses ? JSON.stringify(bigfive_responses) : null,
+                bigfive_progress || 0,
+                pendingAssessmentId
+                ];
+
+                db.query(updateQuery, updateValues, (updateError, updateResults) => {
+                if (updateError) {
+                    console.error('Update error:', updateError);
+                    return res.status(500).json({
+                    success: false,
+                    message: 'Failed to update assessment progress',
+                    error: updateError.message
+                    });
+                }
+
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Assessment progress updated successfully',
+                    });
+                });
+
+            } else {
+                // INSERT new record
+                const pendingAssessmentId = assessmentID;
+
+                const fetchAssessmentProfile =  `
+                SELECT str.strand_ID, sap.gradeLevel, stg.mathGrade, stg.scienceGrade, stg.englishGrade, stg.genAverageGrade
+                FROM tbl_studentProfiles AS sap
+                LEFT JOIN tbl_strands AS str ON sap.strand_ID = str.strand_ID
+                LEFT JOIN tbl_studentgrades AS stg ON sap.studentGrades_ID = stg.studentGrades_ID
+                LEFT JOIN tbl_studentaccounts AS sa ON sap.studentProfile_ID = sa.studentProfile_ID
+                WHERE sa.studentAccount_ID = ?
+                LIMIT 1
+                `;
+                db.query(fetchAssessmentProfile, [studentAccount_ID], (profileError, profileResults) => {
+                    if (profileError) {
+                        console.error('Profile fetch error:', profileError);
+                        return res.status(500).json({
+                        success: false,
+                        message: 'Failed to fetch student profile',
+                        error: profileError.message
+                        });
+                    }
+
+                    const insertAssessmentProfile = `INSERT INTO tbl_assessmentProfiles 
+                    (strand_ID, gradeLevel, mathGrade, scienceGrade, englishGrade, genAverageGrade) 
+                    VALUES (?, ?, ?, ?, ?, ?)`;
+
+                    const profileDetails = profileResults[0];
+                    
+                    db.query(insertAssessmentProfile, 
+                    [
+                        profileDetails.strand_ID,
+                        profileDetails.gradeLevel,
+                        profileDetails.mathGrade,
+                        profileDetails.scienceGrade,
+                        profileDetails.englishGrade,
+                        profileDetails.genAverageGrade
+                    ], (insertProfileError, insertProfileResults) => {
+                        if (insertProfileError) {  
+                            console.error('Insert profile error:', insertProfileError);
+                            return res.status(500).json({
+                            success: false,
+                            message: 'Failed to create assessment profile',
+                            error: insertProfileError.message
+                            });
+                        }
+
+                        const assessmentProfile_ID = insertProfileResults.insertId;
+
+                        const insertQuery = `
+                        INSERT INTO tbl_pendingassessments (
+                            pendingAssessment_ID,
+                            studentAccount_ID,
+                            assessmentProfile_ID,
+                            riasec_responses,
+                            riasec_progress,
+                            bigfive_responses,
+                            bigfive_progress,
+                            last_Updated,
+                            created_At
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        `;
+
+                        const last_Updated = new Date();
+                        const created_At = new Date();
+
+                        const insertValues = [
+                            pendingAssessmentId,
+                            studentAccount_ID,
+                            assessmentProfile_ID || null,
+                            JSON.stringify(riasec_responses),
+                            riasec_progress || 0,
+                            bigfive_responses ? JSON.stringify(bigfive_responses) : null,
+                            bigfive_progress || 0,
+                            last_Updated,
+                            created_At
+                        ];
+
+                        db.query(insertQuery, insertValues, (insertError, insertResults) => {
+                            if (insertError) {
+                                console.error('Insert error:', insertError);
+                                return res.status(500).json({
+                                success: false,
+                                message: 'Failed to save assessment progress',
+                                error: insertError.message
+                                });
+                            }
+
+                            return res.status(201).json({
+                                success: true,
+                                message: 'Assessment progress saved successfully',
+                            });
+                        });
+                    });
+                });
+            }
+            });
+
+        } catch (error) {
+            console.error('Server error:', error);
+            return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+            });
+        }
+    });
+
+    router.get('/assessment/get-PendingAssessment', (req, res) => {
+        const { studentAccountId } = req.query;
+
+        if (!studentAccountId) {
+            return res.status(400).json({
+            success: false,
+            message: 'studentAccountId is required'
+            });
+        }
+
+        const query = `
+            SELECT 
+            pa.riasec_responses,
+            pa.riasec_progress,
+            pa.bigfive_responses,
+            pa.bigfive_progress,
+            pa.last_Updated,
+            pa.created_at,
+            str.strandName,
+            sap.gradeLevel,
+            sap.mathGrade,
+            sap.scienceGrade,
+            sap.englishGrade,
+            sap.genAverageGrade
+            FROM tbl_pendingassessments AS pa
+            LEFT JOIN tbl_assessmentProfiles AS sap ON pa.assessmentProfile_ID = sap.assessmentProfile_ID
+            LEFT JOIN tbl_strands AS str ON sap.strand_ID = str.strand_ID
+            WHERE pa.studentAccount_ID = ?
+            ORDER BY pa.created_at DESC
+            LIMIT 1
+        `;
+
+        db.query(query, [studentAccountId], (error, results) => {
+            if (error) {
+            console.error('Database error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Database error occurred',
+                error: error.message
+            });
+            }
+
+            if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No saved progress found'
+            });
+            }
+
+            // Parse JSON fields
+            const progress = results[0];
+            progress.riasec_responses = progress.riasec_responses ? 
+            progress.riasec_responses : null;
+            progress.bigfive_responses = progress.bigfive_responses ? 
+            progress.bigfive_responses : null;
+
+            return res.status(200).json({
+                success: true,
+                data: progress
+            });
+        });
+    });
+
+    router.delete('assessment/delete-progress/:pendingAssessmentId', (req, res) => {
+        const connection = req.db;
+        const { pendingAssessmentId } = req.params;
+
+        const query = 'DELETE FROM tbl_pendingassessments WHERE pendingAssessment_ID = ?';
+
+        connection.query(query, [pendingAssessmentId], (error, results) => {
+            if (error) {
+            console.error('Database error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Database error occurred',
+                error: error.message
+            });
+            }
+
+            if (results.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Progress record not found'
+            });
+            }
+
+            return res.status(200).json({
+            success: true,
+            message: 'Assessment progress deleted successfully'
+            });
+        });
+    });
+
+
     // GET all counselor notes for an assessment
     router.get('/assessment/:id/notes', (req, res) => {
         try {
             const assessmentId = req.params.id;
             if (!assessmentId) return res.status(400).json({ success: false, message: 'assessment id required' });
 
-                const sql = `
+            const sql = `
                 SELECT cn.counselorNote_ID, cn.studentAssessment_ID, cn.staffAccount_ID, cn.counselorNotes, cn.date, cn.edited_date, s.name AS counselorName, s.email AS counselorEmail
                 FROM tbl_counselornotes cn
                 LEFT JOIN tbl_staffaccounts s ON cn.staffAccount_ID = s.staffAccount_ID

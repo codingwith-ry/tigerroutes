@@ -1,70 +1,94 @@
 import React, { useEffect, useState } from "react";
-import UserNavbar from "./UserNavbar";
-import { UserCircle2, SquarePen, BookOpen, Brain, FileText } from "lucide-react";
-import Footer from "../Visitor-side/Footer";
+import { UserCircle2, SquarePen, BookOpen, Brain, FileText, AlertCircle, Clock, Calendar, TrendingUp } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
-import { time } from "framer-motion";
+import UserNavbar from "./UserNavbar";
+import Footer from "../Visitor-side/Footer";
 
 const AssessmentPage = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
+  const [pendingAssessment, setPendingAssessment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
+  const riasecTotal = 42;
+  const bigFiveTotal = 30;
+  const riasecProgress = 0;
+  const bigFiveProgress = 0;
+
+    
+  // Calculate overall percentage
+  const totalQuestions = 72;
+  const answeredQuestions = 0;
+  const overallPercentage = 0;
+
   useEffect(() => {
     document.title = "Assessment | Overview";
     
-    // Clear assessment data
-    if(localStorage.getItem('riasecAnswers') && localStorage.getItem('riasecResults')){
-      localStorage.removeItem('riasecAnswers');
-      localStorage.removeItem('riasecResults');
-    } else if(localStorage.getItem('riasecAnswers')){
-      localStorage.removeItem('riasecAnswers');
-    } else {
-      localStorage.removeItem('riasecResults');
-    }
+      if(localStorage.getItem('riasecAnswers') && localStorage.getItem('riasecResults')){
+        localStorage.removeItem('riasecAnswers');
+        localStorage.removeItem('riasecResults');
+      } else if(localStorage.getItem('riasecAnswers')){
+        localStorage.removeItem('riasecAnswers');
+      } else {
+        localStorage.removeItem('riasecResults');
+      }
 
-    if(localStorage.getItem('bigFiveAnswers') && localStorage.getItem('bigFiveResults')){
-      localStorage.removeItem('bigFiveAnswers');
-      localStorage.removeItem('bigFiveResults');
-    } else if(localStorage.getItem('bigFiveAnswers')){
-      localStorage.removeItem('bigFiveAnswers');
-    } else {
-      localStorage.removeItem('bigFiveResults');
-    }
+      if(localStorage.getItem('bigFiveAnswers') && localStorage.getItem('bigFiveResults')){
+        localStorage.removeItem('bigFiveAnswers');
+        localStorage.removeItem('bigFiveResults');
+      } else if(localStorage.getItem('bigFiveAnswers')){
+        localStorage.removeItem('bigFiveAnswers');
+      } else {
+        localStorage.removeItem('bigFiveResults');
+      }
 
-    if(localStorage.getItem('currentAssessmentId')){
-      localStorage.removeItem('currentAssessmentId');
-    }
-
-    // Fetch user data
-    fetchUserData();
+      if(localStorage.getItem('currentAssessmentId')){
+        localStorage.removeItem('currentAssessmentId');
+      }
+    // Fetch user data and check for pending assessment
+    fetchData();
 
     return () => {
       document.title = "Default Title";
     };
   }, []);
 
-  const fetchUserData = async () => {
+  const fetchData = async () => {
     try {
       const user = JSON.parse(sessionStorage.getItem('user'));
       if (!user || !user.studentAccount_ID) {
         throw new Error('No user found in session storage');
       }
 
-      const response = await fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`);
+      // Fetch user profile and pending assessment in parallel
+      const [profileResponse, pendingResponse] = await Promise.all([
+        fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`),
+        fetch(`http://localhost:5000/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`)
+      ]);
       
-      if (!response.ok) {
+      if (!profileResponse.ok) {
         throw new Error('Failed to fetch user data');
       }
 
-      const data = await response.json();
-      setUserData(data);
+      const profileData = await profileResponse.json();
+      setUserData(profileData);
+
+      // Check if there's a pending assessment
+      if (pendingResponse.ok) {
+        const pendingData = await pendingResponse.json();
+        if (pendingData) {
+          setPendingAssessment(pendingData);
+          // Store the pending assessment ID in localStorage
+          localStorage.setItem('currentAssessmentId', pendingData.assessment_ID);
+          getAssessmentProgress();
+        }
+      }
     } catch (err) {
-      console.error('Error fetching user data:', err);
+      console.error('Error fetching data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -89,7 +113,26 @@ const AssessmentPage = () => {
     });
   };
 
-  const startAssessment = () => {
+  const continuePendingAssessment = () => {
+    if (!pendingAssessment) return;
+
+    window.scrollTo(0, 0);
+    
+    // Determine which assessment to continue based on progress
+    const riasecTotal = 48; // Total RIASEC questions
+    const bigFiveTotal = 50; // Total Big Five questions
+    
+    if (pendingAssessment.riasec_progress < riasecTotal) {
+      navigate(`/assessmentRIASEC/${pendingAssessment.pendingAssessment_ID}`);
+    } else if (pendingAssessment.bigfive_progress < bigFiveTotal) {
+      navigate(`/assessmentBigFive/${pendingAssessment.pendingAssessment_ID}`);
+    } else {
+      // If both are complete, go to results
+      navigate(`/results/${pendingAssessment.pendingAssessment_ID}`);
+    }
+  };
+
+  const startNewAssessment = () => {
     if (!isProfileComplete(userData)) {
       Swal.fire({
         icon: "warning",
@@ -104,25 +147,121 @@ const AssessmentPage = () => {
       return;
     }
 
+    if (pendingAssessment) {
+      Swal.fire({
+        icon: "warning",
+        title: "Pending Assessment Found",
+        text: "You have an incomplete assessment. Please continue or cancel it before starting a new one.",
+        confirmButtonColor: "#FBBF24"
+      });
+      return;
+    }
+
     const assessmentId = uuidv4();
     localStorage.setItem('currentAssessmentId', assessmentId);
     window.scrollTo(0, 0);
     navigate(`/assessmentRIASEC/${assessmentId}`);
   };
 
-  // Helper function to format grade display
+  const cancelPendingAssessment = async () => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Cancel Assessment?",
+      text: "Are you sure you want to cancel your pending assessment? All progress will be lost.",
+      showCancelButton: true,
+      confirmButtonText: "Yes, cancel it",
+      cancelButtonText: "No, keep it",
+      confirmButtonColor: "#EF4444",
+      cancelButtonColor: "#6B7280"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/assessment/cancel-assessment/${pendingAssessment.pendingAssessment_ID}`,
+          { method: 'DELETE' }
+        );
+
+        if (response.ok) {
+          setPendingAssessment(null);
+          localStorage.removeItem('currentAssessmentId');
+          Swal.fire({
+            icon: "success",
+            title: "Assessment Cancelled",
+            text: "You can now start a new assessment.",
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          throw new Error('Failed to cancel assessment');
+        }
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to cancel assessment. Please try again.",
+          confirmButtonColor: "#FBBF24"
+        });
+      }
+    }
+  };
+
   const formatGrade = (grade) => {
     return grade !== null && grade !== undefined ? grade : 'N/A';
+  };
+
+  const getAssessmentProgress = () => {
+    if (!pendingAssessment) return null;
+    
+    riasecTotal = 48;
+    bigFiveTotal = 50;
+    riasecProgress = pendingAssessment.riasec_progress || 0;
+    bigFiveProgress = pendingAssessment.bigfive_progress || 0;
+    
+    // Calculate overall percentage
+    totalQuestions = riasecTotal + bigFiveTotal;
+    answeredQuestions = riasecProgress + bigFiveProgress;
+    overallPercentage = Math.round((answeredQuestions / totalQuestions) * 100);
+    
+    // Determine current step
+    let currentStep = 'RIASEC';
+    if (riasecProgress >= riasecTotal) {
+      currentStep = 'Big Five';
+    }
+    if (riasecProgress >= riasecTotal && bigFiveProgress >= bigFiveTotal) {
+      currentStep = 'Completed';
+    }
+    
+    return {
+      step: currentStep,
+      percentage: overallPercentage,
+      riasecProgress,
+      riasecTotal,
+      bigFiveProgress,
+      bigFiveTotal,
+      riasecPercentage: Math.round((riasecProgress / riasecTotal) * 100),
+      bigFivePercentage: Math.round((bigFiveProgress / bigFiveTotal) * 100)
+    };
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
     return (
       <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
-        <UserNavbar />
         <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 flex items-center justify-center">
           <div className="text-center">Loading profile data...</div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -130,11 +269,9 @@ const AssessmentPage = () => {
   if (error) {
     return (
       <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
-        <UserNavbar />
         <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 flex items-center justify-center">
           <div className="text-center text-red-600">Error: {error}</div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -142,243 +279,392 @@ const AssessmentPage = () => {
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
-
-      <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
-        <div className="space-y-6">
-          {/* Profile Section */}
-          <div
-            className="bg-white rounded-lg shadow p-5 border border-black"
-            style={{ fontFamily: "SF Pro" }}
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center">
-              
-              
-
-              {/* Profile Info */}
-              <div className="w-full">
-                {/* Profile Icon */}
-                <div className="flex items-center mb-3 pl-5">
-                  <div className="mr-2">
-                    <UserCircle2 size={40} stroke="#FB9724" strokeWidth={2} />
+      <main className="flex-grow w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 mt-16">
+        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+          
+          {/* Pending Assessment Alert */}
+          {pendingAssessment && (
+            <div>
+              <div className="bg-amber-50 border-2 border-amber-400 rounded-lg shadow p-4 sm:p-5">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-amber-900 text-base sm:text-lg mb-2">
+                      You Have a Pending Assessment
+                    </h3>
+                    <p className="text-amber-800 text-sm mb-3">
+                      You have an incomplete assessment from your previous session. Do you want to continue where you left off or cancel it and start a new one?
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <button
+                        onClick={continuePendingAssessment}
+                        className="bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-amber-700 transition text-sm"
+                      >
+                        Continue Assessment
+                      </button>
+                      <button
+                        onClick={cancelPendingAssessment}
+                        className="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 transition text-sm"
+                      >
+                        Cancel & Start New
+                      </button>
+                    </div>
                   </div>
-                  <h2 className="font-semibold py-2 pl-0 text-base sm:text-lg">
-                      Current Profile
-                  </h2>
+                </div>
+              </div>
+
+              {/* Profile Section */}
+              <div className="bg-white rounded-lg shadow p-4 sm:p-5 border border-black mt-3">
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <UserCircle2 size={32} stroke="#FB9724" strokeWidth={2} className="sm:w-10 sm:h-10" />
+                      <h2 className="font-semibold ml-2 text-base sm:text-lg lg:text-xl">
+                        Previous Profile
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="p-1.5 hover:bg-[#FFF7E6] rounded transition"
+                      onClick={() => navigate("/profile")}
+                    >
+                      <SquarePen className="w-5 h-5 sm:w-6 sm:h-6 text-[#FBBF24]" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                      <div>
+                        <span className="font-semibold block mb-1">Name:</span>
+                        <span className="text-gray-700">{userData?.name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold block mb-1">Email:</span>
+                        <span className="text-gray-700 break-all">{userData?.email || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold block mb-1">Grade Level:</span>
+                        <span className="text-gray-700">{userData?.gradeLevel || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold block mb-1">Strand:</span>
+                        <span className="text-gray-700">{userData?.strand || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 sm:pt-4 border-t border-gray-200">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                        <div>
+                          <span className="font-semibold block mb-1">Math Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.mathGrade)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold block mb-1">Science Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.scienceGrade)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold block mb-1">English Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.englishGrade)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold block mb-1">Average Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.genAverageGrade)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Assessment Progress Details */}
+              <div className="bg-white rounded-lg shadow border border-gray-300 p-4 sm:p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingUp className="w-6 h-6 text-purple-600" />
+                  <h3 className="font-bold text-lg sm:text-xl text-gray-800">Assessment Progress</h3>
                 </div>
 
-                {/* Desktop / Tablet Layout */}
-                <div className="hidden sm:block">
-                  <div className="grid grid-cols-4 text-sm font-semibold mb-2">
-                    <span className="pl-5">Name:</span>
-                    <span className="pl-4">Email:</span>
-                    <span className="pl-4">Grade Level:</span>
-                    <span className="pl-4">Strand:</span>
+                {/* Overall Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-semibold text-gray-700">Overall Completion</span>
+                    <span className="text-sm font-bold text-purple-600">{overallPercentage}%</span>
                   </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${overallPercentage}%` }}
+                    />
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-4 text-xs">
-                    <span className="pl-5">{userData?.name || 'N/A'}</span>
-                    <span className="pl-4 break-words">
-                      {userData?.email || 'N/A'}
-                    </span>
-                    <span className="pl-4">{userData?.gradeLevel || 'N/A'}</span>
-                    <span className="pl-4">{userData?.strand || 'N/A'}</span>
+                {/* RIASEC and Big Five Progress Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                  {/* RIASEC Card */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-blue-600" />
+                        <h4 className="font-bold text-blue-900">RIASEC Test</h4>
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full`}>
+                        Done
+                      </span>
+                    </div>
                     
-                  </div>
-                  
-                  {/* Grades Section */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="grid grid-cols-4 text-sm font-semibold mb-2">
-                      <span className="pl-5">Math Grade:</span>
-                      <span className="pl-4">Science Grade:</span>
-                      <span className="pl-4">English Grade:</span>
-                      <span className="pl-4">Average Grade:</span>
+                    {/* Progress Bar */}
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-blue-700">Progress</span>
+                        <span className="text-xs font-bold text-blue-900">${(pendingAssessment.riasec_progress * riasecTotal) * 100}%%</span>
+                      </div>
+                      <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${(pendingAssessment.riasec_progress * riasecTotal) * 100}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="grid grid-cols-4 text-xs">
-                      <span className="pl-5">{formatGrade(userData?.mathGrade)}</span>
-                      <span className="pl-4">{formatGrade(userData?.scienceGrade)}</span>
-                      <span className="pl-4">{formatGrade(userData?.englishGrade)}</span>
-                      <span className="pl-4">{formatGrade(userData?.genAverageGrade)}</span>
+
+                    {/* Response Count */}
+                    <div className="flex items-center justify-between text-xs text-blue-700">
+                      <span>Questions Answered:</span>
+                      <span className="font-semibold">`${pendingAssessment.riasec_progress}` / 48</span>
+                    </div>
+                  </div>
+
+                  {/* Big Five Card */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-green-600" />
+                        <h4 className="font-bold text-green-900">Big Five Test</h4>
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full`}>
+                        Done
+                      </span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-green-700">Progress</span>
+                        <span className="text-xs font-bold text-green-900">${(pendingAssessment.bigFive_progress * bigFiveTotal) * 100}%</span>
+                      </div>
+                      <div className="w-full bg-green-200 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="bg-green-600 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${(pendingAssessment.bigFive_progress * bigFiveTotal) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Response Count */}
+                    <div className="flex items-center justify-between text-xs text-green-700">
+                      <span>Questions Answered:</span>
+                      <span className="font-semibold">`${(pendingAssessment.bigFive_progress)}`/ 50</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Mobile Layout */}
-                <div className="block sm:hidden space-y-3 text-sm">
-                  <div>
-                    <span className="font-semibold">Name:</span>
-                    <p>{userData?.name || 'N/A'}</p>
+                {/* Timeline Information */}
+                <div className="border-t border-gray-200 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <span className="font-medium">Started:</span>
+                    <span>{formatDate(pendingAssessment.created_at)}</span>
                   </div>
-                  <div>
-                    <span className="font-semibold">Email:</span>
-                    <p className="break-words">{userData?.email || 'N/A'}</p>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    <span className="font-medium">Last Updated:</span>
+                    <span>{formatDate(pendingAssessment.last_Updated)}</span>
                   </div>
-                  <div>
-                    <span className="font-semibold">Grade Level:</span>
-                    <p>{userData?.gradeLevel || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Start New Assessment Section */}
+          {!pendingAssessment && (
+            <>
+              {/* Profile Section */}
+              <div className="bg-white rounded-lg shadow p-4 sm:p-5 border border-black">
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <UserCircle2 size={32} stroke="#FB9724" strokeWidth={2} className="sm:w-10 sm:h-10" />
+                      <h2 className="font-semibold ml-2 text-base sm:text-lg lg:text-xl">
+                        Current Profile
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="p-1.5 hover:bg-[#FFF7E6] rounded transition"
+                      onClick={() => navigate("/profile")}
+                    >
+                      <SquarePen className="w-5 h-5 sm:w-6 sm:h-6 text-[#FBBF24]" />
+                    </button>
                   </div>
-                  <div>
-                    <span className="font-semibold">Strand:</span>
-                    <p>{userData?.strand || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Math Grade:</span>
-                    <p>{formatGrade(userData?.mathGrade)}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Science Grade:</span>
-                    <p>{formatGrade(userData?.scienceGrade)}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold">English Grade:</span>
-                    <p>{formatGrade(userData?.englishGrade)}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Average Grade:</span>
-                    <p>{formatGrade(userData?.genAverageGrade)}</p>
+
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                      <div>
+                        <span className="font-semibold block mb-1">Name:</span>
+                        <span className="text-gray-700">{userData?.name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold block mb-1">Email:</span>
+                        <span className="text-gray-700 break-all">{userData?.email || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold block mb-1">Grade Level:</span>
+                        <span className="text-gray-700">{userData?.gradeLevel || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold block mb-1">Strand:</span>
+                        <span className="text-gray-700">{userData?.strand || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 sm:pt-4 border-t border-gray-200">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                        <div>
+                          <span className="font-semibold block mb-1">Math Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.mathGrade)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold block mb-1">Science Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.scienceGrade)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold block mb-1">English Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.englishGrade)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold block mb-1">Average Grade:</span>
+                          <span className="text-gray-700">{formatGrade(userData?.genAverageGrade)}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Edit Button */}
-              <button
-                type="button"
-                className="ml-auto mt-3 sm:mt-0 p-1 hover:bg-[#FFF7E6] transition"
-                onClick={() => navigate("/profile")} // redirects to Profile page
+              {/* Career Journey Section */}
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6 lg:p-10 border border-gray-300">
+                <h2 className="font-bold text-xl sm:text-2xl lg:text-3xl text-gray-800 mb-2 sm:mb-3 text-center px-2">
+                  Start Your Career Journey
+                </h2>
 
-              >
-                <SquarePen className="w-6 h-6 text-[#FBBF24]" />
-              </button>
-            </div>
-          </div>
-
-          {/* Career Journey Section */}
-          <div className="bg-white rounded-lg shadow p-10 border border-gray-300 w-full p-8">
-            {/* Section Title */}
-            <h2 className="font-bold text-3xl text-gray-800 mb-3 text-center">
-              Start Your Career Journey
-            </h2>
-
-            {/* Short Description */}
-            <p className="text-gray-600 text-base mb-8 text-center max-w-2xl mx-auto">
-              Discover your ideal career path through our comprehensive personality
-              and interest assessment designed to unlock your potential.
-            </p>
-
-            {/* Step Progress Indicator */}
-            <div className="flex justify-center items-center text-sm mb-10">
-              <div className="flex items-center space-x-6 text-purple-700">
-                <div className="flex items-center space-x-2">
-                  <UserCircle2 size={18} />
-                  <span className="font-medium">Overview</span>
-                </div>
-
-                <span className="text-gray-400">{">"}</span>
-
-                <div className="flex items-center space-x-2">
-                  <BookOpen size={18} />
-                  <span className="font-medium">RIASEC</span>
-                </div>
-
-                <span className="text-gray-400">{">"}</span>
-
-                <div className="flex items-center space-x-2">
-                  <Brain size={18} />
-                  <span className="font-medium">Big Five</span>
-                </div>
-
-                <span className="text-gray-400">{">"}</span>
-
-                <div className="flex items-center space-x-2">
-                  <FileText size={18} />
-                  <span className="font-medium">Results</span>
-                </div>
-              </div>
-            </div>
-
-            {/* What You'll Discover */}
-            <div className="bg-blue-100 border border-gray-200 rounded-xl p-6 mb-5 text-center">
-              <h3 className="text-blue-700 font-semibold text-lg mb-3">
-                What You'll Discover
-              </h3>
-              <p className="text-blue-700 text-sm leading-relaxed max-w-2xl mx-auto">
-                Our assessment will help you understand your personality traits,
-                interests, and work preferences. You'll receive personalized career
-                recommendations based on the RIASEC and Big Five models, giving you
-                valuable insights into careers that align with who you are and what
-                motivates you.
-              </p>
-            </div>
-
-            {/* Three Feature Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-7">
-              <div className="bg-yellow-100 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-                <h4 className="text-yellow-700 font-semibold text-base mb-2">
-                  Scientifically Based
-                </h4>
-                <p className="text-sm text-yellow-700">
-                  Built on the proven RIASEC and Big Five personality theories.
+                <p className="text-gray-600 text-sm sm:text-base mb-6 sm:mb-8 text-center max-w-2xl mx-auto px-2">
+                  Discover your ideal career path through our comprehensive personality
+                  and interest assessment designed to unlock your potential.
                 </p>
+
+                <div className="mb-6 sm:mb-10 overflow-x-auto">
+                  <div className="flex justify-center items-center text-xs sm:text-sm min-w-max px-4">
+                    <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 text-purple-700">
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <UserCircle2 size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                        <span className="font-medium whitespace-nowrap">Overview</span>
+                      </div>
+                      <span className="text-gray-400">{">"}</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <BookOpen size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                        <span className="font-medium whitespace-nowrap">RIASEC</span>
+                      </div>
+                      <span className="text-gray-400">{">"}</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <Brain size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                        <span className="font-medium whitespace-nowrap">Big Five</span>
+                      </div>
+                      <span className="text-gray-400">{">"}</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <FileText size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                        <span className="font-medium whitespace-nowrap">Results</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-100 border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-5 text-center">
+                  <h3 className="text-blue-700 font-semibold text-base sm:text-lg mb-2 sm:mb-3">
+                    What You'll Discover
+                  </h3>
+                  <p className="text-blue-700 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">
+                    Our assessment will help you understand your personality traits,
+                    interests, and work preferences. You'll receive personalized career
+                    recommendations based on the RIASEC and Big Five models, giving you
+                    valuable insights into careers that align with who you are and what
+                    motivates you.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-5 sm:mb-7">
+                  <div className="bg-yellow-100 border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+                    <h4 className="text-yellow-700 font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                      Scientifically Based
+                    </h4>
+                    <p className="text-xs sm:text-sm text-yellow-700">
+                      Built on the proven RIASEC and Big Five personality theories.
+                    </p>
+                  </div>
+                  <div className="bg-yellow-100 border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+                    <h4 className="text-yellow-700 font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                      Personalized Results
+                    </h4>
+                    <p className="text-xs sm:text-sm text-yellow-700">
+                      Get career recommendations tailored to you.
+                    </p>
+                  </div>
+                  <div className="bg-yellow-100 border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+                    <h4 className="text-yellow-700 font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                      Quick & Easy
+                    </h4>
+                    <p className="text-xs sm:text-sm text-yellow-700">
+                      Takes only 10-15 minutes to complete.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start sm:items-center justify-center gap-2 mb-4 px-2">
+                  <input
+                    id="privacy-consent"
+                    type="checkbox"
+                    checked={acceptedPrivacy}
+                    onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                    className="w-4 h-4 mt-0.5 sm:mt-0 text-[#FBBF24] border-gray-300 rounded flex-shrink-0"
+                    disabled={!!pendingAssessment}
+                  />
+                  <label htmlFor="privacy-consent" className="text-xs sm:text-sm text-gray-700">
+                    I agree to the{" "}
+                    <Link
+                      to="/privacy-policy"
+                      state={{ fromAssessment: true }}
+                      className="text-[#195FD3] underline"
+                    >
+                      TigerRoutes Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+
+                <div className="flex justify-center px-2">
+                  <button
+                    onClick={startNewAssessment}
+                    disabled={!acceptedPrivacy || !!pendingAssessment}
+                    className={`bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2.5 sm:py-3 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base transition-all ${(!acceptedPrivacy || pendingAssessment) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    Begin Assessment
+                  </button>
+                </div>
               </div>
-
-              <div className="bg-yellow-100 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-                <h4 className="text-yellow-700 font-semibold text-base mb-2">
-                  Personalized Results
-                </h4>
-                <p className="text-sm text-yellow-700">
-                  Get career recommendations tailored to you.
-                </p>
-              </div>
-
-              <div className="bg-yellow-100 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-                <h4 className="text-yellow-700 font-semibold text-base mb-2">
-                  Quick & Easy
-                </h4>
-                <p className="text-sm text-yellow-700">
-                  Takes only 10-15 minutes to complete.
-                </p>
-              </div>
-            </div>
-
-            {/* Consent */}
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <input
-                id="privacy-consent"
-                type="checkbox"
-                checked={acceptedPrivacy}
-                onChange={(e) => setAcceptedPrivacy(e.target.checked)}
-                className="w-4 h-4 text-[#FBBF24] border-gray-300 rounded"
-              />
-              <label htmlFor="privacy-consent" className="text-sm text-gray-700">
-                I agree to the{" "}
-                <Link
-                to="/privacy-policy"
-                state={{ fromAssessment: true }} // pass this flag
-                className="text-[#195FD3] underline"
-              >
-                TigerRoutes Privacy Policy
-              </Link>
-              </label>
-            </div>
-
-            {/* CTA Button Centered */}
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  window.scrollTo(0, 0);
-                  startAssessment();
-                }}
-                disabled={!acceptedPrivacy}
-                className={`bg-[#FBBF24] text-white px-6 sm:px-10 md:px-12 py-2 rounded-full font-semibold hover:bg-[#FB9724] shadow-[0_5px_5px_rgba(0,0,0,0.3)] text-sm sm:text-base ${!acceptedPrivacy ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Begin Assessment
-              </button>
-            </div>
-          </div>
+            </>
+          )}
         </div>
+        
       </main>
-
       <Footer />
     </div>
+    
   );
 };
 

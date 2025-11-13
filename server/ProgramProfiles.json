@@ -1,28 +1,33 @@
 {
   "BS Computer Science": {
     "riasec_requirements": {
-      "Realistic": {"weight": 0.25, "ideal_range": [60, 90]},
-      "Investigative": {"weight": 0.35, "ideal_range": [70, 95]},
-      "Artistic": {"weight": 0.05, "ideal_range": [40, 80]},
-      "Social": {"weight": 0.05, "ideal_range": [30, 70]},
-      "Enterprising": {"weight": 0.05, "ideal_range": [40, 75]},
-      "Conventional": {"weight": 0.25, "ideal_range": [55, 85]}
+      "Realistic": { "weight": 0.15, "ideal_range": [50, 85] },
+      "Investigative": { "weight": 0.30, "ideal_range": [70, 100] },
+      "Artistic": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Social": { "weight": 0.05, "ideal_range": [40, 80] },
+      "Enterprising": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Conventional": { "weight": 0.20, "ideal_range": [60, 95] }
     },
     "bigfive_requirements": {
-      "Openness": {"weight": 0.25, "ideal_range": [65, 95]},
-      "Conscientiousness": {"weight": 0.30, "ideal_range": [70, 95]},
-      "Extraversion": {"weight": 0.10, "ideal_range": [30, 75]},
-      "Agreeableness": {"weight": 0.15, "ideal_range": [40, 90]},
-      "Neuroticism": {"weight": 0.20, "ideal_range": [10, 40]}
+      "Openness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.25, "ideal_range": [65, 95] },
+      "Extraversion": { "weight": 0.15, "ideal_range": [50, 85] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [50, 90] },
+      "Neuroticism": { "weight": 0.20, "ideal_range": [10, 55] }
     },
     "academic_requirements": {
-      "math_performance": {"weight": 0.4, "minimum": 85},
-      "science_performance": {"weight": 0.3, "minimum": 80},
-      "english_performance": {"weight": 0.2, "minimum": 82},
-      "overall_gen_ave": {"weight": 0.1, "minimum": 85}
+      "overall_gen_ave": { "weight": 0.3, "minimum": 82 },
+      "math_performance": { "weight": 0.35, "minimum": 85 },
+      "science_performance": { "weight": 0.2, "minimum": 80 },
+      "english_performance": { "weight": 0.15, "minimum": 80 }
     },
     "track_preferences": {
-      "STEM": 100, "ABM": 70, "HUMSS": 50, "GAS-HealthAllied": 60, "ArtsDesign": 40, "SportsTrack": 40
+      "STEM": 100,
+      "ABM": 70,
+      "Health-Allied": 50,
+      "HUMSS": 60,
+      "Music, Arts, and Design": 70,
+      "Physical Education and Sports": 40
     }
   },
 

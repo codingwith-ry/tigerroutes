@@ -184,6 +184,11 @@ const AdminStudentProfile = () => {
     if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
     if (!newNote.trim()) return Swal.fire('Empty note', 'Please enter a note before replying.', 'warning');
 
+    // Enforce single counselor note per assessment
+    if (counselorNotes && counselorNotes.length > 0) {
+      return Swal.fire('One note only', 'A counselor note already exists for this assessment. Delete the existing note before adding a new one.', 'info');
+    }
+
     // determine current staff user from sessionStorage
   const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
   const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
@@ -667,23 +672,30 @@ const AdminStudentProfile = () => {
                         <div className="flex-1 min-w-0">
                           <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                             {studentFeedback ? (
-                              <>
-                                <textarea
-                                  rows={2}
-                                  placeholder="Add a counselor note..."
-                                  value={newNote}
-                                  onChange={(e) => setNewNote(e.target.value)}
-                                  className="w-full bg-transparent text-sm resize-none focus:outline-none placeholder-gray-500"
-                                />
-                                <div className="flex justify-end mt-2">
-                                  <button
-                                    onClick={handleAddNote}
-                                    className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
-                                  >
-                                    Reply
-                                  </button>
+                              counselorNotes && counselorNotes.length > 0 ? (
+                                <div className="text-sm text-gray-500 py-4">
+                                  <div className="mb-2">A counselor note already exists for this assessment.</div>
+                                  <div className="text-xs text-gray-500">Delete the existing note to add a new one.</div>
                                 </div>
-                              </>
+                              ) : (
+                                <>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="Add a counselor note..."
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                    className="w-full bg-transparent text-sm resize-none focus:outline-none placeholder-gray-500"
+                                  />
+                                  <div className="flex justify-end mt-2">
+                                    <button
+                                      onClick={handleAddNote}
+                                      className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors"
+                                    >
+                                      Reply
+                                    </button>
+                                  </div>
+                                </>
+                              )
                             ) : (
                               <div className="text-sm text-gray-500 py-6 text-center">This assessment has no student feedback. Counselor commenting is disabled until feedback is provided.</div>
                             )}

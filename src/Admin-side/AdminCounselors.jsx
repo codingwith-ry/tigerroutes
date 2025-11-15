@@ -375,54 +375,161 @@ const AdminCounselors = () => {
               if (isSaving) return;
               setIsSaving(true);
               try {
-                // If an id is present, perform update (PUT), otherwise create (POST)
-                const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                let response;
-                if (counselorData.id) {
-                  // Update existing counselor
-                  response = await fetch(`${base}/api/counselor/${encodeURIComponent(counselorData.id)}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(counselorData)
+                // Validate required fields
+                if (!counselorData.name || !counselorData.name.trim()) {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Counselor name is required',
+                    confirmButtonColor: '#FB9724'
                   });
-                } else {
-                  // Create new counselor
-                  response = await fetch(`${base}/api/counselor/add`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(counselorData)
-                  });
+                  setIsSaving(false);
+                  return;
                 }
 
-                const result = await response.json();
-                if (result.success) {
-                  // Refresh list and close modal
-                  await fetchCounselors();
-                  setIsModalOpen(false);
-                  setSelectedCounselor(null);
-                  // If server returned generated password, show it to admin
-                  if (result.data && result.data.password) {
-                    const pw = result.data.password;
-                    const remind = await Swal.fire({
-                      title: 'Counselor Created',
-                      html: `<div class="text-left">Password for <b>${result.data.name}</b> is:<div style="margin-top:8px"><code style=\"font-size:18px;\">${pw}</code></div></div>`,
-                      showCancelButton: true,
-                      confirmButtonText: 'Copy & Close',
-                      cancelButtonText: 'Close',
-                      focusConfirm: false,
-                      confirmButtonColor: '#FB9724'
-                    });
-                    try { await navigator.clipboard.writeText(pw); } catch (e) { /* ignore */ }
-                  } else {
-                    Swal.fire({ icon: 'success', title: counselorData.id ? 'Counselor updated!' : 'Counselor added!', showConfirmButton: false, timer: 1500, timerProgressBar: true });
-                  }
-                } else {
-                  Swal.fire({ icon: 'error', title: 'Error', text: result.message || 'Unknown error', confirmButtonColor: '#FB9724' });
+                if (!counselorData.strand || counselorData.strand === 'N/A') {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Please select a strand',
+                    confirmButtonColor: '#FB9724'
+                  });
+                  setIsSaving(false);
+                  return;
                 }
+
+                // Show loading state
+                Swal.fire({
+                  title: counselorData.id ? 'Updating counselor...' : 'Adding counselor...',
+                  allowOutsideClick: false,
+                  allowEscapeKey: false,
+                  didOpen: async () => {
+                    Swal.showLoading();
+                    
+                    const startTime = Date.now();
+                    const minLoadTime = 1500; // Minimum 1.5 seconds display time
+                    
+                    try {
+                      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                      let response;
+                      
+                      if (counselorData.id) {
+                        response = await fetch(`${base}/api/counselor/${encodeURIComponent(counselorData.id)}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(counselorData)
+                        });
+                      } else {
+                        response = await fetch(`${base}/api/counselor/add`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(counselorData)
+                        });
+                      }
+
+                      const result = await response.json();
+                      
+                      // Calculate remaining wait time
+                      const elapsedTime = Date.now() - startTime;
+                      const remainingWait = Math.max(0, minLoadTime - elapsedTime);
+                      
+                      // Wait for minimum load time to complete
+                      if (remainingWait > 0) {
+                        await new Promise(resolve => setTimeout(resolve, remainingWait));
+                      }
+
+                      if (result.success) {
+                        await fetchCounselors();
+                        setIsModalOpen(false);
+                        setSelectedCounselor(null);
+
+                        if (result.data && result.data.password) {
+                          const pw = result.data.password;
+                          Swal.fire({
+                            icon: 'success',
+                            title: 'Counselor Created Successfully!',
+                            html: `<div class="text-left">
+                              <p>Password for <b>${result.data.name}</b>:</p>
+                              <div style="margin-top:12px; padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
+                                <code style="font-size:16px; font-weight: bold; word-break: break-all;">${pw}</code>
+                              </div>
+                              <p style="margin-top: 12px; font-size: 12px; color: #666;">Click copy button to copy password</p>
+                            </div>`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Copy Password',
+                            cancelButtonText: 'Close',
+                            confirmButtonColor: '#FB9724',
+                            willClose: async (result) => {
+                              if (result.isConfirmed) {
+                                try {
+                                  await navigator.clipboard.writeText(pw);
+                                  Swal.fire({
+                                    icon: 'success',
+                                    title: 'Copied!',
+                                    text: 'Password copied to clipboard',
+                                    timer: 1500,
+                                    timerProgressBar: true,
+                                    confirmButtonColor: '#FB9724'
+                                  });
+                                } catch (e) {
+                                  Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Copy Failed',
+                                    text: 'Please copy manually: ' + pw,
+                                    confirmButtonColor: '#FB9724'
+                                  });
+                                }
+                              }
+                            }
+                          });
+                        } else {
+                          Swal.fire({
+                            icon: 'success',
+                            title: counselorData.id ? 'Counselor Updated!' : 'Counselor Added!',
+                            text: 'Changes have been saved successfully',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            confirmButtonColor: '#FB9724'
+                          });
+                        }
+                      } else {
+                        // Handle API error response
+                        Swal.fire({
+                          icon: 'error',
+                          title: 'Operation Failed',
+                          text: result.message || 'An error occurred while saving the counselor',
+                          confirmButtonColor: '#FB9724'
+                        });
+                      }
+                    } catch (error) {
+                      console.error('Error saving counselor:', error);
+                      
+                      // Ensure minimum loading time even on error
+                      const elapsedTime = Date.now() - startTime;
+                      const remainingWait = Math.max(0, minLoadTime - elapsedTime);
+                      if (remainingWait > 0) {
+                        await new Promise(resolve => setTimeout(resolve, remainingWait));
+                      }
+                      
+                      Swal.fire({
+                        icon: 'error',
+                        title: 'Network Error',
+                        text: 'Failed to connect to the server. Please check your connection and try again.',
+                        confirmButtonColor: '#FB9724'
+                      });
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }
+                });
               } catch (error) {
-                console.error('Error saving counselor: ', error);
-                alert('Failed to save counselor');
-              } finally {
+                console.error('Error in onSave handler:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Unexpected Error',
+                  text: 'An unexpected error occurred. Please try again.',
+                  confirmButtonColor: '#FB9724'
+                });
                 setIsSaving(false);
               }
             }}

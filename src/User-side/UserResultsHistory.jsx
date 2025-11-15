@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEye, FiFileText, FiMessageCircle, FiCalendar, FiCopy } from "react-icons/fi";
+import { FiEye, FiFileText, FiMessageCircle, FiCalendar, FiCopy, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import Swal from "sweetalert2";
@@ -14,14 +14,53 @@ const UserResultsHistory = () => {
     counselorReplies: 0,
   });
   const [assessments, setAssessments] = useState([]);
+  const [filteredAssessments, setFilteredAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [satisfactionFilter, setSatisfactionFilter] = useState("");
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   // Fetch assessment history
   useEffect(() => {
     document.title = 'TigerRoutes | Results';
     fetchAssessmentHistory();
   }, []);
+
+  // Filter assessments when search, date filter, or original data changes
+  useEffect(() => {
+    let filtered = assessments;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(assessment =>
+        assessment.assessmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (assessment.feedback && assessment.feedback.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (typeof assessment.reply === 'object' && 
+         assessment.reply.counselor.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Apply date filter
+    if (dateFilter) {
+      filtered = filtered.filter(assessment => assessment.date === dateFilter);
+    }
+
+    // Apply satisfaction filter
+    if (satisfactionFilter) {
+      const rating = parseInt(satisfactionFilter);
+      filtered = filtered.filter(assessment => assessment.satisfaction === rating);
+    }
+
+    setFilteredAssessments(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchTerm, dateFilter, satisfactionFilter, assessments]);
 
   const fetchAssessmentHistory = async () => {
       try {
@@ -50,6 +89,7 @@ const UserResultsHistory = () => {
           if (data.success) {
               setStats(data.data.stats);
               setAssessments(data.data.assessments);
+              setFilteredAssessments(data.data.assessments);
           } else {
               setError(data.message || 'Failed to fetch assessment history');
           }
@@ -63,9 +103,50 @@ const UserResultsHistory = () => {
   // Copy assessment ID to clipboard
   const copyToClipboard = (assessmentId) => {
     navigator.clipboard.writeText(assessmentId).then(() => {
-      // You can add a toast notification here
-      alert('Assessment ID copied to clipboard!');
+      Swal.fire({
+        title: 'Copied!',
+        text: 'Assessment ID copied to clipboard',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'rounded-xl'
+        }
+      });
     });
+  };
+
+  // Get unique dates for date filter
+  const uniqueDates = [...new Set(assessments.map(assessment => assessment.date))].sort().reverse();
+
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredAssessments.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredAssessments.length / itemsPerPage);
+
+  // Pagination handlers
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setDateFilter("");
+    setSatisfactionFilter("");
   };
 
   // Reusable ProgressCircle wrapper
@@ -105,10 +186,9 @@ const UserResultsHistory = () => {
     );
   };
 
-
   const handleShowFeedback = (feedback, userRating) => {
     const notes = feedback;
-    const rating = userRating; // assuming rating is a number (e.g. 4)
+    const rating = userRating;
     
     const stars = Array.from({ length: 5 }, (_, i) => 
       i < rating
@@ -253,11 +333,78 @@ const UserResultsHistory = () => {
 
         {/* Assessment History */}
         <div className="bg-white p-6 rounded-xl shadow border border-black">
-          <h3 className="text-xl font-bold mb-4">Assessment History</h3>
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-2 gap-4">
+            <h3 className="text-xl font-bold">Assessment History</h3>
+            
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              {/* Search Input */}
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search assessments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
+                />
+              </div>
 
-          {assessments.length === 0 ? (
+              {/* Date Filter */}
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Dates</option>
+                {uniqueDates.map(date => (
+                  <option key={date} value={date}>{date}</option>
+                ))}
+              </select>
+
+              {/* Satisfaction Filter */}
+              <select
+                value={satisfactionFilter}
+                onChange={(e) => setSatisfactionFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+
+              {/* Clear Filters */}
+              {(searchTerm || dateFilter || satisfactionFilter) && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="mb-4 text-sm text-gray-600">
+            Showing {filteredAssessments.length} of {assessments.length} assessments
+            {(searchTerm || dateFilter || satisfactionFilter) && " (filtered)"}
+          </div>
+
+          {filteredAssessments.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>No assessment history found.</p>
+              {(searchTerm || dateFilter || satisfactionFilter) && (
+                <button
+                  onClick={clearFilters}
+                  className="mt-2 text-blue-600 hover:underline"
+                >
+                  Clear filters to show all assessments
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -275,7 +422,7 @@ const UserResultsHistory = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {assessments.map((assessment, idx) => (
+                    {currentItems.map((assessment, idx) => (
                       <tr
                         key={idx}
                         className="border-b text-sm hover:bg-gray-50 transition"
@@ -372,7 +519,7 @@ const UserResultsHistory = () => {
 
               {/* Mobile Cards */}
               <div className="space-y-4 md:hidden">
-                {assessments.map((assessment, idx) => (
+                {currentItems.map((assessment, idx) => (
                   <div
                     key={idx}
                     className="relative bg-gray-50 p-4 pl-6 rounded-lg shadow-sm border border-gray-200"
@@ -450,6 +597,92 @@ const UserResultsHistory = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Pagination */}
+              {(
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+                  {/* Items per page selector */}
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Show</span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span>entries</span>
+                  </div>
+
+                  {/* Page info */}
+                  <div className="text-sm text-gray-600">
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredAssessments.length)} of {filteredAssessments.length} entries
+                  </div>
+
+                  {/* Pagination Controls */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                      className={`p-2 rounded-lg border ${
+                        currentPage === 1
+                          ? 'text-gray-400 border-gray-300 cursor-not-allowed'
+                          : 'text-gray-600 border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <FiChevronLeft size={16} />
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <button
+                            key={pageNumber}
+                            onClick={() => handlePageClick(pageNumber)}
+                            className={`px-3 py-1 rounded-lg border text-sm ${
+                              currentPage === pageNumber
+                                ? 'bg-blue-500 text-white border-blue-500'
+                                : 'text-gray-600 border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNumber}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className={`p-2 rounded-lg border ${
+                        currentPage === totalPages
+                          ? 'text-gray-400 border-gray-300 cursor-not-allowed'
+                          : 'text-gray-600 border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <FiChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

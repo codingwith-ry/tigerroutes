@@ -71,8 +71,34 @@ const AdminSidebar = () => {
       buttonsStyling: false,
     }).then((result) => {
       if (result.isConfirmed) {
-        sessionStorage.clear();
-        navigate("/");
+        // Call server to destroy session and clear HttpOnly cookie, then clear client storage
+        fetch('http://localhost:5000/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        }).then(() => {
+          try { localStorage.clear(); } catch (_) {}
+          try { sessionStorage.clear(); } catch (_) {}
+          navigate("/");
+          Swal.fire({
+            icon: "success",
+            title: "Logged Out",
+            text: "You have been successfully logged out.",
+            confirmButtonText: "OK",
+            customClass: {
+              popup: "rounded-xl",
+              confirmButton:
+                "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
+            },
+            buttonsStyling: false,
+          });
+        }).catch((err) => {
+          console.error('Logout request failed', err);
+          // Still clear client storage to avoid local re-entry; warn user server logout may have failed
+          try { localStorage.clear(); } catch (_) {}
+          try { sessionStorage.clear(); } catch (_) {}
+          navigate("/");
+          Swal.fire('Logged out (local)', 'Local session cleared but server logout may have failed.', 'warning');
+        });
       }
     });
   };

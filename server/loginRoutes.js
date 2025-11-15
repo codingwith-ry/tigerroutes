@@ -276,11 +276,26 @@ module.exports = (db) => {
 
 
     router.post('/logout', (req, res) => {
-        res.clearCookie('tigerToken', {
-            httpOnly: true,
-            secure: false, //match cookie settings
-            sameSite: 'lax'
-        });
+        // Destroy server-side session if present
+        try {
+            if (req.session) {
+                req.session.destroy((err) => {
+                    if (err) console.error('Error destroying session on logout:', err);
+                    // Clear cookies related to authentication
+                    res.clearCookie('tigerToken', { httpOnly: true, secure: false, sameSite: 'lax' });
+                    const sessionCookieName = process.env.SESSION_COOKIE_NAME || 'tigerroutes.sid';
+                    res.clearCookie(sessionCookieName, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+                    return res.json({ success: true });
+                });
+                return;
+            }
+        } catch (err) {
+            console.error('Logout error when destroying session:', err);
+        }
+        // Fallback: clear cookies even if no session object
+        res.clearCookie('tigerToken', { httpOnly: true, secure: false, sameSite: 'lax' });
+        const sessionCookieName = process.env.SESSION_COOKIE_NAME || 'tigerroutes.sid';
+        res.clearCookie(sessionCookieName, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
         res.json({ success: true });
     })
 

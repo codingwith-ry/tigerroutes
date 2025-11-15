@@ -126,7 +126,7 @@ const handleInputChange = (e) => {
     setShowPassword(!showPassword);
   };
 
-  useEffect(() => {
+  /*  useEffect(() => {
     if (window.google) {
       window.google.accounts.id.initialize({
         client_id: "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
@@ -137,7 +137,10 @@ const handleInputChange = (e) => {
         { theme: "outline",  size: "large"}
       );
     }
-  }, []);
+  }, []); */
+
+  useEffect(() => {}, []);
+
 
   function handleGoogleResponse(response) {
     // Decode JWT to get user info
@@ -182,6 +185,74 @@ const handleInputChange = (e) => {
           }
         });
   }
+
+  const handleGoogleSignIn = () => {
+  if (!window.google || !window.google.accounts) {
+    Swal.fire({
+      icon: "error",
+      title: "Google Sign-In Not Loaded",
+      text: "Try refreshing the page.",
+    });
+    return;
+  }
+
+  const client = window.google.accounts.oauth2.initTokenClient({
+    client_id:
+      "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
+    scope: "openid email profile",
+    callback: async (tokenResponse) => {
+      try {
+        // Fetch Google user info
+        const userInfo = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          }
+        ).then((res) => res.json());
+
+        const { email, name } = userInfo;
+
+        // Send to backend to register/login
+        const server = await fetch("http://localhost:5000/api/google-auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name }),
+        }).then((res) => res.json());
+
+        if (server.success) {
+          sessionStorage.setItem("user", JSON.stringify(server.user));
+
+          Swal.fire({
+            icon: "success",
+            title: server.isNew
+              ? "Account Created!"
+              : "Welcome Back!",
+            text: "Logged in as " + email,
+          });
+
+          navigate("/home");
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Google Sign-In Failed",
+            text: server.error,
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Google Auth Error",
+          text: error.message,
+        });
+      }
+    },
+  });
+
+  client.requestAccessToken();
+};
+
   
 
   return (
@@ -322,13 +393,14 @@ const handleInputChange = (e) => {
 
           {/* Google Login */}
           <button
-            type="button"
-            className="w-full border border-gray-300 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-50 transition"
-            id="googleSignInDiv"
-          >
-            <FcGoogle size={20} />
-            <span className="text-sm font-medium text-gray-700">Continue with Google</span>
-          </button>
+  type="button"
+  onClick={handleGoogleSignIn}
+  className="w-full border border-gray-300 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+>
+  <FcGoogle size={20} />
+  <span className="text-sm font-medium text-gray-700">Continue with Google</span>
+</button>
+
 
           {/* Sign up */}
           <div className="text-center text-sm text-gray-700">

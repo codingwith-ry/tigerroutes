@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchStaffProfile } from '../utils/staffProfile';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const AdminHeader = ({ title }) => {
   const [profile, setProfile] = useState(null);
@@ -9,6 +11,36 @@ const AdminHeader = ({ title }) => {
     (async () => {
       const p = await fetchStaffProfile();
       if (mounted) setProfile(p);
+      // If no session/profile was returned, the user likely navigated directly to a protected admin URL.
+      // Show a notice and redirect to home after 5 seconds.
+      if (!p) {
+        try {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Not authenticated',
+            html: 'You are not logged in. Redirecting to home in <strong></strong> seconds.',
+            timer: 5000,
+            allowOutsideClick: false,
+            didOpen: () => {
+              const b = Swal.getHtmlContainer().querySelector('strong');
+              let i = 5;
+              b.textContent = String(i);
+              const t = setInterval(() => {
+                i -= 1;
+                if (b) b.textContent = String(i);
+              }, 1000);
+              Swal.getTimerLeft = () => 0; // noop to avoid warnings
+              Swal.getPopup().addEventListener('swalClose', () => clearInterval(t));
+            }
+          }).then(() => {
+            // navigate to home
+            try { window.location.href = '/'; } catch (e) { window.location.replace('/'); }
+          });
+        } catch (e) {
+          // fallback redirect if Swal fails
+          setTimeout(() => { try { window.location.href = '/'; } catch (err) { window.location.replace('/'); } }, 5000);
+        }
+      }
     })();
     return () => { mounted = false; };
   }, []);

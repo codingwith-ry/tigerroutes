@@ -62,7 +62,7 @@ const AssessmentRIASECPage = () => {
         const parsedProgress = JSON.parse(savedProgress);
         
         setAnswers(parsedAnswers);
-        setCurrentQuestionIndex(parsedProgress);
+        setCurrentQuestionIndex(parsedProgress == questions.length ? questions.length - 1 : parsedProgress);
         
         // Recalculate scores based on loaded answers
         const newScores = calculateScores(parsedAnswers);
@@ -128,21 +128,23 @@ const AssessmentRIASECPage = () => {
    * Handle user selecting an answer for the current question
    * @param {number} value - The answer value (1 for "Like", 2 for "Dislike")
    */
-  const handleAnswer = (value) => {
-    const newAnswers = {
-      ...answers,
-      [currentQuestionIndex]: value,
-    };
-    setAnswers(newAnswers);
-    setHasUnsavedChanges(true);
+    const handleAnswer = (value) => {
+      const newAnswers = {
+        ...answers,
+        [currentQuestionIndex]: value,
+      };
+      setAnswers(newAnswers);
+      setHasUnsavedChanges(true);
 
-    // Recalculate scores with new answer
-    const newScores = calculateScores(newAnswers);
-    setScores(newScores);
+      // Recalculate scores with new answer
+      const newScores = calculateScores(newAnswers);
+      setScores(newScores);
 
     // Auto-advance to next question if not at the end
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      if (currentQuestionIndex < questions.length - 1) {
+        setTimeout(() => {
+          setCurrentQuestionIndex((prev) => prev + 1);
+      });
     }
   };
 
@@ -159,7 +161,7 @@ const AssessmentRIASECPage = () => {
    * Navigate to the next question
    */
   const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
+    if (currentQuestionIndex <= questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -189,12 +191,13 @@ const AssessmentRIASECPage = () => {
         return;
       }
 
+
       // Prepare data to send to API
       const progressData = {
         studentAccount_ID: parseInt(studentAccountId),
         assessmentID: assessmentId,
         riasec_responses: answers,
-        riasec_progress: currentQuestionIndex,
+        riasec_progress: answers ? Object.keys(answers).length : 0,
         bigfive_responses: null,
         bigfive_progress: 0,
       };
@@ -476,7 +479,7 @@ const AssessmentRIASECPage = () => {
               <button
                 className={`text-sm font-medium ${
                   !answers[currentQuestionIndex] ||
-                  currentQuestionIndex === questions.length - 1
+                  currentQuestionIndex > questions.length - 1
                     ? "invisible"
                     : ""
                 }`}

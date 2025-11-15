@@ -123,13 +123,13 @@ const AssessmentPage = () => {
     
     // Determine which assessment to continue based on progress
     
-    if (pendingAssessment.riasec_progress < progress.riasecTotal - 1) {
+    if (pendingAssessment.riasec_progress <= progress.riasecTotal && pendingAssessment.bigfive_progress === 0) {
       navigate(`/assessment/test/RIASEC/${pendingAssessment.pendingAssessment_ID}`);
-    } else if (pendingAssessment.bigfive_progress < progress.bigFiveTotal - 1) {
+    } else if (pendingAssessment.bigfive_progress <= progress.bigFiveTotal) {
       navigate(`/assessment/test/BigFive/${pendingAssessment.pendingAssessment_ID}`);
     } else {
       // If both are complete, go to results
-      navigate(`/results/${pendingAssessment.pendingAssessment_ID}`);
+      navigate(`/assessment/results/${pendingAssessment.pendingAssessment_ID}`);
     }
   };
 

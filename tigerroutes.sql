@@ -331,6 +331,27 @@ CREATE TABLE IF NOT EXISTS `tbl_studentprofiles` (
 INSERT INTO `tbl_studentprofiles` (`studentProfile_ID`, `strand_ID`, `gradeLevel`, `studentGrades_ID`) VALUES
 	(1, 7, 11, 1);
 
+
+-- Dumping structure for table tigerroutesdb.tbl_pendingassessments
+CREATE TABLE IF NOT EXISTS `tbl_pendingassessments` (
+  `pendingAssessment_ID` char(36) COLLATE utf8mb4_general_ci NOT NULL,
+  `studentAccount_ID` int NOT NULL,
+  `assessmentProfile_ID` int DEFAULT NULL,
+  `riasec_responses` json DEFAULT NULL,
+  `bigfive_responses` json DEFAULT NULL,
+  `riasec_progress` int DEFAULT '0',
+  `bigfive_progress` int DEFAULT '0',
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pendingAssessment_ID`),
+  KEY `studentAccount_ID` (`studentAccount_ID`),
+  KEY `FK_pending_assessmentprofile` (`assessmentProfile_ID`),
+  CONSTRAINT `FK_pending_assessmentprofile` FOREIGN KEY (`assessmentProfile_ID`) REFERENCES `tbl_assessmentprofiles` (`assessmentProfile_ID`) ON DELETE CASCADE,
+  CONSTRAINT `FK_pending_student` FOREIGN KEY (`studentAccount_ID`) REFERENCES `tbl_studentaccounts` (`studentAccount_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;

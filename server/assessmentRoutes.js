@@ -944,13 +944,12 @@ module.exports = (db) => {
         });
     });
 
-    router.delete('/assessment/delete-progress/:pendingAssessmentId', (req, res) => {
-        const connection = req.db;
-        const { pendingAssessmentId } = req.params;
+    router.delete('/assessment/delete-PendingAssessment/', (req, res) => {
+        const { pendingAssessment_ID, studentAccount_ID } = req.body;
 
-        const query = 'DELETE FROM tbl_pendingassessments WHERE pendingAssessment_ID = ?';
+        const query = 'DELETE FROM tbl_pendingassessments WHERE pendingAssessment_ID = ? AND studentAccount_ID = ?';
 
-        db.query(query, [pendingAssessmentId], (error, results) => {
+        db.query(query, [pendingAssessment_ID, studentAccount_ID], (error, results) => {
             if (error) {
             console.error('Database error:', error);
             return res.status(500).json({

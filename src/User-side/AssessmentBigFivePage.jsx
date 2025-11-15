@@ -59,7 +59,11 @@ const AssessmentBigFivePage = () => {
         const parsedProgress = JSON.parse(savedProgress);
         
         setAnswers(parsedAnswers);
-        setCurrentQuestionIndex(parsedProgress);
+        if(parsedProgress < questions.length) {
+          setCurrentQuestionIndex(parsedProgress);
+        }else{
+          setCurrentQuestionIndex(questions.length - 1);
+        }
         
         // Recalculate scores based on loaded answers
         const newScores = calculateScores(parsedAnswers);
@@ -199,6 +203,8 @@ const AssessmentBigFivePage = () => {
       const riasecAnswers = localStorage.getItem("riasecAnswers");
       const riasecProgress = localStorage.getItem("riasecProgress");
 
+      console.log("Big Five answers to save:", answers);
+      console.log("Big Five progress to save:", Object.keys(answers).length);
       // Prepare data to send to API
       const progressData = {
         studentAccount_ID: parseInt(studentAccountId),
@@ -206,7 +212,7 @@ const AssessmentBigFivePage = () => {
         riasec_responses: riasecAnswers ? JSON.parse(riasecAnswers) : null,
         riasec_progress: riasecProgress ? JSON.parse(riasecProgress) : 0,
         bigfive_responses: answers,
-        bigfive_progress: currentQuestionIndex,
+        bigfive_progress: answers ? Object.keys(answers).length : 0,
       };
 
       // Call API to save progress
@@ -330,7 +336,70 @@ const AssessmentBigFivePage = () => {
   /**
    * Submit results to backend and navigate to results page
    */
-  const handleResults = () => {
+  const handleResults = async () => {
+    try{
+      let riasecResults = localStorage.getItem("riasecResults");
+      
+      if (!riasecResults) {
+        // Calculate RIASEC results from stored answers
+        const riasecAnswers = localStorage.getItem("riasecAnswers");
+        if (riasecAnswers) {
+          // You need to load RIASEC questions to calculate results
+          const riasecQuestionsResponse = await fetch("/RIASEC&BigFive/RIASEC.json");
+          const riasecData = await riasecQuestionsResponse.json();
+          
+          const answers = JSON.parse(riasecAnswers);
+          const traitScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+          const traitCounts = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+
+          riasecData.questions.forEach((question, index) => {
+            const answer = answers[index];
+            if (answer !== undefined) {
+              const trait = question.trait;
+              if (answer === 1) {
+                traitScores[trait] += 1;
+              }
+              traitCounts[trait]++;
+            }
+          });
+
+          // Convert to percentage scores
+          Object.keys(traitScores).forEach((trait) => {
+            if (traitCounts[trait] > 0) {
+              traitScores[trait] = Math.round(
+                (traitScores[trait] / traitCounts[trait]) * 100
+              );
+            }
+          });
+
+          riasecResults = {
+            Realistic: Math.round(traitScores.R),
+            Investigative: Math.round(traitScores.I),
+            Artistic: Math.round(traitScores.A),
+            Social: Math.round(traitScores.S),
+            Enterprising: Math.round(traitScores.E),
+            Conventional: Math.round(traitScores.C),
+          };
+          
+          // Store the calculated results for future use
+          localStorage.setItem("riasecResults", JSON.stringify(riasecResults));
+        } else {
+          throw new Error("No RIASEC data found");
+        }
+      } else {
+        riasecResults = JSON.parse(riasecResults);
+      }
+    } catch (error) {
+      console.error("Error calculating RIASEC results:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'There was an error calculating your RIASEC results. Please try again.'
+      });
+      return;
+    }
+    
+
     fetch('http://localhost:5000/api/assessment/complete/', {
       method: 'POST',
       headers: {
@@ -355,6 +424,33 @@ const AssessmentBigFivePage = () => {
           text: 'There was an error saving your results. Please try again.'
         });
       }
+      
+      
+      fetch('http://localhost:5000/api/assessment/delete-PendingAssessment/', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pendingAssessment_ID: localStorage.getItem('currentAssessmentId'),
+          studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.error('Error deleting pending assessment:', data.message);
+        } 
+      });
+
+      // Clean up pending assessment entry
+      localStorage.removeItem('currentAssessmentId');
+      localStorage.removeItem('riasecAnswers');
+      localStorage.removeItem('bigFiveAnswers');
+      localStorage.removeItem('riasecProgress');
+      localStorage.removeItem('bigFiveProgress');
+      localStorage.removeItem('riasecResults');
+      localStorage.removeItem('bigFiveResults');
     })
     .catch(error => {
       console.error('Error:', error);

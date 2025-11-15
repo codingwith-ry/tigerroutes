@@ -4,6 +4,7 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 import Swal from "sweetalert2";
+import { nav } from "framer-motion/client";
 
 const AssessmentRIASECPage = () => {
   // State management for navigation and assessment data
@@ -52,8 +53,8 @@ const AssessmentRIASECPage = () => {
    * Load saved progress from localStorage on component mount
    */
   useEffect(() => {
-    const savedAnswers = localStorage.getItem("riasec_temp_answers");
-    const savedProgress = localStorage.getItem("riasec_temp_progress");
+    const savedAnswers = localStorage.getItem("riasecAnswers");
+    const savedProgress = localStorage.getItem("riasecProgress");
     
     if (savedAnswers && savedProgress) {
       try {
@@ -224,13 +225,12 @@ const AssessmentRIASECPage = () => {
 
         Swal.fire({
           title: "Success!",
-          text: body.message || "Your progress has been saved successfully.",
+          text: body.message,
           icon: "success",
-          confirmButtonText: "OK",
-          customClass: {
-            confirmButton: "bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600",
-          },
-          buttonsStyling: false,
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => {
+          navigate("/assessment"); // Change to your desired route
         });
       })
       .catch(error => {
@@ -489,11 +489,11 @@ const AssessmentRIASECPage = () => {
               </button>
             )}
           </div>
-
-          <hr className="m-2"/>
+        </div>
+        <hr className="m-2"/>
 
           {/* Save Progress and Cancel Buttons */}
-          <div className="flex justify-end">
+          <div className="w-full max-w-3xl flex justify-end">
             <button
               className="text-sm font-medium bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-600 transition-colors"
               onClick={handleCancel}
@@ -501,14 +501,13 @@ const AssessmentRIASECPage = () => {
               Cancel
             </button>
             <button
-              className="text-sm font-medium bg-[#FB9724] text-white px-6 py-2 rounded-full hover:bg-[#FBBF24] transition-colors ml-2"
+              className="text-sm font-medium bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors ml-2"
               onClick={handleSaveProgress}
               disabled={Object.keys(answers).length === 0}
             >
               Save Progress
             </button>
           </div>
-        </div>
       </div>
       <Footer />
     </div>

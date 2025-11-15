@@ -891,7 +891,8 @@ module.exports = (db) => {
         }
 
         const query = `
-            SELECT 
+            SELECT
+            pa.pendingAssessment_ID, 
             pa.riasec_responses,
             pa.riasec_progress,
             pa.bigfive_responses,
@@ -943,13 +944,13 @@ module.exports = (db) => {
         });
     });
 
-    router.delete('assessment/delete-progress/:pendingAssessmentId', (req, res) => {
+    router.delete('/assessment/delete-progress/:pendingAssessmentId', (req, res) => {
         const connection = req.db;
         const { pendingAssessmentId } = req.params;
 
         const query = 'DELETE FROM tbl_pendingassessments WHERE pendingAssessment_ID = ?';
 
-        connection.query(query, [pendingAssessmentId], (error, results) => {
+        db.query(query, [pendingAssessmentId], (error, results) => {
             if (error) {
             console.error('Database error:', error);
             return res.status(500).json({

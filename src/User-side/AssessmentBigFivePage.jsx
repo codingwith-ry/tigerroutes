@@ -1,57 +1,18 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 import Swal from "sweetalert2";
 
-
 const AssessmentBigFivePage = () => {
-    useEffect(() => {
-        document.title = "Assessment | Big Five";
-        return () => {
-        document.title = "Default Title";
-        };
-    }, []);
   const navigate = useNavigate();
-
-  const handleResults = () => {
-
-    fetch('http://localhost:5000/api/assessment/complete/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        studentAssessment_ID: localStorage.getItem('currentAssessmentId'),
-        studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID,
-        riasecResults: JSON.parse(localStorage.getItem('riasecResults')),
-        bigFiveResults: JSON.parse(localStorage.getItem('bigFiveResults'))
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        console.log('Success:', data.programRecommendations);
-        navigate('/assessment/results/'+ localStorage.getItem('currentAssessmentId'));
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'There was an error saving your results. Please try again.'
-        });
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  };
-
   const [activeStep] = useState("Big Five");
   const [questions, setQuestions] = useState([]);
   const [choices, setChoices] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [scores, setScores] = useState({
     "Extraversion": 0,
     "Agreeableness": 0,
@@ -60,6 +21,79 @@ const AssessmentBigFivePage = () => {
     "Open-Mindedness": 0
   });
 
+  /**
+   * Set page title on component mount
+   */
+  useEffect(() => {
+    document.title = "Assessment | Big Five";
+    
+    // Cleanup: restore default title on unmount
+    return () => {
+      document.title = "Default Title";
+    };
+  }, []);
+
+  /**
+   * Load Big Five questions and choices from JSON file
+   */
+  useEffect(() => {
+    fetch('/RIASEC&BigFive/BFI2S.json')
+      .then(response => response.json())
+      .then(data => {
+        setQuestions(data.questions);
+        setChoices(data.choices);
+      })
+      .catch(error => console.error('Error loading questions:', error));
+  }, []);
+
+  /**
+   * Load saved progress from localStorage on component mount
+   */
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem("bigFiveAnswers");
+    const savedProgress = localStorage.getItem("bigFiveProgress");
+    
+    if (savedAnswers && savedProgress) {
+      try {
+        const parsedAnswers = JSON.parse(savedAnswers);
+        const parsedProgress = JSON.parse(savedProgress);
+        
+        setAnswers(parsedAnswers);
+        setCurrentQuestionIndex(parsedProgress);
+        
+        // Recalculate scores based on loaded answers
+        const newScores = calculateScores(parsedAnswers);
+        setScores(newScores);
+      } catch (error) {
+        console.error("Error loading saved progress:", error);
+      }
+    }
+  }, [questions]);
+
+  /**
+   * Warn user about unsaved changes before leaving the page
+   */
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  });
+
+  /**
+   * Calculate Big Five domain scores based on user answers
+   * @param {Object} newAnswers - User's answers indexed by question number
+   * @returns {Object} Calculated scores for each Big Five domain
+   */
   const calculateScores = (newAnswers) => {
     const domainScores = {
       "Extraversion": 0,
@@ -96,43 +130,184 @@ const AssessmentBigFivePage = () => {
     return domainScores;
   };
 
-  useEffect(() => {
-    fetch('/RIASEC&BigFive/BFI2S.json')
-      .then(response => response.json())
-      .then(data => {
-        setQuestions(data.questions);
-        setChoices(data.choices);
-      })
-      .catch(error => console.error('Error loading questions:', error));
-  }, []);
-
+  /**
+   * Handle user selecting an answer for the current question
+   * @param {number} value - The answer value (1-5)
+   */
   const handleAnswer = (value) => {
     const newAnswers = {
       ...answers,
       [currentQuestionIndex]: value
     };
     setAnswers(newAnswers);
+    setHasUnsavedChanges(true);
     
+    // Recalculate scores with new answer
     const newScores = calculateScores(newAnswers);
     setScores(newScores);
     
+    // Auto-advance to next question if not at the end
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
+  /**
+   * Navigate to the previous question
+   */
   const handleBack = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
+  /**
+   * Navigate to the next question
+   */
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
+  /**
+   * Save assessment progress to database via API
+   */
+  const handleSaveProgress = async () => {
+    try {
+      // Get required data from localStorage
+      const userData = sessionStorage.getItem('user');
+      const user = JSON.parse(userData);
+      const assessmentId = localStorage.getItem("currentAssessmentId");
+      const studentAccountId = user.studentAccount_ID;
+
+      if (!studentAccountId) {
+        Swal.fire({
+          title: "Error",
+          text: "Student account information not found. Please log in again.",
+          icon: "error",
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600",
+          },
+          buttonsStyling: false,
+        });
+        return;
+      }
+
+      // Load RIASEC data from localStorage
+      const riasecAnswers = localStorage.getItem("riasecAnswers");
+      const riasecProgress = localStorage.getItem("riasecProgress");
+
+      // Prepare data to send to API
+      const progressData = {
+        studentAccount_ID: parseInt(studentAccountId),
+        assessmentID: assessmentId,
+        riasec_responses: riasecAnswers ? JSON.parse(riasecAnswers) : null,
+        riasec_progress: riasecProgress ? JSON.parse(riasecProgress) : 0,
+        bigfive_responses: answers,
+        bigfive_progress: currentQuestionIndex,
+      };
+
+      // Call API to save progress
+      fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(progressData),
+      })
+        .then(response => {
+          // Parse response body as JSON
+          return response.json().then(result => {
+            // Attach status for error handling outside json()
+            return { ok: response.ok, status: response.status, body: result };
+          });
+        })
+        .then(({ ok, body }) => {
+          if (!ok) {
+            throw new Error(body.message || "Failed to save progress");
+          }
+
+          setHasUnsavedChanges(false);
+          localStorage.removeItem("bigfive_temp_answers");
+          localStorage.removeItem("bigfive_temp_progress");
+
+          Swal.fire({
+            title: "Success!",
+            text: body.message,
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          }).then(() => {
+            navigate("/assessment"); // Change to your desired route
+          });
+        })
+        .catch(error => {
+          console.error("Error saving progress:", error);
+          Swal.fire({
+            title: "Error",
+            text: error.message || "There was an error saving your progress. Please try again.",
+            icon: "error",
+            confirmButtonText: "OK",
+            customClass: {
+              confirmButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600",
+            },
+            buttonsStyling: false,
+          });
+        });
+    } catch (error) {
+      console.error("Error preparing save data:", error);
+    }
+  };
+
+  /**
+   * Handle cancel button - confirm before leaving if there are unsaved changes
+   */
+  const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      Swal.fire({
+        title: "Unsaved Changes",
+        text: "You have unsaved changes. Do you want to save before leaving?",
+        icon: "warning",
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: "Save & Leave",
+        denyButtonText: "Leave Without Saving",
+        cancelButtonText: "Stay",
+        reverseButtons: true,
+        customClass: {
+          popup: "rounded-xl",
+          confirmButton: "bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 ml-2",
+          denyButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 ml-2",
+          cancelButton: "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400",
+        },
+        buttonsStyling: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Save progress and then navigate
+          handleSaveProgress().then(() => {
+            navigate("/user-dashboard"); // Change to your desired route
+          });
+        } else if (result.isDenied) {
+          // Leave without saving
+          setHasUnsavedChanges(false);
+          localStorage.removeItem("bigfive_temp_answers");
+          localStorage.removeItem("bigfive_temp_progress");
+          navigate("/user-dashboard"); // Change to your desired route
+        }
+        // If cancelled, do nothing (stay on page)
+      });
+    } else {
+      // No unsaved changes, navigate directly
+      navigate("/user-dashboard"); // Change to your desired route
+    }
+  };
+
+  /**
+   * Handle test completion and save final results
+   * @param {Object} finalScores - Final calculated Big Five scores
+   */
   const handleTestComplete = (finalScores) => {
     const bigFiveResults = {
       Openness: finalScores["Open-Mindedness"],
@@ -142,21 +317,54 @@ const AssessmentBigFivePage = () => {
       Neuroticism: finalScores["Negative Emotionality"]
     };
 
-    localStorage.setItem('bigFiveAnswers', JSON.stringify(answers));
-    localStorage.setItem('bigFiveResults', JSON.stringify(bigFiveResults));
+    // Save final results to localStorage
+    localStorage.setItem("bigFiveAnswers", JSON.stringify(answers));
+    localStorage.setItem("bigFiveResults", JSON.stringify(bigFiveResults));
+    
+    // Clear temporary progress data
+    localStorage.removeItem("bigfive_temp_answers");
+    localStorage.removeItem("bigfive_temp_progress");
+    setHasUnsavedChanges(false);
   };
 
-  const areAllQuestionsAnswered = () => {
-    return Object.keys(answers).length === questions.length;
+  /**
+   * Submit results to backend and navigate to results page
+   */
+  const handleResults = () => {
+    fetch('http://localhost:5000/api/assessment/complete/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        studentAssessment_ID: localStorage.getItem('currentAssessmentId'),
+        studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID,
+        riasecResults: JSON.parse(localStorage.getItem('riasecResults')),
+        bigFiveResults: JSON.parse(localStorage.getItem('bigFiveResults'))
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('Success:', data.programRecommendations);
+        navigate('/assessment/results/'+ localStorage.getItem('currentAssessmentId'));
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'There was an error saving your results. Please try again.'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
   };
 
-  const getStepClass = (step) =>
-    activeStep === step ? "text-[#FB9724]" : "text-gray-600";
-
-  const getIconColor = (step) =>
-    activeStep === step ? "#FB9724" : "currentColor";
-
-    const showCompletionAlert = (scores, handleTestComplete, handleResults) => {
+  /**
+   * Show completion alert and proceed to results
+   */
+  const showCompletionAlert = (scores, handleTestComplete, handleResults) => {
     Swal.fire({
       title: "Congratulations!",
       text: "You are done answering the Big Five section. Are you sure you want to view your results?",
@@ -168,10 +376,8 @@ const AssessmentBigFivePage = () => {
       customClass: {
         popup: "rounded-xl",
         title: "text-green-500 font-bold",
-        cancelButton:
-          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2 w-32",
-        confirmButton:
-          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2 w-32",
+        cancelButton: "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2 w-32",
+        confirmButton: "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2 w-32",
       },
       buttonsStyling: false,
     }).then((result) => {
@@ -182,6 +388,29 @@ const AssessmentBigFivePage = () => {
     });
   };
 
+  /**
+   * Check if all questions have been answered
+   * @returns {boolean} True if all questions answered, false otherwise
+   */
+  const areAllQuestionsAnswered = () => {
+    return Object.keys(answers).length === questions.length;
+  };
+
+  /**
+   * Get CSS class for step indicator based on active step
+   * @param {string} step - Step name to check
+   * @returns {string} CSS class string
+   */
+  const getStepClass = (step) =>
+    activeStep === step ? "text-[#FB9724]" : "text-gray-600";
+
+  /**
+   * Get icon color for step indicator based on active step
+   * @param {string} step - Step name to check
+   * @returns {string} Color value
+   */
+  const getIconColor = (step) =>
+    activeStep === step ? "#FB9724" : "currentColor";
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
@@ -192,6 +421,7 @@ const AssessmentBigFivePage = () => {
           THE BIG FIVE TEST
         </h1>
 
+        {/* Test Instructions Card */}
         <div
           className="rounded-lg shadow border border-gray-300 w-full max-w-3xl p-6 mb-6"
           style={{ backgroundColor: "#E5EEFF" }}
@@ -205,7 +435,9 @@ const AssessmentBigFivePage = () => {
           </p>
         </div>
 
+        {/* Main Assessment Card */}
         <div className="bg-white rounded-lg shadow border border-black w-full max-w-3xl p-6">
+          {/* Progress Steps Indicator */}
           <div className="flex justify-between items-center text-sm mb-6">
             <div className="flex items-center space-x-4">
               <div className={`flex items-center space-x-1 ${getStepClass("RIASEC")}`}>
@@ -228,20 +460,23 @@ const AssessmentBigFivePage = () => {
               </div>
             </div>
 
+            {/* Question Counter */}
             <span className="font-medium text-gray-700">
               {currentQuestionIndex + 1} of {questions.length}
             </span>
           </div>
 
+          {/* Question Display */}
           <h2 className="text-center text-2xl font-semibold mb-2 mt-12">
             {questions[currentQuestionIndex]?.question || "Loading..."}
           </h2>
 
+          {/* Answer Choices */}
           <div className="flex flex-col space-y-2 items-center">
             {choices?.map((choice, idx) => (
               <button
                 key={idx}
-                className={`w-60 text-black font-medium rounded-full shadow border-2 transition
+                className={`w-60 text-black font-medium rounded-full shadow border-2 transition py-2
                   ${answers[currentQuestionIndex] === choice.value
                     ? 'bg-[#FFD96A] border-[#FB9724]' 
                     : 'bg-[#FFE49E] border-[#FB9724] hover:bg-[#FFD96A]'}`}
@@ -252,6 +487,7 @@ const AssessmentBigFivePage = () => {
             ))}
           </div>
 
+          {/* Navigation Buttons */}
           <div className="mt-10 flex justify-between">
             <button 
               className={`text-sm font-medium ${currentQuestionIndex === 0 ? 'invisible' : ''}`}
@@ -270,7 +506,7 @@ const AssessmentBigFivePage = () => {
               >
                 View Results
               </button>
-              ) : (
+            ) : (
               <button 
                 className={`text-sm font-medium ${
                   !answers[currentQuestionIndex] || currentQuestionIndex === questions.length - 1 
@@ -286,6 +522,25 @@ const AssessmentBigFivePage = () => {
               </button>
             )}
           </div>
+        </div>
+        
+        <hr className="m-2"/>
+
+        {/* Save Progress and Cancel Buttons */}
+        <div className="w-full max-w-3xl flex justify-end">
+          <button
+            className="text-sm font-medium bg-gray-400 text-white px-6 py-2 rounded-full hover:bg-gray-600 transition-colors"
+            onClick={handleCancel}
+          >
+            Cancel
+          </button>
+          <button
+            className="text-sm font-medium bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors ml-2"
+            onClick={handleSaveProgress}
+            disabled={Object.keys(answers).length === 0}
+          >
+            Save Progress
+          </button>
         </div>
       </div>
       <Footer />

@@ -14,16 +14,13 @@ const AssessmentPage = () => {
   const [error, setError] = useState(null);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
-  const riasecTotal = 42;
-  const bigFiveTotal = 30;
-  const riasecProgress = 0;
-  const bigFiveProgress = 0;
-
-    
-  // Calculate overall percentage
-  const totalQuestions = 72;
-  const answeredQuestions = 0;
-  const overallPercentage = 0;
+  const [progress, setProgress] = useState({
+    riasecTotal: 42,
+    bigFiveTotal: 30,
+    riasecProgress: 0,
+    bigFiveProgress: 0,
+    overallPercentage: 0
+  });
 
   useEffect(() => {
     document.title = "Assessment | Overview";
@@ -51,6 +48,7 @@ const AssessmentPage = () => {
       }
     // Fetch user data and check for pending assessment
     fetchData();
+    getAssessmentProgress(pendingAssessment);
 
     return () => {
       document.title = "Default Title";
@@ -81,10 +79,10 @@ const AssessmentPage = () => {
       if (pendingResponse.ok) {
         const pendingData = await pendingResponse.json();
         if (pendingData) {
-          setPendingAssessment(pendingData);
+          console.log('Pending assessment found:', pendingData);
+          setPendingAssessment(pendingData.data);
           // Store the pending assessment ID in localStorage
           localStorage.setItem('currentAssessmentId', pendingData.assessment_ID);
-          getAssessmentProgress();
         }
       }
     } catch (err) {
@@ -117,15 +115,18 @@ const AssessmentPage = () => {
     if (!pendingAssessment) return;
 
     window.scrollTo(0, 0);
+    localStorage.setItem('currentAssessmentId', pendingAssessment.pendingAssessment_ID);
+    localStorage.setItem('riasecAnswers', JSON.stringify(pendingAssessment.riasec_responses || []));
+    localStorage.setItem('bigFiveAnswers', JSON.stringify(pendingAssessment.bigfive_responses || []));
+    localStorage.setItem('riasecProgress', pendingAssessment.riasec_progress || 0);
+    localStorage.setItem('bigFiveProgress', pendingAssessment.bigfive_progress || 0);
     
     // Determine which assessment to continue based on progress
-    const riasecTotal = 48; // Total RIASEC questions
-    const bigFiveTotal = 50; // Total Big Five questions
     
-    if (pendingAssessment.riasec_progress < riasecTotal) {
-      navigate(`/assessmentRIASEC/${pendingAssessment.pendingAssessment_ID}`);
-    } else if (pendingAssessment.bigfive_progress < bigFiveTotal) {
-      navigate(`/assessmentBigFive/${pendingAssessment.pendingAssessment_ID}`);
+    if (pendingAssessment.riasec_progress < progress.riasecTotal - 1) {
+      navigate(`/assessment/test/RIASEC/${pendingAssessment.pendingAssessment_ID}`);
+    } else if (pendingAssessment.bigfive_progress < progress.bigFiveTotal - 1) {
+      navigate(`/assessment/test/BigFive/${pendingAssessment.pendingAssessment_ID}`);
     } else {
       // If both are complete, go to results
       navigate(`/results/${pendingAssessment.pendingAssessment_ID}`);
@@ -143,16 +144,6 @@ const AssessmentPage = () => {
         showConfirmButton: false,
       }).then(() => {
         navigate("/profile");
-      });
-      return;
-    }
-
-    if (pendingAssessment) {
-      Swal.fire({
-        icon: "warning",
-        title: "Pending Assessment Found",
-        text: "You have an incomplete assessment. Please continue or cancel it before starting a new one.",
-        confirmButtonColor: "#FBBF24"
       });
       return;
     }
@@ -178,7 +169,7 @@ const AssessmentPage = () => {
     if (result.isConfirmed) {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/assessment/cancel-assessment/${pendingAssessment.pendingAssessment_ID}`,
+          `http://localhost:5000/api/assessment/delete-progress/${pendingAssessment.pendingAssessment_ID}`,
           { method: 'DELETE' }
         );
 
@@ -210,39 +201,29 @@ const AssessmentPage = () => {
     return grade !== null && grade !== undefined ? grade : 'N/A';
   };
 
-  const getAssessmentProgress = () => {
-    if (!pendingAssessment) return null;
-    
-    riasecTotal = 48;
-    bigFiveTotal = 50;
-    riasecProgress = pendingAssessment.riasec_progress || 0;
-    bigFiveProgress = pendingAssessment.bigfive_progress || 0;
-    
-    // Calculate overall percentage
-    totalQuestions = riasecTotal + bigFiveTotal;
-    answeredQuestions = riasecProgress + bigFiveProgress;
-    overallPercentage = Math.round((answeredQuestions / totalQuestions) * 100);
-    
-    // Determine current step
-    let currentStep = 'RIASEC';
-    if (riasecProgress >= riasecTotal) {
-      currentStep = 'Big Five';
-    }
-    if (riasecProgress >= riasecTotal && bigFiveProgress >= bigFiveTotal) {
-      currentStep = 'Completed';
-    }
-    
-    return {
-      step: currentStep,
-      percentage: overallPercentage,
-      riasecProgress,
+  const getAssessmentProgress = (pendingData) => {
+    if (!pendingAssessment) return;
+
+    const riasecTotal = 42;
+    const bigFiveTotal = 30;
+
+    const riasecProgress = pendingData.riasec_progress || 0;
+    const bigFiveProgress = pendingData.bigfive_progress || 0;
+
+    const totalQuestions = riasecTotal + bigFiveTotal;
+    const answeredQuestions = riasecProgress + bigFiveProgress;
+
+    const overallPercentage = Math.round((answeredQuestions / totalQuestions) * 100);
+
+    setProgress({
       riasecTotal,
-      bigFiveProgress,
       bigFiveTotal,
-      riasecPercentage: Math.round((riasecProgress / riasecTotal) * 100),
-      bigFivePercentage: Math.round((bigFiveProgress / bigFiveTotal) * 100)
-    };
+      riasecProgress,
+      bigFiveProgress,
+      overallPercentage
+    });
   };
+
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -323,13 +304,6 @@ const AssessmentPage = () => {
                         Previous Profile
                       </h2>
                     </div>
-                    <button
-                      type="button"
-                      className="p-1.5 hover:bg-[#FFF7E6] rounded transition"
-                      onClick={() => navigate("/profile")}
-                    >
-                      <SquarePen className="w-5 h-5 sm:w-6 sm:h-6 text-[#FBBF24]" />
-                    </button>
                   </div>
 
                   <div className="space-y-3 sm:space-y-4">
@@ -377,7 +351,7 @@ const AssessmentPage = () => {
               </div>
 
               {/* Assessment Progress Details */}
-              <div className="bg-white rounded-lg shadow border border-gray-300 p-4 sm:p-6">
+              <div className="bg-white rounded-lg shadow border border-gray-300 p-4 sm:p-6 mt-3">
                 <div className="flex items-center gap-2 mb-4">
                   <TrendingUp className="w-6 h-6 text-purple-600" />
                   <h3 className="font-bold text-lg sm:text-xl text-gray-800">Assessment Progress</h3>
@@ -387,12 +361,15 @@ const AssessmentPage = () => {
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-semibold text-gray-700">Overall Completion</span>
-                    <span className="text-sm font-bold text-purple-600">{overallPercentage}%</span>
+                    <span className="text-sm font-bold text-purple-600">
+                      {Math.round(((pendingAssessment.riasec_progress + pendingAssessment.bigfive_progress) / (progress.riasecTotal + progress.bigFiveTotal)) * 100)}%
+                    </span>
+
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div 
                       className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${overallPercentage}%` }}
+                      style={{ width: `${Math.round(((pendingAssessment.riasec_progress + pendingAssessment.bigfive_progress) / (progress.riasecTotal + progress.bigFiveTotal)) * 100)}%` }}
                     />
                   </div>
                 </div>
@@ -415,12 +392,14 @@ const AssessmentPage = () => {
                     <div className="mb-3">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-xs text-blue-700">Progress</span>
-                        <span className="text-xs font-bold text-blue-900">${(pendingAssessment.riasec_progress * riasecTotal) * 100}%%</span>
+                        <span className="text-xs font-bold text-blue-900">
+                          {Math.round((pendingAssessment.riasec_progress / progress.riasecTotal) * 100)}%
+                        </span>
                       </div>
                       <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
-                        <div 
+                        <div
                           className="bg-blue-600 h-full rounded-full transition-all duration-300"
-                          style={{ width: `${(pendingAssessment.riasec_progress * riasecTotal) * 100}%` }}
+                          style={{ width: `${(pendingAssessment.riasec_progress / progress.riasecTotal) * 100}%` }}
                         />
                       </div>
                     </div>
@@ -428,7 +407,7 @@ const AssessmentPage = () => {
                     {/* Response Count */}
                     <div className="flex items-center justify-between text-xs text-blue-700">
                       <span>Questions Answered:</span>
-                      <span className="font-semibold">`${pendingAssessment.riasec_progress}` / 48</span>
+                      <span className="font-semibold">{pendingAssessment.riasec_progress} / {progress.riasecTotal}</span>
                     </div>
                   </div>
 
@@ -448,12 +427,15 @@ const AssessmentPage = () => {
                     <div className="mb-3">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-xs text-green-700">Progress</span>
-                        <span className="text-xs font-bold text-green-900">${(pendingAssessment.bigFive_progress * bigFiveTotal) * 100}%</span>
+                        <span className="text-xs font-bold text-green-900">
+                          {Math.round((pendingAssessment.bigfive_progress / progress.bigFiveTotal) * 100)}%
+                        </span>
+
                       </div>
                       <div className="w-full bg-green-200 rounded-full h-2 overflow-hidden">
-                        <div 
+                        <div
                           className="bg-green-600 h-full rounded-full transition-all duration-300"
-                          style={{ width: `${(pendingAssessment.bigFive_progress * bigFiveTotal) * 100}%` }}
+                          style={{ width: `${(pendingAssessment.bigfive_progress / progress.bigFiveTotal) * 100}%` }}
                         />
                       </div>
                     </div>
@@ -461,7 +443,7 @@ const AssessmentPage = () => {
                     {/* Response Count */}
                     <div className="flex items-center justify-between text-xs text-green-700">
                       <span>Questions Answered:</span>
-                      <span className="font-semibold">`${(pendingAssessment.bigFive_progress)}`/ 50</span>
+                      <span className="font-semibold">{(pendingAssessment.bigfive_progress)} / {progress.bigFiveTotal}</span>
                     </div>
                   </div>
                 </div>

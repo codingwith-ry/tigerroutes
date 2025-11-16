@@ -323,29 +323,28 @@ module.exports = (db) => {
                     } catch (e) {
                         // ignore logging failures
                     }
-
-                                        // Create server-side session for staff user (safe authoritative identity)
-                                        try {
-                                            if (req.session) {
-                                                req.session.regenerate(() => {
-                                                    req.session.staffUser = {
-                                                        staffAccount_ID: staffUser.staffAccount_ID,
-                                                        staffRole_ID: staffUser.staffRole_ID,
-                                                        staffEmail: staffUser.email,
-                                                        staffName: staffUser.name || staffUser.staffName || ''
-                                                    };
-                                                    req.session.loggedIn = true;
-                                                    // respond with user but do not rely on client to store id
-                                                    return res.json({ success: true, user: staffUser });
-                                                });
-                                            } else {
-                                                return res.json({ success: true, user: staffUser });
-                                            }
-                                        } catch (sessErr) {
-                                            console.error('Session error on staff-login:', sessErr);
-                                            // still return success but warn in logs
-                                            return res.json({ success: true, user: staffUser });
-                                        }
+                    // Create server-side session for staff user (safe authoritative identity)
+                    try {
+                        if (req.session) {
+                            req.session.regenerate(() => {
+                                req.session.staffUser = {
+                                    staffAccount_ID: staffUser.staffAccount_ID,
+                                    staffRole_ID: staffUser.staffRole_ID,
+                                    staffEmail: staffUser.email,
+                                    staffName: staffUser.name || staffUser.staffName || ''
+                                };
+                                req.session.loggedIn = true;
+                                // respond with user but do not rely on client to store id
+                                return res.json({ success: true, user: staffUser });
+                            });
+                        } else {
+                            return res.json({ success: true, user: staffUser });
+                        }
+                    } catch (sessErr) {
+                        console.error('Session error on staff-login:', sessErr);
+                        // still return success but warn in logs
+                        return res.json({ success: true, user: staffUser });
+                    }
                 } else {
                     //No Match
                     res.json({ success: false, error: 'Invalid email or password '});

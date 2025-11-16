@@ -378,6 +378,21 @@ module.exports = (db) => {
     }
   });
 
+  // GET /api/admin/total-assessments
+  // Returns combined counts from completed assessments and pending assessments
+  router.get('/admin/total-assessments', async (req, res) => {
+    try {
+      const [doneRows] = await db.promise().query('SELECT COUNT(*) AS completed FROM tbl_studentassessments');
+      const [pendingRows] = await db.promise().query('SELECT COUNT(*) AS pending FROM tbl_pendingassessments');
+      const completed = doneRows && doneRows[0] ? Number(doneRows[0].completed) : 0;
+      const pending = pendingRows && pendingRows[0] ? Number(pendingRows[0].pending) : 0;
+      return res.json({ success: true, data: { total: completed + pending, completed, pending } });
+    } catch (err) {
+      console.error('Error fetching total assessments:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
   return router;
 };
 

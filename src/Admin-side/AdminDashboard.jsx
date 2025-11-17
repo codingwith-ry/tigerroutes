@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from "react";
+import Swal from 'sweetalert2';
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { FileCheck, Calendar, BarChart2, Users } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
@@ -27,6 +28,7 @@ const AdminDashboard = () => {
     fetchDashboardStats();
     fetchStrandScores();
     fetchTopPrograms();
+    fetchUnassessedStudents();
   }, []);
 
   const fetchDashboardStats = async () => {
@@ -106,7 +108,11 @@ const AdminDashboard = () => {
   // ];
 
   const [topPrograms, setTopPrograms] = useState([]);
-  
+  const [unassessedStudents, setUnassessedStudents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const pageSize = 10;
+
   async function fetchTopPrograms() {
     try {
       const res = await fetch('http://localhost:5000/api/admin/top-programs');
@@ -123,6 +129,27 @@ const AdminDashboard = () => {
       console.error('Error fetching top programs:', e);
     }
   }
+
+  async function fetchUnassessedStudents() {
+    try {
+      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${base}/api/admin/unassessed-students`, { credentials: 'include' });
+      const json = await res.json();
+      if (json && json.success) setUnassessedStudents(json.data || []);
+    } catch (e) {
+      console.error('Error fetching unassessed students:', e);
+    }
+  }
+
+  // client-side search + pagination
+  const filteredStudents = (unassessedStudents || []).filter(s => {
+    if (!searchTerm) return true;
+    return (s.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+  const currentPage = Math.min(page, Math.max(0, totalPages - 1));
+  const currentPageItems = filteredStudents.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
 
 
   // Program mismatch cases removed — not used in current system
@@ -325,6 +352,102 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
           </div>
 
           {/* Program mismatch cases removed */}
+
+          
+            <div className="mt-6 bg-white rounded-2xl shadow p-4 sm:p-6">
+              <h2 className="text-lg font-semibold mb-4">Students without completed assessments / pending only</h2>
+
+              <div className="flex items-center gap-3 mb-4">
+                <input
+                  type="text"
+                  placeholder="Search by name..."
+                  value={searchTerm}
+                  onChange={e => { setSearchTerm(e.target.value); setPage(0); }}
+                  className="px-3 py-2 border rounded-md w-full max-w-sm"
+                />
+                <div className="text-xs text-gray-500">Showing {filteredStudents.length} result(s)</div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-xs text-gray-500">
+                      <th className="px-3 py-2">Student Name</th>
+                      <th className="px-3 py-2">Email</th>
+                      <th className="px-3 py-2">Pending Assessment</th>
+                      <th className="px-3 py-2">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.length === 0 ? (
+                      <tr><td colSpan={4} className="px-3 py-4 text-sm text-gray-500">No students found</td></tr>
+                    ) : currentPageItems.map(s => (
+                      <tr key={s.studentAccount_ID} className="border-t">
+                        <td className="px-3 py-3 font-medium text-gray-900">{s.name}</td>
+                        <td className="px-3 py-3 text-gray-600">{s.email}</td>
+                        <td className="px-3 py-3">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
+                        <td className="px-3 py-3">
+                          <button
+                            onClick={async () => {
+                              const confirm = await Swal.fire({
+                                title: 'Send reminder?',
+                                text: `Send reminder email to ${s.name}?`,
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonText: 'Send',
+                                cancelButtonText: 'Cancel'
+                              });
+                              if (!confirm.isConfirmed) return;
+                              try {
+                                const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                                const resp = await fetch(`${base}/api/admin/remind-student`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  credentials: 'include',
+                                  body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
+                                });
+                                const body = await resp.json();
+                                if (resp.ok && body.success) {
+                                  Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
+                                } else {
+                                  Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
+                                }
+                              } catch (err) {
+                                console.error('Error sending reminder:', err);
+                                Swal.fire('Error', 'Failed to send reminder.', 'error');
+                              }
+                            }}
+                            className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500"
+                          >
+                            Remind
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination controls */}
+              {filteredStudents.length > 0 && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600">Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, filteredStudents.length)} of {filteredStudents.length}</div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage(p => Math.max(0, p - 1))}
+                      disabled={currentPage === 0}
+                      className={`px-3 py-1 rounded-md border ${currentPage === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                    >Prev</button>
+                    <div className="text-sm text-gray-700">Page {currentPage + 1} / {totalPages}</div>
+                    <button
+                      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                      disabled={currentPage >= totalPages - 1}
+                      className={`px-3 py-1 rounded-md border ${currentPage >= totalPages - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                    >Next</button>
+                  </div>
+                </div>
+              )}
+            </div>
         </main>
       </div>
     </div>

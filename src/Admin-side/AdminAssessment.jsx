@@ -42,6 +42,18 @@ const AdminAssessment = () => {
         if (typeof data.data.completedAssessments === 'number') {
           setTotalAssessments(data.data.completedAssessments);
         }
+        // Also fetch combined total (completed + pending) from admin routes
+        try {
+          const totalsRes = await fetch(`${base}/api/admin/total-assessments`);
+          const totalsJson = await totalsRes.json();
+          if (totalsJson && totalsJson.success && totalsJson.data) {
+            setTotalAssessments(totalsJson.data.total || 0);
+            // update completed count if desired
+            setStats(prev => ({ ...prev, completedAssessments: totalsJson.data.completed || prev.completedAssessments }));
+          }
+        } catch (e) {
+          // ignore failure and fall back to dashboard-stats value
+        }
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
@@ -222,12 +234,22 @@ const AdminAssessment = () => {
           color="#2563eb"
         />
         <StatCard
+          title="Total Assessments"
+          value={totalAssessments}
+          subtitle="Total recorded assessments"
+          subtitleColor="text-gray-600"
+          progress={totalAssessments}
+          max={totalAssessments > 0 ? totalAssessments : 1}
+          icon={<LayoutGrid className="w-6 h-6 text-gray-500" />}
+          color="#6b7280"
+        />
+        <StatCard
           title="Completed Assessments"
           value={stats.completedAssessments}
-          subtitle={`${((stats.completedAssessments / (stats.totalStudents || 1)) * 100).toFixed(1)}% completion rate`}
+          subtitle={`${((stats.completedAssessments / (totalAssessments || 1)) * 100).toFixed(1)}% completion rate`}
           subtitleColor="text-green-600"
           progress={stats.completedAssessments}
-          max={stats.totalStudents || 1}
+          max={totalAssessments || 1}
           icon={<FileCheck className="w-6 h-6 text-green-600" />}
           color="#16a34a"
         />
@@ -240,17 +262,6 @@ const AdminAssessment = () => {
           max={100}
           icon={<BarChart2 className="w-6 h-6 text-purple-600" />}
           color="#9333ea"
-        />
-        {/* Placeholder for the 4th stat card, if needed */}
-        <StatCard
-          title="Total Assessments"
-          value={totalAssessments}
-          subtitle="Total recorded assessments"
-          subtitleColor="text-gray-600"
-          progress={totalAssessments}
-          max={totalAssessments > 0 ? totalAssessments : 1}
-          icon={<LayoutGrid className="w-6 h-6 text-gray-500" />}
-          color="#6b7280"
         />
       </div>
 

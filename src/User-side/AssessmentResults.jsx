@@ -135,6 +135,7 @@ const AssessmentResults = () => {
             showCancelButton: true,
             confirmButtonText: 'Yes',
             cancelButtonText: 'No',
+            confirmButtonColor: '#FACC15',
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch('http://localhost:5000/api/assessment/submitRating', {
@@ -149,6 +150,7 @@ const AssessmentResults = () => {
                             icon: 'success',
                             title: 'Thank You!',
                             text: 'Your rating has been submitted successfully.',
+                            confirmButtonColor: '#FACC15',
                         }).then(() => {
                             // reload the page after user closes the success modal
                             window.location.reload();

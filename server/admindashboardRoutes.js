@@ -135,6 +135,71 @@ module.exports = (db) => {
         });
     });
 
+    // Get students who have no completed assessments (may have pending assessments)
+    router.get('/admin/unassessed-students', (req, res) => {
+        const sql = `
+        SELECT s.studentAccount_ID, s.name, s.email, pa.pendingAssessment_ID
+        FROM tbl_studentaccounts s
+        LEFT JOIN tbl_pendingassessments pa ON pa.studentAccount_ID = s.studentAccount_ID
+        WHERE NOT EXISTS (
+            SELECT 1 FROM tbl_studentassessments sa WHERE sa.studentAccount_ID = s.studentAccount_ID
+        )
+        ORDER BY s.name;
+        `;
+
+        db.query(sql, (err, rows) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            const data = (rows || []).map(r => ({
+                studentAccount_ID: r.studentAccount_ID,
+                name: r.name,
+                email: r.email,
+                pendingAssessment_ID: r.pendingAssessment_ID || null
+            }));
+            res.json({ success: true, data });
+        });
+    });
+
+    // Send reminder email to student about completing their assessment
+    router.post('/admin/remind-student', async (req, res) => {
+        try {
+            const { studentAccount_ID } = req.body;
+            if (!studentAccount_ID) return res.status(400).json({ success: false, message: 'studentAccount_ID is required' });
+
+            // fetch student email
+            const [rows] = await db.promise().query('SELECT name, email FROM tbl_studentaccounts WHERE studentAccount_ID = ? LIMIT 1', [studentAccount_ID]);
+            if (!rows || rows.length === 0) return res.status(404).json({ success: false, message: 'Student not found' });
+
+            const student = rows[0];
+
+            // create transporter (dev) - consider moving to shared util and using env vars
+            const nodemailer = require('nodemailer');
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER || 'tigerroutes.contact@gmail.com',
+                    pass: process.env.SMTP_PASS || 'epki kwhr jdff egaj'
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.SMTP_FROM || 'tigerroutes.contact@gmail.com',
+                to: student.email,
+                subject: 'Reminder: Please complete your TigerRoutes assessment',
+                html: `
+                    <p>Hi ${student.name || 'Student'},</p>
+                    <p>This is a friendly reminder to complete your TigerRoutes assessment. Your responses help generate program recommendations tailored for you.</p>
+                    <p>Thanks,<br/>TigerRoutes Team</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            return res.json({ success: true, message: 'Reminder sent' });
+        } catch (err) {
+            console.error('[remind-student] error:', err && err.stack ? err.stack : err);
+            return res.status(500).json({ success: false, message: 'Failed to send reminder' });
+        }
+    });
+
 
 
 

@@ -279,7 +279,7 @@ const AssessmentPage = () => {
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                       <button
                         onClick={continuePendingAssessment}
-                        className="bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-amber-700 transition text-sm"
+                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition text-sm"
                       >
                         Continue Assessment
                       </button>

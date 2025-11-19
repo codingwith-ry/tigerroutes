@@ -85,7 +85,12 @@ const AdminAssessment = () => {
   const [filterText, setFilterText] = useState("");
   // Debounced copy of filterText to avoid firing requests on every keystroke
   const [debouncedFilterText, setDebouncedFilterText] = useState(filterText);
-  const [dateFilter, setDateFilter] = useState("");
+  const [dateRangeFilter, setDateRangeFilter] = useState({ startDate: "", endDate: "" });
+  // Date range for Strand Analytics tab (separate so filters don't conflict)
+  const [strandDateRangeFilter, setStrandDateRangeFilter] = useState({ startDate: "", endDate: "" });
+  // Grade filters
+  const [gradeFilter, setGradeFilter] = useState(""); // '' = All, '11' = Grade 11, '12' = Grade 12
+  const [strandGradeFilter, setStrandGradeFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -112,7 +117,9 @@ const AdminAssessment = () => {
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
         const params = new URLSearchParams({ page: String(currentPage), pageSize: String(itemsPerPage) });
         if (debouncedFilterText) params.set('q', debouncedFilterText);
-        if (dateFilter) params.set('date', dateFilter);
+        if (dateRangeFilter.startDate) params.set('startDate', dateRangeFilter.startDate);
+        if (dateRangeFilter.endDate) params.set('endDate', dateRangeFilter.endDate);
+        if (gradeFilter) params.set('grade', gradeFilter);
 
         const url = `${base}/api/assessments?${params.toString()}`;
         const res = await fetch(url, { signal: controller.signal });
@@ -135,7 +142,7 @@ const AdminAssessment = () => {
     }
     load();
     return () => controller.abort();
-  }, [currentPage, debouncedFilterText, dateFilter, activeTab]);
+  }, [currentPage, debouncedFilterText, dateRangeFilter, gradeFilter, activeTab]);
 
   // (debounce handled directly on input change using ref)
 
@@ -157,7 +164,12 @@ const AdminAssessment = () => {
     async function load() {
       try {
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        const res = await fetch(`${base}/api/admin/strand-analytics`);
+        const params = new URLSearchParams();
+        if (strandDateRangeFilter.startDate) params.set('startDate', strandDateRangeFilter.startDate);
+        if (strandDateRangeFilter.endDate) params.set('endDate', strandDateRangeFilter.endDate);
+        if (strandGradeFilter) params.set('grade', strandGradeFilter);
+        const url = `${base}/api/admin/strand-analytics${params.toString() ? `?${params.toString()}` : ''}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (!cancelled && json && json.success && Array.isArray(json.data)) {
           setStrandAnalytics(json.data || []);
@@ -168,7 +180,7 @@ const AdminAssessment = () => {
     }
     load();
     return () => { cancelled = true; };
-  }, [activeTab]);
+  }, [activeTab, strandDateRangeFilter, strandGradeFilter]);
 
   // --- Common Components ---
 
@@ -277,13 +289,37 @@ const AdminAssessment = () => {
             className="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:outline-none mb-3 sm:mb-0"
           />
           <div className="flex items-center space-x-2">
-            <label className="text-gray-600 text-sm">Date:</label>
+            <label className="text-gray-600 text-sm whitespace-nowrap">From:</label>
             <input
               type="date"
-              value={dateFilter}
-              onChange={(e) => { setDateFilter(e.target.value); setCurrentPage(1); }}
+              value={dateRangeFilter.startDate}
+              onChange={(e) => { setDateRangeFilter({...dateRangeFilter, startDate: e.target.value}); setCurrentPage(1); }}
               className="px-3 py-2 border rounded-lg bg-white"
             />
+            <label className="text-gray-600 text-sm whitespace-nowrap">To:</label>
+            <input
+              type="date"
+              value={dateRangeFilter.endDate}
+              onChange={(e) => { setDateRangeFilter({...dateRangeFilter, endDate: e.target.value}); setCurrentPage(1); }}
+              className="px-3 py-2 border rounded-lg bg-white"
+            />
+            <label className="text-gray-600 text-sm whitespace-nowrap">Grade:</label>
+            <select
+              value={gradeFilter}
+              onChange={(e) => { setGradeFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-2 border rounded-lg bg-white"
+            >
+              <option value="">All Grades</option>
+              <option value="11">Grade 11</option>
+              <option value="12">Grade 12</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setStrandDateRangeFilter({ startDate: '', endDate: '' })}
+              className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
+            >
+              Clear
+            </button>
           </div>
         </div>
 
@@ -469,7 +505,43 @@ const AdminAssessment = () => {
   const StrandAnalyticsTab = () => {
     return (
       <div className="p-4 sm:p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Strand Analytics Overview</h2>
+        {/* Title and date-range aligned on one row (right-aligned on sm+) */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-xl font-bold text-gray-800">Strand Analytics Overview</h2>
+          <div className="flex items-center gap-2 justify-start sm:justify-end">
+            <label className="text-gray-600 text-sm whitespace-nowrap">From:</label>
+            <input
+              type="date"
+              value={strandDateRangeFilter.startDate}
+              onChange={(e) => { setStrandDateRangeFilter({ ...strandDateRangeFilter, startDate: e.target.value }); }}
+              className="px-3 py-2 border rounded-lg bg-white"
+            />
+            <label className="text-gray-600 text-sm whitespace-nowrap">To:</label>
+            <input
+              type="date"
+              value={strandDateRangeFilter.endDate}
+              onChange={(e) => { setStrandDateRangeFilter({ ...strandDateRangeFilter, endDate: e.target.value }); }}
+              className="px-3 py-2 border rounded-lg bg-white"
+            />
+            <label className="text-gray-600 text-sm whitespace-nowrap">Grade:</label>
+            <select
+              value={strandGradeFilter}
+              onChange={(e) => setStrandGradeFilter(e.target.value)}
+              className="px-3 py-2 border rounded-lg bg-white"
+            >
+              <option value="">All Grades</option>
+              <option value="11">Grade 11</option>
+              <option value="12">Grade 12</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setStrandDateRangeFilter({ startDate: '', endDate: '' })}
+              className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
 
         {effectiveStrandData.length === 0 ? (
           <div className="bg-white p-6 rounded-xl shadow border border-gray-200 text-center text-gray-600">

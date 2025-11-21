@@ -315,7 +315,7 @@ const AdminAssessment = () => {
             </select>
             <button
               type="button"
-              onClick={() => setStrandDateRangeFilter({ startDate: '', endDate: '' })}
+              onClick={() => { setDateRangeFilter({ startDate: '', endDate: '' }); setGradeFilter(''); setCurrentPage(1); }}
               className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
             >
               Clear

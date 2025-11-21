@@ -10,18 +10,21 @@ module.exports = (db) => {
       const page = Math.max(1, parseInt(req.query.page || '1', 10));
       const pageSize = Math.max(1, parseInt(req.query.pageSize || '10', 10));
       const q = (req.query.q || '').trim();
-      const dateFilter = (req.query.date || '').trim();
+      const startDate = (req.query.startDate || '').trim();
+      const endDate = (req.query.endDate || '').trim();
+      const grade = (req.query.grade || '').trim();
       const offset = (page - 1) * pageSize;
 
-      // Base FROM clause: assessments joined with student and strand info
-      let baseFrom = `
+      // Base FROM clause: assessments joined with student, profile, strand, and assessment profile info
+      const baseFrom = `
         FROM tbl_studentassessments sa
         LEFT JOIN tbl_studentaccounts st ON sa.studentAccount_ID = st.studentAccount_ID
         LEFT JOIN tbl_studentprofiles sp ON st.studentProfile_ID = sp.studentProfile_ID
         LEFT JOIN tbl_strands s ON sp.strand_ID = s.strand_ID
+        LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
       `;
 
-      // Build WHERE clauses and params to be reused for data query and count
+      // Build WHERE clauses and params
       const whereClauses = [];
       const whereParams = [];
       if (q) {
@@ -29,10 +32,22 @@ module.exports = (db) => {
         const like = `%${q}%`;
         whereParams.push(like, like, like);
       }
-      if (dateFilter) {
-        // match the date part only
-        whereClauses.push(`DATE(sa.date) = ?`);
-        whereParams.push(dateFilter);
+      if (startDate && endDate) {
+        whereClauses.push(`DATE(sa.date) BETWEEN ? AND ?`);
+        whereParams.push(startDate, endDate);
+      } else if (startDate) {
+        whereClauses.push(`DATE(sa.date) >= ?`);
+        whereParams.push(startDate);
+      } else if (endDate) {
+        whereClauses.push(`DATE(sa.date) <= ?`);
+        whereParams.push(endDate);
+      }
+      if (grade) {
+        const g = parseInt(grade, 10);
+        if (!Number.isNaN(g)) {
+          whereClauses.push(`ap.gradeLevel = ?`);
+          whereParams.push(g);
+        }
       }
 
       // Data query
@@ -43,7 +58,7 @@ module.exports = (db) => {
       const dataParams = [...whereParams, pageSize, offset];
       const [rows] = await db.promise().query(dataQuery, dataParams);
 
-      // Always compute total using the same filters
+      // Compute total count with same filters
       let total = 0;
       try {
         let countQuery = `SELECT COUNT(*) AS total ${baseFrom}`;
@@ -254,8 +269,33 @@ module.exports = (db) => {
   // Returns per-strand metrics: avgAlignment (avg of per-assessment avg alignment where track_aligned='Y'), assessments_count, avgSatisfaction
   router.get('/admin/strand-analytics', async (req, res) => {
     try {
+      const startDate = (req.query.startDate || '').trim();
+      const endDate = (req.query.endDate || '').trim();
+      const grade = (req.query.grade || '').trim();
+
+      // Build where clauses to apply to assessments (alias 'a') and assessment profiles (ap.gradeLevel)
+      const whereClauses = [];
+      const whereParams = [];
+      if (startDate && endDate) {
+        whereClauses.push(`DATE(a.date) BETWEEN ? AND ?`);
+        whereParams.push(startDate, endDate);
+      } else if (startDate) {
+        whereClauses.push(`DATE(a.date) >= ?`);
+        whereParams.push(startDate);
+      } else if (endDate) {
+        whereClauses.push(`DATE(a.date) <= ?`);
+        whereParams.push(endDate);
+      }
+      if (grade) {
+        const g = parseInt(grade, 10);
+        if (!Number.isNaN(g)) {
+          whereClauses.push(`ap.gradeLevel = ?`);
+          whereParams.push(g);
+        }
+      }
+
       // Base numeric aggregation per strand
-      const sql = `
+      let sql = `
         SELECT
           s.strand_ID,
           s.strandName,
@@ -266,24 +306,29 @@ module.exports = (db) => {
         LEFT JOIN tbl_studentprofiles sp ON sp.strand_ID = s.strand_ID
         LEFT JOIN tbl_studentaccounts sa ON sa.studentProfile_ID = sp.studentProfile_ID
         LEFT JOIN tbl_studentassessments a ON a.studentAccount_ID = sa.studentAccount_ID
+        LEFT JOIN tbl_assessmentprofiles ap ON a.assessmentProfile_ID = ap.assessmentProfile_ID
         LEFT JOIN (
           SELECT studentAssessment_ID, AVG(alignmentScore) AS avgAlignment
           FROM tbl_recommendations
           WHERE track_aligned = 'Y'
           GROUP BY studentAssessment_ID
         ) pa ON pa.studentAssessment_ID = a.studentAssessment_ID
-        GROUP BY s.strand_ID, s.strandName
-        ORDER BY s.strandName
       `;
 
-      const [rows] = await db.promise().query(sql);
+      if (whereClauses.length > 0) {
+        sql += ` WHERE ${whereClauses.join(' AND ')}`;
+      }
+
+      sql += ` GROUP BY s.strand_ID, s.strandName ORDER BY s.strandName`;
+
+      const [rows] = await db.promise().query(sql, whereParams);
 
       // For each strand, fetch top RIASEC traits, top BigFive traits and top 5 programs
       const results = await Promise.all((rows || []).map(async (r) => {
         const strandId = r.strand_ID;
 
-        // Aggregate RIASEC trait sums for the strand
-        const riasecSql = `
+        // Aggregate RIASEC trait sums for the strand (respect date & grade filters)
+        let riasecSql = `
           SELECT
             SUM(rr.realistic) AS realistic,
             SUM(rr.investigative) AS investigative,
@@ -292,13 +337,32 @@ module.exports = (db) => {
             SUM(rr.enterprising) AS enterprising,
             SUM(rr.conventional) AS conventional
           FROM tbl_riasecresults rr
-          JOIN tbl_studentassessments sa ON rr.riasecResult_ID = sa.riasecResult_ID
-          JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
-          JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
-          WHERE sp.strand_ID = ?
+            JOIN tbl_studentassessments sa ON rr.riasecResult_ID = sa.riasecResult_ID
+            JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
+            JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+            LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
+            WHERE sp.strand_ID = ?
         `;
+        const riasecParams = [strandId];
+        if (startDate && endDate) {
+          riasecSql += ` AND DATE(sa.date) BETWEEN ? AND ?`;
+          riasecParams.push(startDate, endDate);
+        } else if (startDate) {
+          riasecSql += ` AND DATE(sa.date) >= ?`;
+          riasecParams.push(startDate);
+        } else if (endDate) {
+          riasecSql += ` AND DATE(sa.date) <= ?`;
+          riasecParams.push(endDate);
+        }
+        if (grade) {
+          const g = parseInt(grade, 10);
+          if (!Number.isNaN(g)) {
+            riasecSql += ` AND ap.gradeLevel = ?`;
+            riasecParams.push(g);
+          }
+        }
 
-        const [riasecRows] = await db.promise().query(riasecSql, [strandId]);
+        const [riasecRows] = await db.promise().query(riasecSql, riasecParams);
         const riasecTotals = riasecRows && riasecRows[0] ? riasecRows[0] : null;
 
         const riasecList = [];
@@ -311,7 +375,7 @@ module.exports = (db) => {
         const topRiasec = riasecList.slice(0, 2).map((t) => t.trait.charAt(0).toUpperCase() + t.trait.slice(1));
 
         // Aggregate BigFive trait sums for the strand
-        const bigFiveSql = `
+        let bigFiveSql = `
           SELECT
             SUM(bf.openness) AS openness,
             SUM(bf.conscientiousness) AS conscientiousness,
@@ -322,10 +386,29 @@ module.exports = (db) => {
           JOIN tbl_studentassessments sa ON bf.bigFiveResult_ID = sa.bigFiveResult_ID
           JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
           JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+          LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
           WHERE sp.strand_ID = ?
         `;
+        const bigFiveParams = [strandId];
+        if (startDate && endDate) {
+          bigFiveSql += ` AND DATE(sa.date) BETWEEN ? AND ?`;
+          bigFiveParams.push(startDate, endDate);
+        } else if (startDate) {
+          bigFiveSql += ` AND DATE(sa.date) >= ?`;
+          bigFiveParams.push(startDate);
+        } else if (endDate) {
+          bigFiveSql += ` AND DATE(sa.date) <= ?`;
+          bigFiveParams.push(endDate);
+        }
+        if (grade) {
+          const g = parseInt(grade, 10);
+          if (!Number.isNaN(g)) {
+            bigFiveSql += ` AND ap.gradeLevel = ?`;
+            bigFiveParams.push(g);
+          }
+        }
 
-        const [bigFiveRows] = await db.promise().query(bigFiveSql, [strandId]);
+        const [bigFiveRows] = await db.promise().query(bigFiveSql, bigFiveParams);
         const bigFiveTotals = bigFiveRows && bigFiveRows[0] ? bigFiveRows[0] : null;
 
         const bigFiveList = [];
@@ -338,20 +421,40 @@ module.exports = (db) => {
         const topBigFive = bigFiveList.slice(0, 2).map((t) => t.trait.charAt(0).toUpperCase() + t.trait.slice(1));
 
         // Top 5 programs for the strand (by recommendation count, include avg alignment)
-        const programsSql = `
+        let programsSql = `
           SELECT p.program_ID, p.programName, COUNT(*) AS reco_count, ROUND(AVG(r.alignmentScore),2) AS avgAlignment
           FROM tbl_recommendations r
           JOIN tbl_programs p ON r.program_ID = p.program_ID
           JOIN tbl_studentassessments sa ON r.studentAssessment_ID = sa.studentAssessment_ID
           JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
           JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+          LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
           WHERE sp.strand_ID = ? AND r.track_aligned = 'Y'
           GROUP BY p.program_ID, p.programName
           ORDER BY reco_count DESC, avgAlignment DESC
           LIMIT 5
         `;
+        const progParams = [strandId];
+        // apply date and grade filters by rewriting WHERE, since we already include base conditions above
+        if (startDate && endDate) {
+          programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) BETWEEN ? AND ?');
+          progParams.push(startDate, endDate);
+        } else if (startDate) {
+          programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) >= ?');
+          progParams.push(startDate);
+        } else if (endDate) {
+          programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) <= ?');
+          progParams.push(endDate);
+        }
+        if (grade) {
+          const g = parseInt(grade, 10);
+          if (!Number.isNaN(g)) {
+            programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND ap.gradeLevel = ?');
+            progParams.push(g);
+          }
+        }
 
-        const [progRows] = await db.promise().query(programsSql, [strandId]);
+        const [progRows] = await db.promise().query(programsSql, progParams);
         const topPrograms = (progRows || []).map((p) => ({
           programId: p.program_ID,
           programName: p.programName,

@@ -33,6 +33,10 @@ app.use(session({
     }
 }));
 
+// JWT cookie verification middleware (reads tigerToken cookie and sets req.user)
+const verifyJwtCookie = require('./middleware/verifyJwtCookie');
+app.use(verifyJwtCookie);
+
 //Google Stuffs
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client();

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../utils/AuthContext";
 import { UserCircle2, SquarePen, BookOpen, Brain, FileText, AlertCircle, Clock, Calendar, TrendingUp } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { v4 as uuidv4 } from 'uuid';
@@ -21,6 +22,8 @@ const AssessmentPage = () => {
     bigFiveProgress: 0,
     overallPercentage: 0
   });
+
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     document.title = "Assessment | Overview";
@@ -46,8 +49,10 @@ const AssessmentPage = () => {
       if(localStorage.getItem('currentAssessmentId')){
         localStorage.removeItem('currentAssessmentId');
       }
-    // Fetch user data and check for pending assessment
-    fetchData();
+    // Fetch user data and check for pending assessment once auth resolved
+    if (!authLoading) {
+      fetchData();
+    }
     getAssessmentProgress(pendingAssessment);
 
     return () => {
@@ -57,9 +62,8 @@ const AssessmentPage = () => {
 
   const fetchData = async () => {
     try {
-      const user = JSON.parse(sessionStorage.getItem('user'));
       if (!user || !user.studentAccount_ID) {
-        throw new Error('No user found in session storage');
+        throw new Error('No user found');
       }
 
       // Fetch user profile and pending assessment in parallel

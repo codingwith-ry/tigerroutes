@@ -4,9 +4,11 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 import Swal from "sweetalert2";
+import { useAuth } from "../utils/AuthContext";
 
 const AssessmentBigFivePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeStep] = useState("Big Five");
   const [questions, setQuestions] = useState([]);
   const [choices, setChoices] = useState([]);
@@ -179,11 +181,9 @@ const AssessmentBigFivePage = () => {
    */
   const handleSaveProgress = async () => {
     try {
-      // Get required data from localStorage
-      const userData = sessionStorage.getItem('user');
-      const user = JSON.parse(userData);
+      // Get required data from auth context
       const assessmentId = localStorage.getItem("currentAssessmentId");
-      const studentAccountId = user.studentAccount_ID;
+      const studentAccountId = user?.studentAccount_ID;
 
       if (!studentAccountId) {
         Swal.fire({
@@ -407,7 +407,7 @@ const AssessmentBigFivePage = () => {
       },
       body: JSON.stringify({
         studentAssessment_ID: localStorage.getItem('currentAssessmentId'),
-        studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID,
+        studentAccount_ID: user?.studentAccount_ID,
         riasecResults: JSON.parse(localStorage.getItem('riasecResults')),
         bigFiveResults: JSON.parse(localStorage.getItem('bigFiveResults'))
       })
@@ -433,7 +433,7 @@ const AssessmentBigFivePage = () => {
         },
         body: JSON.stringify({
           pendingAssessment_ID: localStorage.getItem('currentAssessmentId'),
-          studentAccount_ID: JSON.parse(sessionStorage.getItem('user')).studentAccount_ID
+          studentAccount_ID: user?.studentAccount_ID
         })
       })
       .then(response => response.json())

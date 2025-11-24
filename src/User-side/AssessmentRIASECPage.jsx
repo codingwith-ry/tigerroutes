@@ -5,10 +5,12 @@ import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 import Swal from "sweetalert2";
 import { nav } from "framer-motion/client";
+import { useAuth } from "../utils/AuthContext";
 
 const AssessmentRIASECPage = () => {
   // State management for navigation and assessment data
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeStep] = useState("RIASEC");
   const [questions, setQuestions] = useState([]);
   const [choices, setChoices] = useState([]);
@@ -171,11 +173,8 @@ const AssessmentRIASECPage = () => {
    */
   const handleSaveProgress = async () => {
     try {
-      // Get required data from localStorage
-      const userData = sessionStorage.getItem('user');
-      const user = JSON.parse(userData);
       const assessmentId = localStorage.getItem("currentAssessmentId");
-      const studentAccountId = user.studentAccount_ID;
+      const studentAccountId = user?.studentAccount_ID;
 
       if (!studentAccountId) {
         Swal.fire({

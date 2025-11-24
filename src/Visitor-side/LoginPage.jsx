@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import Swal from 'sweetalert2';
 import { useEffect } from "react"; 
+import { useAuth } from "../utils/AuthContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const LoginPage = () => {
   });
   
   const [rememberMe, setRememberMe] = useState(false);
+  const { refreshUser } = useAuth();
 
   const handleBackToHome = () => {
     navigate("/");
@@ -52,13 +54,7 @@ const handleForgotPassword = () => {
       });
       const data = await res.json();
       if (data.success) {
-        const user = data.user;
-        const userToStore = {
-          name: user.name,
-          email: user.email,
-          studentAccount_ID: user.studentAccount_ID,
-        }
-        sessionStorage.setItem('user', JSON.stringify(userToStore));
+        await refreshUser();
         navigate('/home');
       } else {
         Swal.fire({
@@ -115,15 +111,17 @@ const handleForgotPassword = () => {
 
 
       //Send to backend for registration/login
-      fetch('http://localhost:5000/api/google-auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name })
-      })
-        .then(res => res.json())
-        .then(data => {
+      (async () => {
+        try {
+          const res = await fetch('http://localhost:5000/api/google-auth', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, name })
+          });
+          const data = await res.json();
           if (data.success) {
-            sessionStorage.setItem('user', JSON.stringify(data.user));
+            await refreshUser();
             Swal.fire({
               icon: 'success',
               title: data.isNew ? 'Account Created!' : 'Welcome Back!',
@@ -137,7 +135,10 @@ const handleForgotPassword = () => {
               text: data.error || 'An error occurred.',
             });
           }
-        });
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+        }
+      })();
   }
 
   const handleGoogleSignIn = () => {
@@ -171,12 +172,13 @@ const handleForgotPassword = () => {
         // Send to your backend
         const server = await fetch("http://localhost:5000/api/google-auth", {
           method: "POST",
+          credentials: 'include',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, name }),
         }).then((res) => res.json());
 
         if (server.success) {
-          sessionStorage.setItem("user", JSON.stringify(server.user));
+          await refreshUser();
 
           Swal.fire({
             icon: "success",

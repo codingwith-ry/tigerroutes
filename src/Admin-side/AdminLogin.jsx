@@ -70,7 +70,7 @@ const AdminLogin = () => {
     <div className="flex flex-col lg:flex-row h-screen w-full font-sfpro bg-[#fffbe9] text-gray-900">
      <div className="hidden lg:flex w-1/2 items-center justify-center px-6 py-12 relative bg-cover bg-center" style={{ backgroundImage: "url('/images/VectorBg.png')" }}>
         <div className="max-w-md text-white w-full font-sfpro">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 font-sfpro">
+          <h1 className="text-4xl md:text-5xl font-black mb-3 font-sfpro">
             Welcome back!
           </h1>
           <p className="text-2xl leading-snug mb-8 font-sfpro">
@@ -86,7 +86,7 @@ const AdminLogin = () => {
         <div className="w-full max-w-md space-y-9 font-sfpro">
           <div className="flex justify-center">
             <img
-              src="/images/TIGER ROUTES.png"
+              src="/images/02_TigerRoutes_Logo.png"
               alt="TigerRoutes Logo"
               className="w-32 sm:w-40"
             />
@@ -138,7 +138,7 @@ const AdminLogin = () => {
                   inputPlaceholder: 'staff@example.edu',
                   showCancelButton: true,
                   confirmButtonText: 'Send request',
-                  confirmButtonColor: '#ea9d2d',
+                  confirmButtonColor: '#F6BE1E',
                 });
 
                 if (email) {
@@ -165,7 +165,7 @@ const AdminLogin = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#ea9d2d] hover:bg-[#fbc562] text-white font-semibold py-3 rounded-full transition font-sfpro"
+              className="w-full bg-[#F6BE1E] hover:bg-[#fbc562] text-white font-semibold py-3 rounded-full transition font-sfpro"
             >
               Login to Dashboard
             </button>

@@ -191,7 +191,7 @@
     }
   },
 
-  "Bachelor of Fine Arts, major in Advertising Arts)": {
+  "Bachelor of Fine Arts, major in Advertising Arts": {
     "riasec_requirements": {
       "Artistic": { "weight": 0.35, "ideal_range": [80, 100] },
       "Enterprising": { "weight": 0.20, "ideal_range": [65, 95] },
@@ -223,7 +223,7 @@
     }
   },
 
-  "Bachelor of Fine Arts, major in Industrial Design)": {
+  "Bachelor of Fine Arts, major in Industrial Design": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.15, "ideal_range": [55, 90] },
       "Investigative": { "weight": 0.15, "ideal_range": [50, 85] },
@@ -543,7 +543,7 @@
     }
   },
 
-  "Bachelor of Science in Business Administration, major in Marketing Management)": {
+  "Bachelor of Science in Business Administration, major in Marketing Management": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.10, "ideal_range": [40, 80] },
       "Investigative": { "weight": 0.15, "ideal_range": [55, 90] },
@@ -575,7 +575,7 @@
     }
   },
 
-  "Bachelor of Science in Business Administration, major in Financial Management)": {
+  "Bachelor of Science in Business Administration, major in Financial Management": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.10, "ideal_range": [40, 80] },
       "Investigative": { "weight": 0.25, "ideal_range": [65, 100] },
@@ -799,7 +799,7 @@
     }
   },
 
-  "Bachelor of Music in Music Theater": {
+  "Bachelor of Music in Music Theatre": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.15, "ideal_range": [55, 85] },
       "Investigative": { "weight": 0.10, "ideal_range": [45, 80] },

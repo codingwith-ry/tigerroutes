@@ -1,6 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const CTA = () => {
+  const getStarted = () => {
+      navigate("/register");
+    };
+    const navigate = useNavigate();
+
   return (
     <section 
         className="relative w-full h-[40vh] min-h-[20vh] flex items-center justify-center text-center text-white bg-cover bg-center font-sfpro" 
@@ -11,8 +17,11 @@ const CTA = () => {
           Ready to Explore <br />
           <span className="text-[#F6BE1E]">Your Future?</span>
         </h1>
-        <button className="mt-6 px-6 py-3 bg-yellow-400 text-white rounded-full text-lg font-semibold hover:bg-yellow-500 transition hover:scale-105 transition-transform">
-          Get Started
+        <button 
+          onClick={getStarted} 
+          className="mt-6 px-5 py-2.5 sm:px-6 sm:py-3 bg-yellow-400 text-white rounded-full text-base sm:text-lg font-sfpro font-semibold hover:bg-yellow-500 transition hover:scale-105 transition-transform"
+          >
+            Get Started
         </button>
       </div>
     </section>

@@ -1,7 +1,10 @@
 // Server Address: http://localhost:5000
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
+
 
 const app = express();
 app.use(cors({
@@ -38,12 +41,28 @@ const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client();
 
 // MySQL connection
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root', // change if needed
-    password: 'none', // change if needed
-    database: 'tigerroutesdb'
+const dbConfig = {
+  host: 'tigerroutesdb.c4f8mocc8fh0.us-east-1.rds.amazonaws.com',
+  user: process.env.DB_USER,
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: Number(process.env.DB_CONN_LIMIT) || 10,
+  queueLimit: 0
+};
+
+const db = mysql.createPool(dbConfig);
+
+db.getConnection((err, conn) => {
+  if (err) {
+    console.error('MySQL connection error:', err && err.message ? err.message : err);
+    process.exit(1);
+  }
+  console.log('Connected to MySQL as', process.env.DB_USER, '@', process.env.DB_HOST);
+  conn.release();
 });
+
 
 //importing all login/register routes
 const loginRoutes = require('./loginRoutes.js')(db); 

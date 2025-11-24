@@ -45,177 +45,191 @@ module.exports = (db) => {
         const { firstName, lastName, strand_ID, gradeLevel, genAverageGrade,
             mathGrade, scienceGrade, englishGrade
          } = req.body;
-
-        // Start transaction to ensure data consistency
-        db.beginTransaction((err) => {
+        // Use a pooled connection for transactions
+        db.getConnection((err, conn) => {
             if (err) return res.status(500).json({ error: err.message });
 
-            // First, update the student's name
-            const fullName = firstName + ' ' + lastName;
-            db.query(
-                'UPDATE tbl_studentaccounts SET name = ? WHERE studentAccount_ID = ?',
-                [fullName, studentAccountId],
-                (err, result) => {
-                    if (err) {
-                        return db.rollback(() => {
-                            res.status(500).json({ error: err.message });
-                        });
-                    }
+            conn.beginTransaction((err) => {
+                if (err) {
+                    conn.release();
+                    return res.status(500).json({ error: err.message });
+                }
 
-                    // Handle grades - create or update tbl_studentgrades
-                    const handleGrades = (profileId, callback) => {
-                        if (genAverageGrade || mathGrade || scienceGrade || englishGrade) {
-                            //Convert empty strings to null for database
-                            const genAvg = genAverageGrade ? parseFloat(genAverageGrade) : null;
-                            const mathGrd = mathGrade ? parseFloat(mathGrade) : null;
-                            const scienceGrd = scienceGrade ? parseFloat(scienceGrade) : null;
-                            const englishGrd = englishGrade ? parseFloat(englishGrade) : null;
-
-                            db.query(
-                                'SELECT studentGrades_ID FROM tbl_studentprofiles WHERE studentProfile_ID = ?',
-                                [profileId],
-                                (err, results) => {
-                                    if (err) return callback(err);
-
-                                    const existingGradesId = results[0]?.studentGrades_ID;
-
-                                    if (existingGradesId) {
-                                        //Update existing grades
-                                        db.query(
-                                            'UPDATE tbl_studentgrades SET genAverageGrade = ?, mathGrade = ?, scienceGrade = ?, englishGrade = ? WHERE studentGrades_ID = ?',
-                                            [genAvg, mathGrd, scienceGrd, englishGrd, existingGradesId],
-                                            callback
-                                        );
-                                    } else {
-                                        db.query(
-                                            'INSERT INTO tbl_studentgrades (genAverageGrade, mathGrade, scienceGrade, englishGrade) VALUES (?, ?, ?, ?)',
-                                            [genAvg, mathGrd, scienceGrd, englishGrd],
-                                            (err, result) => {
-                                                if (err) return callback(err);
-
-                                                const newGradesId = result.insertId;
-                                                //Link grades to profile
-                                                db.query(
-                                                    'UPDATE tbl_studentprofiles SET studentGrades_ID = ? WHERE studentProfile_ID = ?',
-                                                    [newGradesId, profileId],
-                                                    callback
-                                                );
-                                            }
-                                        );
-                                    }
-                                }
-                            );
-                        } else {
-                            callback(null);
+                // First, update the student's name
+                const fullName = (firstName || '') + ' ' + (lastName || '');
+                conn.query(
+                    'UPDATE tbl_studentaccounts SET name = ? WHERE studentAccount_ID = ?',
+                    [fullName.trim(), studentAccountId],
+                    (err, result) => {
+                        if (err) {
+                            return conn.rollback(() => {
+                                conn.release();
+                                res.status(500).json({ error: err.message });
+                            });
                         }
-                    };
 
-                    // Check if student already has a linked profile
-                    db.query(
-                        'SELECT studentProfile_ID FROM tbl_studentaccounts WHERE studentAccount_ID = ?',
-                        [studentAccountId],
-                        (err, results) => {
-                            if (err) {
-                                return db.rollback(() => {
-                                    res.status(500).json({ error: err.message });
-                                });
-                            }
+                        // Handle grades - create or update tbl_studentgrades
+                        const handleGrades = (profileId, callback) => {
+                            if (genAverageGrade || mathGrade || scienceGrade || englishGrade) {
+                                // Convert empty strings to null for database
+                                const genAvg = genAverageGrade ? parseFloat(genAverageGrade) : null;
+                                const mathGrd = mathGrade ? parseFloat(mathGrade) : null;
+                                const scienceGrd = scienceGrade ? parseFloat(scienceGrade) : null;
+                                const englishGrd = englishGrade ? parseFloat(englishGrade) : null;
 
-                            const existingProfileId = results[0]?.studentProfile_ID;
+                                conn.query(
+                                    'SELECT studentGrades_ID FROM tbl_studentprofiles WHERE studentProfile_ID = ?',
+                                    [profileId],
+                                    (err, results) => {
+                                        if (err) return callback(err);
 
-                            if (existingProfileId) {
-                                // Profile exists - UPDATE the existing one
-                                db.query(
-                                    'UPDATE tbl_studentprofiles SET strand_ID = ?, gradeLevel = ? WHERE studentProfile_ID = ?',
-                                    [strand_ID, gradeLevel, existingProfileId],
-                                    (err, result) => {
-                                        if (err) {
-                                            return db.rollback(() => {
-                                                res.status(500).json({ error: err.message });
-                                            });
+                                        const existingGradesId = results[0]?.studentGrades_ID;
+
+                                        if (existingGradesId) {
+                                            // Update existing grades
+                                            conn.query(
+                                                'UPDATE tbl_studentgrades SET genAverageGrade = ?, mathGrade = ?, scienceGrade = ?, englishGrade = ? WHERE studentGrades_ID = ?',
+                                                [genAvg, mathGrd, scienceGrd, englishGrd, existingGradesId],
+                                                callback
+                                            );
+                                        } else {
+                                            conn.query(
+                                                'INSERT INTO tbl_studentgrades (genAverageGrade, mathGrade, scienceGrade, englishGrade) VALUES (?, ?, ?, ?)',
+                                                [genAvg, mathGrd, scienceGrd, englishGrd],
+                                                (err, result) => {
+                                                    if (err) return callback(err);
+
+                                                    const newGradesId = result.insertId;
+                                                    // Link grades to profile
+                                                    conn.query(
+                                                        'UPDATE tbl_studentprofiles SET studentGrades_ID = ? WHERE studentProfile_ID = ?',
+                                                        [newGradesId, profileId],
+                                                        callback
+                                                    );
+                                                }
+                                            );
                                         }
-
-                                        //Handle Grades
-                                        handleGrades(existingProfileId, (err) => {
-                                            if (err) {
-                                                return db.rollback(() => {
-                                                    res.status(500).json({ error: err.message });
-                                                });
-                                            }
-
-
-
-                                        db.commit((err) => {
-                                            if (err) {
-                                                return db.rollback(() => {
-                                                    res.status(500).json({ error: err.message });
-                                                });
-                                            }
-                                            res.json({ 
-                                                success: true, 
-                                                message: 'Profile updated successfully',
-                                                profileId: existingProfileId 
-                                            });
-                                        });
-                                    });
                                     }
                                 );
                             } else {
-                                // No profile exists - CREATE a new one and LINK it
-                                db.query(
-                                    'INSERT INTO tbl_studentprofiles (strand_ID, gradeLevel) VALUES (?, ?)',
-                                    [strand_ID, gradeLevel],
-                                    (err, result) => {
-                                        if (err) {
-                                            return db.rollback(() => {
-                                                res.status(500).json({ error: err.message });
-                                            });
-                                        }
+                                callback(null);
+                            }
+                        };
 
-                                        const newProfileId = result.insertId;
+                        // Check if student already has a linked profile
+                        conn.query(
+                            'SELECT studentProfile_ID FROM tbl_studentaccounts WHERE studentAccount_ID = ?',
+                            [studentAccountId],
+                            (err, results) => {
+                                if (err) {
+                                    return conn.rollback(() => {
+                                        conn.release();
+                                        res.status(500).json({ error: err.message });
+                                    });
+                                }
 
-                                        // Handle Grades
-                                        handleGrades(newProfileId, (err) => {
+                                const existingProfileId = results[0]?.studentProfile_ID;
+
+                                if (existingProfileId) {
+                                    // Profile exists - UPDATE the existing one
+                                    conn.query(
+                                        'UPDATE tbl_studentprofiles SET strand_ID = ?, gradeLevel = ? WHERE studentProfile_ID = ?',
+                                        [strand_ID, gradeLevel, existingProfileId],
+                                        (err, result) => {
                                             if (err) {
-                                                return db.rollback(() => {
+                                                return conn.rollback(() => {
+                                                    conn.release();
                                                     res.status(500).json({ error: err.message });
                                                 });
                                             }
 
-
-                                        // Link the new profile to the student account
-                                        db.query(
-                                            'UPDATE tbl_studentaccounts SET studentProfile_ID = ? WHERE studentAccount_ID = ?',
-                                            [newProfileId, studentAccountId],
-                                            (err, result) => {
+                                            // Handle Grades
+                                            handleGrades(existingProfileId, (err) => {
                                                 if (err) {
-                                                    return db.rollback(() => {
+                                                    return conn.rollback(() => {
+                                                        conn.release();
                                                         res.status(500).json({ error: err.message });
                                                     });
                                                 }
 
-                                                db.commit((err) => {
+                                                conn.commit((err) => {
                                                     if (err) {
-                                                        return db.rollback(() => {
+                                                        return conn.rollback(() => {
+                                                            conn.release();
                                                             res.status(500).json({ error: err.message });
                                                         });
                                                     }
+                                                    conn.release();
                                                     res.json({ 
                                                         success: true, 
-                                                        message: 'Profile created and linked successfully',
-                                                        profileId: newProfileId 
+                                                        message: 'Profile updated successfully',
+                                                        profileId: existingProfileId 
                                                     });
                                                 });
+                                            });
+                                        }
+                                    );
+                                } else {
+                                    // No profile exists - CREATE a new one and LINK it
+                                    conn.query(
+                                        'INSERT INTO tbl_studentprofiles (strand_ID, gradeLevel) VALUES (?, ?)',
+                                        [strand_ID, gradeLevel],
+                                        (err, result) => {
+                                            if (err) {
+                                                return conn.rollback(() => {
+                                                    conn.release();
+                                                    res.status(500).json({ error: err.message });
+                                                });
                                             }
-                                        );
-                                    });
-                                    }
-                                );
+
+                                            const newProfileId = result.insertId;
+
+                                            // Handle Grades
+                                            handleGrades(newProfileId, (err) => {
+                                                if (err) {
+                                                    return conn.rollback(() => {
+                                                        conn.release();
+                                                        res.status(500).json({ error: err.message });
+                                                    });
+                                                }
+
+                                                // Link the new profile to the student account
+                                                conn.query(
+                                                    'UPDATE tbl_studentaccounts SET studentProfile_ID = ? WHERE studentAccount_ID = ?',
+                                                    [newProfileId, studentAccountId],
+                                                    (err, result) => {
+                                                        if (err) {
+                                                            return conn.rollback(() => {
+                                                                conn.release();
+                                                                res.status(500).json({ error: err.message });
+                                                            });
+                                                        }
+
+                                                        conn.commit((err) => {
+                                                            if (err) {
+                                                                return conn.rollback(() => {
+                                                                    conn.release();
+                                                                    res.status(500).json({ error: err.message });
+                                                                });
+                                                            }
+                                                            conn.release();
+                                                            res.json({ 
+                                                                success: true, 
+                                                                message: 'Profile created and linked successfully',
+                                                                profileId: newProfileId 
+                                                            });
+                                                        });
+                                                    }
+                                                );
+                                            });
+                                        }
+                                    );
+                                }
                             }
-                        }
-                    );
-                }
-            );
+                        );
+                    }
+                );
+            });
         });
     });
 

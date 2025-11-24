@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../utils/AuthContext";
 import { FiBarChart2, FiAlertCircle, FiChevronRight, FiFileText } from "react-icons/fi";
 import { GiBrain } from "react-icons/gi";
 import { BookOpen, Brain } from "lucide-react";
@@ -10,7 +11,7 @@ import Chatbot from "./Chatbot";
 
 const UserHomepage = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem('user'));
+  const { user, loading: authLoading } = useAuth();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,15 +26,19 @@ const UserHomepage = () => {
 
   useEffect(() => {
     document.title = 'TigerRoutes | Home';
-    fetchAnalytics();
-    fetchRecentAssessment();
-  }, []);
+    // Wait until auth has resolved
+    if (!authLoading) {
+      fetchAnalytics();
+      fetchRecentAssessment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user]);
 
 
   const fetchAnalytics = async () => {
     try {
       if (!user || !user.studentAccount_ID) {
-        throw new Error('No user found in session storage');
+        throw new Error('No user found');
       }
 
       const response = await fetch(`http://localhost:5000/api/assessment/getHomeAnalytics?studentAccountId=${user.studentAccount_ID}`);
@@ -55,7 +60,7 @@ const UserHomepage = () => {
 
   // New function to fetch recent assessment
   const fetchRecentAssessment = async () => {
-    try {
+      try {
       if (!user || !user.studentAccount_ID) {
         setLoadingAssessment(false);
         return;

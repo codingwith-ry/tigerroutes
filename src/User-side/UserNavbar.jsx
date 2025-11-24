@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { HiMenu, HiX } from "react-icons/hi";
 import { FiChevronDown } from "react-icons/fi";
 import Swal from "sweetalert2";
+import { useAuth } from "../utils/AuthContext";
 
 const UserNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -13,11 +14,7 @@ const UserNavbar = () => {
 
   const profileRef = useRef(null); // Ref for desktop dropdown
   const mobileProfileRef = useRef(null); // Ref for mobile dropdown
-  const user = 
-    JSON.parse(sessionStorage.getItem('user')) ||
-    null;
-
-  const [loadingUser, setLoadingUser] = useState(true);
+  const { user, setUser, loading: loadingUser, refreshUser, justLoggedOut, setJustLoggedOut } = useAuth();
 
 
   // Close dropdown when clicking outside
@@ -43,56 +40,44 @@ const UserNavbar = () => {
   }, []);
 
   useEffect(() => {
-  if (!user) {
-    setLoadingUser(true);
-    fetch('http://localhost:5000/api/me', {
-      method: 'GET',
-      credentials: 'include'
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.user) {
-        sessionStorage.setItem('user', JSON.stringify(data.user));
-        setLoadingUser(false);
-      } else {
-        setLoadingUser(false);
-        Swal.fire({
-          icon: 'warning',
-          title: 'Not Logged In',
-          text: 'You must be logged in to access this page. Redirecting to home...',
-          timer: 5000,
-          timerProgressBar: true,
-          showConfirmButton: false,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          customClass: { popup: 'rounded-xl' },
-        });
-        setTimeout(() => {
-          navigate('/');
-        }, 5000);
+    // If no user in context, refresh from server
+    if (!user) {
+      refreshUser();
+    }
+    // redirect when unauthenticated after loading
+    // we watch loadingUser to avoid redirect while initial fetch is ongoing
+    if (!loadingUser && !user) {
+      // If the app flagged that we just logged out, suppress the modal once
+      if (justLoggedOut) {
+        setJustLoggedOut(false);
+        // also clear any navigation state
+        if (location && location.state && location.state.fromLogout) {
+          navigate(location.pathname, { replace: true, state: {} });
+        }
+        return;
       }
-    })
-    .catch(() => {
-      setLoadingUser(false);
+      // If we just navigated here with an explicit flag, suppress the modal once
+      if (location && location.state && location.state.fromLogout) {
+        // clear the navigation state so other checks don't re-trigger
+        navigate(location.pathname, { replace: true, state: {} });
+        return;
+      }
+
       Swal.fire({
         icon: 'warning',
         title: 'Not Logged In',
         text: 'You must be logged in to access this page. Redirecting to home...',
-        timer: 5000,
+        timer: 3000,
         timerProgressBar: true,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false,
         customClass: { popup: 'rounded-xl' },
       });
-      setTimeout(() => {
-        navigate('/');
-      }, 5000);
-    });
-  } else {
-    setLoadingUser(false);
-  }
-}, [user, navigate]);
+      setTimeout(() => navigate('/'), 3000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loadingUser]);
 
 if (loadingUser) {
   return <div>Loading...</div>;
@@ -170,14 +155,18 @@ if (loadingUser) {
                       buttonsStyling: false,
                     }).then((result) => {
                       if (result.isConfirmed) {
-                        // Clear cookies
+                        // Clear cookies and in-memory user
                         fetch('http://localhost:5000/api/logout', {
                           method: 'POST',
                           credentials: 'include'
                         }).finally(() => {
                           localStorage.clear();
-                          sessionStorage.clear();
-                          navigate("/");
+                          // do not write to sessionStorage anymore; clear in-memory user
+                          setUser(null);
+                          // mark in context that we just logged out so other components can suppress warnings
+                          setJustLoggedOut(true);
+                          // navigate to landing and mark as coming from logout to suppress "not logged in" modal
+                          navigate("/", { state: { fromLogout: true } });
                           Swal.fire({
                             icon: "success",
                             title: "Logged Out",

@@ -7,6 +7,7 @@ import { BookOpenText } from "lucide-react";
 import { Star } from "lucide-react";
 import { useEffect } from "react"; 
 import { useState } from "react";
+import { useAuth } from "../utils/AuthContext";
 import Swal from "sweetalert2";
 
 const ProfilePage = () => {
@@ -30,15 +31,16 @@ const ProfilePage = () => {
       englishGrade: null
     });
 
-    //Using session storage value for email as it doesn't need to be edited.
-    const storedUser = JSON.parse(sessionStorage.getItem('user'));
-    const storedEmail = storedUser?.email || '';
+    const { user, setUser, loading: authLoading } = useAuth();
+    //Using auth context value for email as it doesn't need to be edited.
+    const storedEmail = user?.email || '';
     const [email] = useState(storedEmail);
 
     useEffect(() => {
         fetchStrands();
-        fetchUserData();
-    }, []);
+        if (!authLoading) fetchUserData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading]);
 
     function fetchStrands() {
         fetch('http://localhost:5000/api/strands')
@@ -47,9 +49,9 @@ const ProfilePage = () => {
     }
 
     function fetchUserData() {
-        const user = JSON.parse(sessionStorage.getItem('user'));
-        if (user && user.studentAccount_ID) {
-            fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`)
+        const localUser = user;
+        if (localUser && localUser.studentAccount_ID) {
+            fetch(`http://localhost:5000/api/student-profile/${localUser.studentAccount_ID}`)
             .then(res => res.json())
             .then(data => {
                 if(data.name) {
@@ -127,8 +129,8 @@ const ProfilePage = () => {
     // PUT request for the whole form.
     function handleSaveProfile(e) {
         e.preventDefault();
-        const user = JSON.parse(sessionStorage.getItem('user'));
-        if (!user || !user.studentAccount_ID) return;
+        const localUser = user;
+        if (!localUser || !localUser.studentAccount_ID) return;
 
         if (!validateForm()) {
           return;
@@ -153,9 +155,8 @@ const ProfilePage = () => {
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                const user = JSON.parse(sessionStorage.getItem('user'));
-                user.name = firstName + ' ' + lastName;
-                sessionStorage.setItem('user', JSON.stringify(user));
+                const updatedUser = { ...localUser, name: firstName + ' ' + lastName };
+                setUser(updatedUser);
                 Swal.fire({
                   icon: 'success',
                   title: 'Profile updated',

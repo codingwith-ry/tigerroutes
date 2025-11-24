@@ -220,6 +220,7 @@ const AssessmentResults = () => {
         }
     };
 
+
     // RIASEC descriptions
     const riasecDescriptions = {
         realistic: "Hands-on, practical activities",
@@ -518,6 +519,10 @@ const AssessmentResults = () => {
                      (!programRecommendations?.cross_track || programRecommendations.cross_track.length === 0) && (
                         <div className="text-center py-8 text-gray-500">
                             <p>No program recommendations available at this time.</p>
+                            <p className="text-sm mt-2">This can happen if the scorer service is unavailable or returned no matches.</p>
+                            <div className="mt-4">
+                                <p className="text-sm text-gray-500">If you need recommendations regenerated please contact an administrator.</p>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -5,6 +5,7 @@ import { FiEye, FiFileText, FiMessageCircle, FiCalendar, FiCopy, FiSearch, FiChe
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import Swal from "sweetalert2";
+import { useAuth } from "../utils/AuthContext";
 
 const UserResultsHistory = () => {
   const navigate = useNavigate();
@@ -26,12 +27,14 @@ const UserResultsHistory = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const { user, loading: authLoading } = useAuth();
 
   // Fetch assessment history
   useEffect(() => {
     document.title = 'TigerRoutes | Results';
-    fetchAssessmentHistory();
-  }, []);
+    if (!authLoading) fetchAssessmentHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user]);
 
   // Filter assessments when search, date filter, or original data changes
   useEffect(() => {
@@ -66,16 +69,14 @@ const UserResultsHistory = () => {
       try {
           setLoading(true);
           
-          // Get studentAccount_ID from localStorage
-          const userData = sessionStorage.getItem('user');
-          if (!userData) {
+            // Get studentAccount_ID from auth context
+            if (!user) {
               setError('User not logged in');
               setLoading(false);
               return;
-          }
+            }
 
-          const user = JSON.parse(userData);
-          const studentAccount_ID = user.studentAccount_ID;
+            const studentAccount_ID = user.studentAccount_ID;
 
           if (!studentAccount_ID) {
               setError('Student account ID not found');

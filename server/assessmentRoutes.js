@@ -777,7 +777,7 @@ module.exports = (db) => {
 
                 const fetchAssessmentProfile =  `
                 SELECT str.strand_ID, sap.gradeLevel, stg.mathGrade, stg.scienceGrade, stg.englishGrade, stg.genAverageGrade
-                FROM tbl_studentProfiles AS sap
+                FROM tbl_studentprofiles AS sap
                 LEFT JOIN tbl_strands AS str ON sap.strand_ID = str.strand_ID
                 LEFT JOIN tbl_studentgrades AS stg ON sap.studentGrades_ID = stg.studentGrades_ID
                 LEFT JOIN tbl_studentaccounts AS sa ON sap.studentProfile_ID = sa.studentProfile_ID
@@ -794,7 +794,7 @@ module.exports = (db) => {
                         });
                     }
 
-                    const insertAssessmentProfile = `INSERT INTO tbl_assessmentProfiles 
+                    const insertAssessmentProfile = `INSERT INTO tbl_assessmentprofiles 
                     (strand_ID, gradeLevel, mathGrade, scienceGrade, englishGrade, genAverageGrade) 
                     VALUES (?, ?, ?, ?, ?, ?)`;
 

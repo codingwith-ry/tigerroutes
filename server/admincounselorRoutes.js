@@ -249,8 +249,9 @@ module.exports = (db) => {
         const { name, email, strand, status, officeLocation, consultationHours, about, adminStaffAccountId } = req.body;
         // db in this project is a Connection (created via mysql.createConnection).
         // The promise() wrapper on a Connection exposes beginTransaction/commit/rollback and query.
-        const conn = db.promise();
+        let conn;
         try {
+            conn = await db.promise().getConnection();
             await conn.beginTransaction();
 
             // Fetch existing values so we can generate a detailed change summary
@@ -321,20 +322,23 @@ module.exports = (db) => {
             }
             res.json({ success: true, message: 'Updated' });
         } catch (err) {
-            try { await conn.rollback(); } catch (e) { console.error('Rollback error', e); }
+            try { if (conn) await conn.rollback(); } catch (e) { console.error('Rollback error', e); }
             console.error(err);
             res.status(500).json({ success:false, message: 'DB error', error: err.message});
+        } finally {
+            try { if (conn) conn.release(); } catch (e) { /* ignore release errors */ }
         }
     });
 
     router.post('/counselor/delete', async (req, res) => {
+        let conn;
         try {
             const { id, adminEmail, adminPassword } = req.body;
             if (!id || !adminEmail || !adminPassword) {
                 return res.status(400).json({ success: false, message: 'Missing required fields' });
             }
 
-            const conn = db.promise();
+            conn = await db.promise().getConnection();
 
             // Verify admin credentials
             const [adminRows] = await conn.query('SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?', [adminEmail, adminPassword]);
@@ -372,9 +376,11 @@ module.exports = (db) => {
 
             return res.json({ success: true, message: 'Counselor deleted' });
         } catch (err) {
-            try { await db.promise().rollback(); } catch (e) { /* ignore */ }
+            try { if (conn) await conn.rollback(); } catch (e) { /* ignore */ }
             console.error('Error deleting counselor:', err);
             return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        } finally {
+            try { if (conn) conn.release(); } catch (e) { /* ignore */ }
         }
     });
 

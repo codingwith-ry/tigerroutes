@@ -19,8 +19,8 @@ const AssessmentBigFivePage = () => {
     "Extraversion": 0,
     "Agreeableness": 0,
     "Conscientiousness": 0,
-    "Negative Emotionality": 0,
-    "Open-Mindedness": 0
+    "Neuroticism": 0,
+    "Openness": 0
   });
 
   /**
@@ -105,8 +105,8 @@ const AssessmentBigFivePage = () => {
       "Extraversion": 0,
       "Agreeableness": 0,
       "Conscientiousness": 0,
-      "Negative Emotionality": 0,
-      "Open-Mindedness": 0
+      "Neuroticism": 0,
+      "Openness": 0
     };
     const domainCounts = { ...domainScores };
 
@@ -316,11 +316,11 @@ const AssessmentBigFivePage = () => {
    */
   const handleTestComplete = (finalScores) => {
     const bigFiveResults = {
-      Openness: finalScores["Open-Mindedness"],
+      Openness: finalScores.Openness,
       Conscientiousness: finalScores.Conscientiousness,
       Extraversion: finalScores.Extraversion,
       Agreeableness: finalScores.Agreeableness,
-      Neuroticism: finalScores["Negative Emotionality"]
+      Neuroticism: finalScores.Neuroticism
     };
 
     // Save final results to localStorage
@@ -398,7 +398,6 @@ const AssessmentBigFivePage = () => {
       });
       return;
     }
-    
 
     fetch('http://localhost:5000/api/assessment/complete/', {
       method: 'POST',

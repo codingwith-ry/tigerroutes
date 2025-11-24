@@ -24,18 +24,18 @@ module.exports = (db) => {
                 sg.scienceGrade,
                 sg.englishGrade,
                 sg.genAverageGrade
-            FROM tbl_studentAccounts sa
-            LEFT JOIN tbl_studentProfiles sp ON sa.studentProfile_ID = sp.studentProfile_ID
+            FROM tbl_studentaccounts sa
+            LEFT JOIN tbl_studentprofiles sp ON sa.studentprofile_ID = sp.studentprofile_ID
             LEFT JOIN tbl_strands strands ON sp.strand_ID = strands.strand_ID
-            LEFT JOIN tbl_studentGrades sg ON sp.studentGrades_ID = sg.studentGrades_ID
+            LEFT JOIN tbl_studentgrades sg ON sp.studentgrades_ID = sg.studentgrades_ID
             WHERE sa.studentAccount_ID = ?
             `;
 
             // Using db.query with promise wrapper
             db.query(query, [studentAccountId], (error, results) => {
                 if (error) {
-                    console.error('Database error:', error);
-                    return res.status(500).json({ error: 'Database error' });
+                    console.error('Database error:', error.message);
+                    return res.status(500).json({ error: 'Database error', message: error.message });
                 }
 
                 if (!results.length) {
@@ -93,7 +93,7 @@ module.exports = (db) => {
         WHERE sa.studentAccount_ID = ?;
         `;
 
-        const studentProfileQuery = `INSERT INTO tbl_assessmentProfiles (mathGrade, scienceGrade, englishGrade, genAverageGrade, strand_ID, gradeLevel) VALUES (?, ?, ?, ?, ?, ?)`;
+        const studentProfileQuery = `INSERT INTO tbl_assessmentprofiles (mathGrade, scienceGrade, englishGrade, genAverageGrade, strand_ID, gradeLevel) VALUES (?, ?, ?, ?, ?, ?)`;
         
 
         const riasecQuery = `
@@ -303,7 +303,7 @@ module.exports = (db) => {
                 const { assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID } = result[0];
 
                 // Fetch Student Profile
-                const fetchStudentProfile = 'SELECT st.`name`, st.email, ap.gradeLevel, s.strandName, ap.mathGrade, ap.scienceGrade, ap.englishGrade, ap.genAverageGrade, sa.date FROM tbl_assessmentProfiles AS ap INNER JOIN tbl_strands AS s ON ap.strand_ID = s.strand_ID INNER JOIN tbl_studentassessments AS sa ON ap.assessmentProfile_ID = sa.assessmentProfile_ID INNER JOIN tbl_studentaccounts AS st ON sa.studentAccount_ID = st.studentAccount_ID WHERE ap.assessmentProfile_ID = ?';
+                const fetchStudentProfile = 'SELECT st.`name`, st.email, ap.gradeLevel, s.strandName, ap.mathGrade, ap.scienceGrade, ap.englishGrade, ap.genAverageGrade, sa.date FROM tbl_assessmentprofiles AS ap INNER JOIN tbl_strands AS s ON ap.strand_ID = s.strand_ID INNER JOIN tbl_studentassessments AS sa ON ap.assessmentProfile_ID = sa.assessmentProfile_ID INNER JOIN tbl_studentaccounts AS st ON sa.studentAccount_ID = st.studentAccount_ID WHERE ap.assessmentProfile_ID = ?';
 
                 // Fetch RIASEC results
                 const fetchRIASEC = 'SELECT * FROM tbl_riasecresults WHERE riasecResult_ID = ?';
@@ -444,7 +444,6 @@ module.exports = (db) => {
                 });
 
             });
-
         } catch (e) {
             return res.json({ success: false, message: e.message });
         }
@@ -906,7 +905,7 @@ module.exports = (db) => {
             sap.englishGrade,
             sap.genAverageGrade
             FROM tbl_pendingassessments AS pa
-            LEFT JOIN tbl_assessmentProfiles AS sap ON pa.assessmentProfile_ID = sap.assessmentProfile_ID
+            LEFT JOIN tbl_assessmentprofiles AS sap ON pa.assessmentProfile_ID = sap.assessmentProfile_ID
             LEFT JOIN tbl_strands AS str ON sap.strand_ID = str.strand_ID
             WHERE pa.studentAccount_ID = ?
             ORDER BY pa.created_at DESC
@@ -924,8 +923,8 @@ module.exports = (db) => {
             }
 
             if (results.length === 0) {
-            return res.status(404).json({
-                success: false,
+            return res.status(200).json({
+                success: true,
                 message: 'No saved progress found'
             });
             }

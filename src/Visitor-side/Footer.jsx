@@ -31,7 +31,7 @@ const Footer = () => {
               personality, and academic profile using psychometric assessments and a rule‑based recommendation engine.
             </p>
             <p className="text-sm font-medium">Contact</p>
-            <p className="text-sm">tigeroutes.support@ust.edu.ph</p>
+            <p className="text-sm">tigerroutes.contact@gmail.com</p>
           </div>
 
           {/* Right: QR Code */}

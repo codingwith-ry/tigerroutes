@@ -1,5 +1,5 @@
 {
-  "BS Computer Science": {
+  "Bachelor of Science in Computer Science": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.15, "ideal_range": [50, 85] },
       "Investigative": { "weight": 0.30, "ideal_range": [70, 100] },
@@ -31,7 +31,7 @@
     }
   },
 
-  "BS Information Technology": {
+  "Bachelor of Science in Information Technology": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.25, "ideal_range": [65, 95] },
       "Investigative": { "weight": 0.25, "ideal_range": [70, 100] },
@@ -63,7 +63,7 @@
     }
   },
 
-  "BS Information Systems": {
+  "Bachelor of Science in Information Systems": {
     "riasec_requirements": {
         "Realistic": { "weight": 0.10, "ideal_range": [45, 80] },
         "Investigative": { "weight": 0.25, "ideal_range": [65, 95] },
@@ -95,7 +95,7 @@
     }
   },
 
-  "BS Chemical Engineering": {
+  "Bachelor of Science in Chemical Engineering": {
     "riasec_requirements": {
         "Realistic": { "weight": 0.25, "ideal_range": [65, 95] },
         "Investigative": { "weight": 0.30, "ideal_range": [70, 100] },
@@ -127,7 +127,7 @@
     }
   },
 
-  "BS Civil Engineering": {
+  "Bachelor of Science in Civil Engineering": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.30, "ideal_range": [70, 100] },
       "Investigative": { "weight": 0.25, "ideal_range": [65, 95] },
@@ -159,7 +159,7 @@
     }
   },
 
-  "BS Electrical Engineering": {
+  "Bachelor of Science in Electrical Engineering": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.30, "ideal_range": [70, 100] },
       "Investigative": { "weight": 0.25, "ideal_range": [65, 95] },
@@ -191,7 +191,7 @@
     }
   },
 
-  "Bachelor of Fine Arts": {
+  "Bachelor of Fine Arts (Advertising Arts)": {
     "riasec_requirements": {
       "Artistic": { "weight": 0.35, "ideal_range": [80, 100] },
       "Enterprising": { "weight": 0.20, "ideal_range": [65, 95] },
@@ -210,11 +210,11 @@
     "academic_requirements": {
       "overall_gen_ave": { "weight": 0.30, "minimum": 82 },
       "english_performance": { "weight": 0.30, "minimum": 80 },
-      "art_performance": { "weight": 0.25, "minimum": 85 },
+      "science_performance": { "weight": 0.25, "minimum": 85 },
       "math_performance": { "weight": 0.15, "minimum": 75 }
     },
     "track_preferences": {
-      "Arts and Design": 100,
+      "Music, Arts, and Design": 100,
       "ABM": 75,
       "HUMSS": 70,
       "STEM": 50,
@@ -382,6 +382,7 @@
       "Physical Education and Sports": 35
     }
   },
+
   "Bachelor of Science in Architecture": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.20, "ideal_range": [60, 95] },
@@ -406,11 +407,11 @@
     },
     "track_preferences": {
       "STEM": 90,
-      "Arts and Design": 95,
+      "Music, Arts, and Design": 95,
       "ABM": 65,
       "HUMSS": 60,
       "Health-Allied": 40,
-      "Sports Track": 35
+      "Physical Education and Sports": 35
     }
   },
 
@@ -445,7 +446,8 @@
       "Physical Education and Sports": 45
     }
   },
-  "BA Political Science": {
+
+  "Bachelor of Arts in Political Science": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.05, "ideal_range": [40, 75] },
       "Investigative": { "weight": 0.25, "ideal_range": [70, 100] },
@@ -476,7 +478,8 @@
       "Physical Education and Sports": 40
     }
   },
-  "BA Economics": {
+
+  "Bachelor of Arts in Economics": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.05, "ideal_range": [40, 75] },
       "Investigative": { "weight": 0.30, "ideal_range": [70, 100] },
@@ -507,7 +510,8 @@
       "Physical Education and Sports": 40
     }
   },
-  "BS Entrepreneurship": {
+
+  "Bachelor of Science in Entrepreneurship": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.10, "ideal_range": [45, 85] },
       "Investigative": { "weight": 0.15, "ideal_range": [55, 90] },
@@ -539,7 +543,7 @@
     }
   },
 
-  "BS Business Administration (Marketing Management)": {
+  "Bachelor of Science in Business Administration (Marketing Management)": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.10, "ideal_range": [40, 80] },
       "Investigative": { "weight": 0.15, "ideal_range": [55, 90] },
@@ -571,7 +575,7 @@
     }
   },
 
-  "BS Business Administration (Financial Management)": {
+  "Bachelor of Science in Business Administration (Financial Management)": {
     "riasec_requirements": {
       "Realistic": { "weight": 0.10, "ideal_range": [40, 80] },
       "Investigative": { "weight": 0.25, "ideal_range": [65, 100] },
@@ -726,8 +730,8 @@
       "Health-Allied": 95,
       "ABM": 55,
       "HUMSS": 70,
-      "Arts and Design": 45,
-      "Sports Track": 50
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 50
     }
   },
 
@@ -754,12 +758,12 @@
       "math_performance": { "weight": 0.15, "minimum": 75 }
     },
     "track_preferences": {
-      "Arts and Design": 100,
+      "Music, Arts, and Design": 100,
       "HUMSS": 85,
       "Health-Allied": 60,
       "STEM": 55,
       "ABM": 60,
-      "Sports Track": 50
+      "Physical Education and Sports": 50
     }
   },
 
@@ -786,12 +790,12 @@
       "math_performance": { "weight": 0.2, "minimum": 80 }
     },
     "track_preferences": {
-      "Arts and Design": 100,
+      "Music, Arts, and Design": 100,
       "STEM": 80,
       "ABM": 65,
       "HUMSS": 70,
       "Health-Allied": 45,
-      "Sports Track": 50
+      "Physical Education and Sports": 50
     }
   },
 
@@ -818,12 +822,12 @@
       "math_performance": { "weight": 0.2, "minimum": 80 }
     },
     "track_preferences": {
-      "Arts and Design": 100,
+      "Music, Arts, and Design": 100,
       "HUMSS": 80,
       "ABM": 60,
       "STEM": 55,
       "Health-Allied": 50,
-      "Sports Track": 65
+      "Physical Education and Sports": 65
     }
   },
 
@@ -854,8 +858,8 @@
       "STEM": 85,
       "HUMSS": 70,
       "ABM": 60,
-      "Arts and Design": 45,
-      "Sports Track": 65
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 65
     }
   },
 
@@ -886,8 +890,8 @@
       "Health-Allied": 90,
       "ABM": 55,
       "HUMSS": 60,
-      "Arts and Design": 45,
-      "Sports Track": 50
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 50
     }
   },
 
@@ -918,8 +922,8 @@
       "STEM": 90,
       "HUMSS": 60,
       "ABM": 55,
-      "Arts and Design": 45,
-      "Sports Track": 50
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 50
     }
   },
 
@@ -950,8 +954,8 @@
       "STEM": 90,
       "HUMSS": 60,
       "ABM": 55,
-      "Arts and Design": 45,
-      "Sports Track": 50
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 50
     }
   },
 
@@ -978,12 +982,12 @@
       "english_performance": { "weight": 0.25, "minimum": 80 }
     },
     "track_preferences": {
-      "Sports Track": 100,
+      "Physical Education and Sports": 100,
       "Health-Allied": 90,
       "STEM": 80,
       "ABM": 70,
       "HUMSS": 55,
-      "Arts and Design": 45
+      "Music, Arts, and Design": 45
     }
   },
 
@@ -1012,10 +1016,10 @@
     "track_preferences": {
       "Health-Allied": 100,
       "STEM": 90,
-      "Sports Track": 70,
+      "Physical Education and Sports": 70,
       "ABM": 50,
       "HUMSS": 75,
-      "Arts and Design": 60
+      "Music, Arts, and Design": 60
     }
   },
 
@@ -1044,12 +1048,202 @@
     "track_preferences": {
       "Health-Allied": 100,
       "STEM": 90,
-      "Sports Track": 80,
+      "Physical Education and Sports": 80,
       "ABM": 50,
       "HUMSS": 65,
-      "Arts and Design": 55
+      "Music, Arts, and Design": 55
+    }
+  },
+
+  "Bachelor of Science in Sports Science": {
+    "riasec_requirements": {
+      "Realistic": { "weight": 0.30, "ideal_range": [70, 100] },
+      "Investigative": { "weight": 0.25, "ideal_range": [65, 95] },
+      "Social": { "weight": 0.20, "ideal_range": [70, 100] },
+      "Enterprising": { "weight": 0.10, "ideal_range": [55, 85] },
+      "Conventional": { "weight": 0.10, "ideal_range": [55, 85] },
+      "Artistic": { "weight": 0.05, "ideal_range": [40, 75] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.20, "ideal_range": [60, 90] },
+      "Conscientiousness": { "weight": 0.30, "ideal_range": [75, 100] },
+      "Extraversion": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [60, 90] },
+      "Neuroticism": { "weight": 0.10, "ideal_range": [10, 55] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.25, "minimum": 80 },
+      "science_performance": { "weight": 0.30, "minimum": 80 },
+      "math_performance": { "weight": 0.20, "minimum": 75 },
+      "english_performance": { "weight": 0.25, "minimum": 80 }
+    },
+    "track_preferences": {
+      "Physical Education and Sports": 100,
+      "STEM": 90,
+      "Health-Allied": 85,
+      "ABM": 60,
+      "HUMSS": 65,
+      "Music, Arts, and Design": 50
+    }
+  },
+
+  "Bachelor of Science in Microbiology": {
+    "riasec_requirements": {
+      "Investigative": { "weight": 0.35, "ideal_range": [75, 100] },
+      "Realistic": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conventional": { "weight": 0.15, "ideal_range": [60, 90] },
+      "Social": { "weight": 0.10, "ideal_range": [55, 85] },
+      "Artistic": { "weight": 0.05, "ideal_range": [40, 75] },
+      "Enterprising": { "weight": 0.10, "ideal_range": [50, 80] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.30, "ideal_range": [75, 100] },
+      "Extraversion": { "weight": 0.10, "ideal_range": [30, 70] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Neuroticism": { "weight": 0.20, "ideal_range": [10, 55] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.25, "minimum": 80 },
+      "science_performance": { "weight": 0.35, "minimum": 85 },
+      "math_performance": { "weight": 0.25, "minimum": 80 },
+      "english_performance": { "weight": 0.15, "minimum": 80 }
+    },
+    "track_preferences": {
+      "STEM": 100,
+      "Health-Allied": 90,
+      "ABM": 55,
+      "HUMSS": 50,
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 40
+    }
+  },
+
+  "Bachelor of Science in Chemistry": {
+    "riasec_requirements": {
+      "Investigative": { "weight": 0.40, "ideal_range": [75, 100] },
+      "Realistic": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conventional": { "weight": 0.15, "ideal_range": [60, 90] },
+      "Enterprising": { "weight": 0.10, "ideal_range": [50, 85] },
+      "Social": { "weight": 0.05, "ideal_range": [45, 80] },
+      "Artistic": { "weight": 0.05, "ideal_range": [40, 70] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.35, "ideal_range": [75, 100] },
+      "Extraversion": { "weight": 0.10, "ideal_range": [30, 70] },
+      "Agreeableness": { "weight": 0.10, "ideal_range": [50, 85] },
+      "Neuroticism": { "weight": 0.20, "ideal_range": [10, 55] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.25, "minimum": 80 },
+      "science_performance": { "weight": 0.40, "minimum": 85 },
+      "math_performance": { "weight": 0.25, "minimum": 80 },
+      "english_performance": { "weight": 0.10, "minimum": 80 }
+    },
+    "track_preferences": {
+      "STEM": 100,
+      "Health-Allied": 85,
+      "ABM": 55,
+      "HUMSS": 50,
+      "Music, Arts, and Design": 45,
+      "Physical Education and Sports": 40
+    }
+  },
+
+  "Bachelor of Science in Psychology": {
+    "riasec_requirements": {
+      "Investigative": { "weight": 0.30, "ideal_range": [70, 100] },
+      "Social": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conventional": { "weight": 0.15, "ideal_range": [55, 85] },
+      "Enterprising": { "weight": 0.10, "ideal_range": [50, 85] },
+      "Artistic": { "weight": 0.10, "ideal_range": [50, 85] },
+      "Realistic": { "weight": 0.10, "ideal_range": [45, 80] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.25, "ideal_range": [70, 95] },
+      "Extraversion": { "weight": 0.20, "ideal_range": [55, 90] },
+      "Agreeableness": { "weight": 0.20, "ideal_range": [70, 100] },
+      "Neuroticism": { "weight": 0.10, "ideal_range": [10, 55] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.25, "minimum": 80 },
+      "science_performance": { "weight": 0.30, "minimum": 80 },
+      "english_performance": { "weight": 0.25, "minimum": 85 },
+      "math_performance": { "weight": 0.20, "minimum": 80 }
+    },
+    "track_preferences": {
+      "Health-Allied": 100,
+      "STEM": 90,
+      "HUMSS": 85,
+      "ABM": 60,
+      "Music, Arts, and Design": 50,
+      "Physical Education and Sports": 45
+    }
+  },
+
+  "Bachelor of Science in Hospitality Management": {
+    "riasec_requirements": {
+      "Realistic": { "weight": 0.15, "ideal_range": [50, 85] },
+      "Investigative": { "weight": 0.10, "ideal_range": [45, 80] },
+      "Artistic": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Social": { "weight": 0.30, "ideal_range": [75, 100] },
+      "Enterprising": { "weight": 0.20, "ideal_range": [65, 95] },
+      "Conventional": { "weight": 0.10, "ideal_range": [55, 90] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.30, "ideal_range": [65, 95] },
+      "Extraversion": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [60, 100] },
+      "Neuroticism": { "weight": 0.05, "ideal_range": [10, 50] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.40, "minimum": 80 },
+      "math_performance": { "weight": 0.15, "minimum": 78 },
+      "science_performance": { "weight": 0.10, "minimum": 78 },
+      "english_performance": { "weight": 0.35, "minimum": 82 }
+    },
+    "track_preferences": {
+      "HUMSS": 95,
+      "ABM": 100,
+      "STEM": 45,
+      "Health-Allied": 50,
+      "Music, Arts, and Design": 70,
+      "Physical Education and Sports": 55
+    }
+  },
+
+  "Bachelor of Science in Tourism Management": {
+    "riasec_requirements": {
+      "Realistic": { "weight": 0.10, "ideal_range": [45, 80] },
+      "Investigative": { "weight": 0.15, "ideal_range": [50, 85] },
+      "Artistic": { "weight": 0.15, "ideal_range": [55, 90] },
+      "Social": { "weight": 0.30, "ideal_range": [70, 100] },
+      "Enterprising": { "weight": 0.20, "ideal_range": [65, 95] },
+      "Conventional": { "weight": 0.10, "ideal_range": [55, 90] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.25, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.20, "ideal_range": [60, 90] },
+      "Extraversion": { "weight": 0.30, "ideal_range": [70, 100] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [65, 100] },
+      "Neuroticism": { "weight": 0.10, "ideal_range": [10, 55] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.35, "minimum": 80 },
+      "math_performance": { "weight": 0.15, "minimum": 78 },
+      "science_performance": { "weight": 0.10, "minimum": 78 },
+      "english_performance": { "weight": 0.40, "minimum": 82 }
+    },
+    "track_preferences": {
+      "HUMSS": 100,
+      "ABM": 90,
+      "STEM": 50,
+      "Health-Allied": 45,
+      "Music, Arts, and Design": 75,
+      "Physical Education and Sports": 55
     }
   }
-
-  
 }

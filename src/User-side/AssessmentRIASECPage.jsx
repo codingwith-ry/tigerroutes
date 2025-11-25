@@ -315,10 +315,8 @@ const AssessmentRIASECPage = () => {
     // Save final results to localStorage
     localStorage.setItem("riasecAnswers", JSON.stringify(answers));
     localStorage.setItem("riasecResults", JSON.stringify(riasecResults));
-    
-    // Clear temporary progress data
-    localStorage.removeItem("riasec_temp_answers");
-    localStorage.removeItem("riasec_temp_progress");
+    localStorage.setItem("riasecProgress", questions.length.toString());
+  
     setHasUnsavedChanges(false);
 
     Swal.fire({

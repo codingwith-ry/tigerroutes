@@ -4,6 +4,10 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
+const {
+  BedrockAgentRuntimeClient,
+  InvokeAgentCommand
+} = require("@aws-sdk/client-bedrock-agent-runtime");
 
 
 const app = express();
@@ -42,7 +46,6 @@ app.use(verifyJwtCookie);
 
 //Google Stuffs
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client();
 
 // MySQL connection
 const dbConfig = {
@@ -68,6 +71,49 @@ db.getConnection((err, conn) => {
 });
 
 
+// Initialize Bedrock client
+const client = new BedrockAgentRuntimeClient({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
+
+//chatbot route
+app.post("/api/chatbot", async (req, res) => {
+  try {
+    const { userMessage, sessionId } = req.body;
+
+    const command = new InvokeAgentCommand({
+      agentId: process.env.BEDROCK_AGENT_ID,
+      agentAliasId: process.env.BEDROCK_AGENT_ALIAS,
+      sessionId: sessionId || "default-session",
+      inputText: userMessage
+    });
+
+    const response = await client.send(command);
+
+    let finalOutput = "";
+
+    for (const event of response.completion) {
+      if (event.chunk) {
+        finalOutput += Buffer.from(event.chunk.bytes).toString("utf-8");
+      }
+    }
+
+    res.json({ output: finalOutput });
+
+  } catch (error) {
+    console.error("Bedrock agent error:", error);
+    res.status(500).json({ error: "Failed to invoke agent" });
+  }
+});
+
+app.listen(5000, () => {
+  console.log("Server running on http://localhost:5000");
+});
+    
 //importing all login/register routes
 const loginRoutes = require('./loginRoutes.js')(db); 
 app.use('/api', loginRoutes);

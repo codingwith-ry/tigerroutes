@@ -157,6 +157,7 @@ module.exports = (db) => {
                                     console.error('Error fetching student profile details:', err);
                                     return res.status(500).json({ message: 'Error fetching student profile details' });
                                 }
+                                var timestamp = new Date();
 
                                 db.query(
                                     studentProfileQuery,
@@ -182,7 +183,7 @@ module.exports = (db) => {
                                                 assessmentProfile_ID,
                                                 riasecResult.insertId,
                                                 bigFiveResult.insertId,
-                                                timestamp = new Date()
+                                                timestamp
                                             ],
                                             async (err, assessmentResult) => {
                                                 if (err) {

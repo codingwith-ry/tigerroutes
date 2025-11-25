@@ -172,9 +172,14 @@ const AssessmentPage = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/assessment/delete-progress/${pendingAssessment.pendingAssessment_ID}`,
-          { method: 'DELETE', credentials: 'include' }
+        const response = await fetch( 
+          `http://localhost:5000/api/assessment/delete-PendingAssessment/`,
+          {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentAccount_ID: user.studentAccount_ID, pendingAssessment_ID: pendingAssessment.pendingAssessment_ID }),
+          }
         );
 
         if (response.ok) {

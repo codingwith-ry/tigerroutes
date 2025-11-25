@@ -29,7 +29,7 @@ const AdminAssessment = () => {
   async function fetchDashboardStats(){
     try {
       const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${base}/api/admin/dashboard-stats`);
+      const res = await fetch(`${base}/api/admin/dashboard-stats`, { credentials: 'include' });
       const data = await res.json();
       if (data && data.success && data.data) {
         setStats(prev => ({
@@ -44,7 +44,7 @@ const AdminAssessment = () => {
         }
         // Also fetch combined total (completed + pending) from admin routes
         try {
-          const totalsRes = await fetch(`${base}/api/admin/total-assessments`);
+          const totalsRes = await fetch(`${base}/api/admin/total-assessments`, { credentials: 'include' });
           const totalsJson = await totalsRes.json();
           if (totalsJson && totalsJson.success && totalsJson.data) {
             setTotalAssessments(totalsJson.data.total || 0);
@@ -60,7 +60,7 @@ const AdminAssessment = () => {
     }
     /*
     try {
-      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats', { credentials: 'include' });
       const data = await response.json();
 
       if (data.success) {
@@ -122,7 +122,7 @@ const AdminAssessment = () => {
         if (gradeFilter) params.set('grade', gradeFilter);
 
         const url = `${base}/api/assessments?${params.toString()}`;
-        const res = await fetch(url, { signal: controller.signal });
+        const res = await fetch(url, { signal: controller.signal, credentials: 'include' });
         const data = await res.json();
         if (data && data.success) {
           const list = data.data || [];
@@ -169,7 +169,7 @@ const AdminAssessment = () => {
         if (strandDateRangeFilter.endDate) params.set('endDate', strandDateRangeFilter.endDate);
         if (strandGradeFilter) params.set('grade', strandGradeFilter);
         const url = `${base}/api/admin/strand-analytics${params.toString() ? `?${params.toString()}` : ''}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { credentials: 'include' });
         const json = await res.json();
         if (!cancelled && json && json.success && Array.isArray(json.data)) {
           setStrandAnalytics(json.data || []);

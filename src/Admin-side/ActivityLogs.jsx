@@ -20,7 +20,7 @@ const ActivityLogs = () => {
 			const params = new URLSearchParams({ limit: String(limit), page: String(p) });
 			if (staffFilter) params.set('staff', staffFilter);
 			if (dateFilter) params.set('date', dateFilter);
-			const resp = await fetch(`${base}/api/admin/staff-logs?${params.toString()}`);
+			const resp = await fetch(`${base}/api/admin/staff-logs?${params.toString()}`, { credentials: 'include' });
 			const payload = await resp.json();
 			if (payload && payload.success) {
 				setLogs(payload.data || []);

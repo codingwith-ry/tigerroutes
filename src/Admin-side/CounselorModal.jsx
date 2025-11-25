@@ -52,7 +52,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
     const fetchAndPopulate = async (id) => {
       try {
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        const resp = await fetch(`${base}/api/counselor/${encodeURIComponent(id)}`);
+          const resp = await fetch(`${base}/api/counselor/${encodeURIComponent(id)}`, { credentials: 'include' });
         if (!resp.ok) {
           // fallback to using the provided counselor prop if fetch fails
           console.warn('Failed to fetch counselor from API, using provided prop');
@@ -216,6 +216,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
         const resp = await fetch(`${base}/api/counselor/delete`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: counselor?.staffAccount_ID, adminEmail: staffUser.email, adminPassword: confirmPassword })
         });

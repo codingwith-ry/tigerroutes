@@ -2,6 +2,9 @@ const express = require('express');
 
 module.exports = (db) => {
     const router = express.Router();
+    const requireJwt = require('./middleware/requireJwt');
+    // Require JWT cookie (tigerToken) for all user-facing assessment APIs
+    router.use(requireJwt);
 
     router.get('/assessment/profile', async (req, res) => {
         try {

@@ -35,7 +35,7 @@ const AdminStudentProfile = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`);
+        const res = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
         const payload = await res.json();
         if (cancelled) return;
         if (!payload || !payload.success) {
@@ -80,7 +80,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadPrograms() {
       try {
-        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/programs`);
+        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/programs`, { credentials: 'include' });
         const body = await res.json();
         if (cancelled) return;
         if (body && body.success) {
@@ -153,7 +153,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadNotes() {
       try {
-        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`);
+        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
         const body = await res.json();
         if (cancelled) return;
         if (body && body.success) {
@@ -207,6 +207,7 @@ const AdminStudentProfile = () => {
     try {
       const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ staffAccount_ID, counselorNotes: newNote.trim() })
       });
@@ -214,7 +215,7 @@ const AdminStudentProfile = () => {
       if (body && body.success) {
         // reload notes
         setNewNote('');
-        const refresh = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`);
+        const refresh = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
         const refreshed = await refresh.json();
         if (refreshed && refreshed.success) {
           const notes = (refreshed.data || []).map(n => ({
@@ -263,7 +264,7 @@ const AdminStudentProfile = () => {
 
     try {
       const url = `http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}?staffAccount_ID=${encodeURIComponent(staffAccount_ID)}`;
-      const res = await fetch(url, { method: 'DELETE' });
+      const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
       const body = await res.json();
       if (body && body.success) {
         // remove from local state
@@ -315,6 +316,7 @@ const AdminStudentProfile = () => {
     try {
       const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ staffAccount_ID, counselorNotes: editingText.trim() })
       });

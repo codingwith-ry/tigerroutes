@@ -218,6 +218,7 @@ const AssessmentBigFivePage = () => {
       // Call API to save progress
       fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
@@ -401,6 +402,7 @@ const AssessmentBigFivePage = () => {
 
     fetch('http://localhost:5000/api/assessment/complete/', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -427,6 +429,7 @@ const AssessmentBigFivePage = () => {
       
       fetch('http://localhost:5000/api/assessment/delete-PendingAssessment/', {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },

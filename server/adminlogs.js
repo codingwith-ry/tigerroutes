@@ -1,7 +1,10 @@
 const express = require('express');
+const requireJwt = require('./middleware/requireJwt');
 
 module.exports = (db) => {
   const router = express.Router();
+  // Protect admin logs endpoints with JWT requirement
+  router.use(requireJwt);
 
   // GET /admin/staff-logs
   // Query params: page (1-based), limit, q (general search), staff (staff name or id), date (YYYY-MM-DD), dateFrom, dateTo

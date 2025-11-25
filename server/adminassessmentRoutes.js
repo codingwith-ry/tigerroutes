@@ -1,7 +1,10 @@
 const express = require('express');
+const requireJwt = require('./middleware/requireJwt');
 
 module.exports = (db) => {
   const router = express.Router();
+  // Require admin JWT for all admin assessment routes
+  router.use(requireJwt);
 
   // GET /api/assessments
   // Returns paginated list of assessments with computed average alignment (track_aligned recommendations)

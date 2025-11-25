@@ -1,10 +1,13 @@
 const express = require('express');
+const requireJwt = require('./middleware/requireJwt');
 const nodemailer = require('nodemailer');
 const path = require('path');
 
 module.exports = (db) => {
 
     const router = express.Router();
+    // All admin counselor routes require a valid JWT (tigerToken)
+    router.use(requireJwt);
 
     // POST: Add a new counselor.
     router.post('/counselor/add', async (req, res) => {

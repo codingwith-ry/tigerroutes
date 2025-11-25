@@ -29,7 +29,7 @@ const AdminCounselors = () => {
 
   const fetchCounselors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/counselors');
+      const response = await fetch('http://localhost:5000/api/counselors', { credentials: 'include' });
       const result = await response.json();
       if (result.success) {
         setCounselors(result.data.map(c => ({
@@ -208,6 +208,7 @@ const AdminCounselors = () => {
                               const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
                               const resp = await fetch(`${base}/api/counselor/reveal`, {
                                 method: 'POST',
+                                credentials: 'include',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                               });
@@ -239,6 +240,7 @@ const AdminCounselors = () => {
                                 // Trigger sending the counselor password email via admin endpoint
                                 const mailResp = await fetch(`${base}/api/counselor/send-password`, {
                                   method: 'POST',
+                                  credentials: 'include',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                 });
@@ -253,6 +255,7 @@ const AdminCounselors = () => {
                                 try {
                                   const changeResp = await fetch(`${base}/api/counselor/change-password`, {
                                     method: 'POST',
+                                      credentials: 'include',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                   });
@@ -272,6 +275,7 @@ const AdminCounselors = () => {
                                         // send the new password via email
                                         const mailResp2 = await fetch(`${base}/api/counselor/send-password`, {
                                           method: 'POST',
+                                            credentials: 'include',
                                           headers: { 'Content-Type': 'application/json' },
                                           body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                         });
@@ -416,14 +420,16 @@ const AdminCounselors = () => {
                       if (counselorData.id) {
                         response = await fetch(`${base}/api/counselor/${encodeURIComponent(counselorData.id)}`, {
                           method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(counselorData)
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(counselorData)
                         });
                       } else {
                         response = await fetch(`${base}/api/counselor/add`, {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(counselorData)
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(counselorData)
                         });
                       }
 

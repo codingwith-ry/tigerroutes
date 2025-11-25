@@ -43,7 +43,7 @@ const ProfilePage = () => {
     }, [authLoading]);
 
     function fetchStrands() {
-        fetch('http://localhost:5000/api/strands')
+        fetch('http://localhost:5000/api/strands', { credentials: 'include' })
         .then(res => res.json())
         .then(data => setStrands(data));
     }
@@ -51,7 +51,7 @@ const ProfilePage = () => {
     function fetchUserData() {
         const localUser = user;
         if (localUser && localUser.studentAccount_ID) {
-            fetch(`http://localhost:5000/api/student-profile/${localUser.studentAccount_ID}`)
+            fetch(`http://localhost:5000/api/student-profile/${localUser.studentAccount_ID}`, { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
                 if(data.name) {
@@ -149,6 +149,7 @@ const ProfilePage = () => {
 
         fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`, {
             method: 'PUT',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(profileData)
         })

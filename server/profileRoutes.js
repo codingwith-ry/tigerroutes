@@ -5,13 +5,18 @@ const nodemailer = require('nodemailer');
 
 module.exports = (db) => {
     const router = express.Router();
+    const requireJwt = require('./middleware/requireJwt');
 
+    // Public endpoint: strands are safe for admin dashboard and public UI to fetch
     router.get('/strands', (req, res) => {
         db.query('SELECT * FROM tbl_strands', (err, results) => {
             if (err) return res.status(500).json({ error: err.message});
             res.json(results);
         });
     });
+
+    // Require JWT cookie (tigerToken) for all other user-facing profile APIs
+    router.use(requireJwt);
 
     router.get('/student/:id', (req, res) => {
         const id = req.params.id;

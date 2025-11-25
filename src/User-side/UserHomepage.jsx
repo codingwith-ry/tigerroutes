@@ -41,7 +41,9 @@ const UserHomepage = () => {
         throw new Error('No user found');
       }
 
-      const response = await fetch(`http://localhost:5000/api/assessment/getHomeAnalytics?studentAccountId=${user.studentAccount_ID}`);
+      const response = await fetch(`http://localhost:5000/api/assessment/getHomeAnalytics?studentAccountId=${user.studentAccount_ID}`, {
+        credentials: 'include'
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch analytics data');
@@ -67,7 +69,8 @@ const UserHomepage = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/assessment/recent?studentAccountId=${user.studentAccount_ID}`
+        `http://localhost:5000/api/assessment/recent?studentAccountId=${user.studentAccount_ID}`,
+        { credentials: 'include' }
       );
       
       if (response.ok) {

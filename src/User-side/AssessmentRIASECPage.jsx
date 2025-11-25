@@ -202,13 +202,14 @@ const AssessmentRIASECPage = () => {
       };
 
       // Call API to save progress
-    fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(progressData),
-    })
+      fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(progressData),
+      })
       .then(response => {
         // Parse response body as JSON
         return response.json().then(result => {

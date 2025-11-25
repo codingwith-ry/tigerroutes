@@ -68,8 +68,8 @@ const AssessmentPage = () => {
 
       // Fetch user profile and pending assessment in parallel
       const [profileResponse, pendingResponse] = await Promise.all([
-        fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`),
-        fetch(`http://localhost:5000/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`)
+        fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include' }),
+        fetch(`http://localhost:5000/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include' })
       ]);
       
       if (!profileResponse.ok) {
@@ -174,7 +174,7 @@ const AssessmentPage = () => {
       try {
         const response = await fetch(
           `http://localhost:5000/api/assessment/delete-progress/${pendingAssessment.pendingAssessment_ID}`,
-          { method: 'DELETE' }
+          { method: 'DELETE', credentials: 'include' }
         );
 
         if (response.ok) {

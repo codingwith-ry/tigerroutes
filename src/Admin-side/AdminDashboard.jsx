@@ -33,7 +33,7 @@ const AdminDashboard = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats', { credentials: 'include' });
       const data = await response.json();
 
       if (data.success) {
@@ -67,8 +67,8 @@ const AdminDashboard = () => {
       const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       // Fetch canonical strands and analytics in parallel
       const [strandsRes, analyticsRes] = await Promise.all([
-        fetch(`${base}/api/strands`),
-        fetch(`${base}/api/admin/strand-alignment`)
+        fetch(`${base}/api/strands`, { credentials: 'include' }),
+        fetch(`${base}/api/admin/strand-alignment`, { credentials: 'include' })
       ]);
 
       const strandsJson = await strandsRes.json().catch(() => null);
@@ -115,7 +115,7 @@ const AdminDashboard = () => {
 
   async function fetchTopPrograms() {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/top-programs');
+      const res = await fetch('http://localhost:5000/api/admin/top-programs', { credentials: 'include' });
       const json = await res.json();
       console.log('Top programs response:', json);
       if (json.success) {

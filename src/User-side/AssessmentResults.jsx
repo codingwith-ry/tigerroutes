@@ -140,6 +140,7 @@ const AssessmentResults = () => {
             if (result.isConfirmed) {
                 fetch('http://localhost:5000/api/assessment/submitRating', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(ratingData)
                 })
@@ -205,7 +206,9 @@ const AssessmentResults = () => {
     const fetchAssessmentDetails = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${assessmentId}`);
+            const response = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${assessmentId}`, {
+                credentials: 'include'
+            });
             const data = await response.json();
             
             if (data.success) {

@@ -3,9 +3,12 @@
 
 
 const express = require('express');
+const requireJwt = require('./middleware/requireJwt');
 
 module.exports = (db) => {
     const router = express.Router();
+    // Require admin JWT for dashboard endpoints
+    router.use(requireJwt);
 
     //Admin dashboard initialization
     router.get('/admin/dashboard-stats', (req, res) => {

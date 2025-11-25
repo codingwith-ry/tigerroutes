@@ -349,26 +349,27 @@ module.exports = (db) => {
                     } catch (e) {
                         // ignore logging failures
                     }
-                    // Create server-side session for staff user (safe authoritative identity)
+                    // Create JWT for staff user and set `tigerToken` cookie (HttpOnly)
                     try {
-                        if (req.session) {
-                            req.session.regenerate(() => {
-                                req.session.staffUser = {
-                                    staffAccount_ID: staffUser.staffAccount_ID,
-                                    staffRole_ID: staffUser.staffRole_ID,
-                                    staffEmail: staffUser.email,
-                                    staffName: staffUser.name || staffUser.staffName || ''
-                                };
-                                req.session.loggedIn = true;
-                                // respond with user but do not rely on client to store id
-                                return res.json({ success: true, user: staffUser });
-                            });
-                        } else {
-                            return res.json({ success: true, user: staffUser });
-                        }
-                    } catch (sessErr) {
-                        console.error('Session error on staff-login:', sessErr);
-                        // still return success but warn in logs
+                        const tokenPayload = {
+                            id: staffUser.staffAccount_ID,
+                            email: staffUser.email,
+                            name: staffUser.name || staffUser.staffName || '',
+                            staffRole_ID: staffUser.staffRole_ID
+                        };
+                        // staff tokens are valid for 8 hours
+                        const token = jwt.sign(tokenPayload, secret, { expiresIn: '8h' });
+                        const cookieMaxAge = 8 * 60 * 60 * 1000; // 8 hours
+                        res.cookie('tigerToken', token, {
+                            httpOnly: true,
+                            secure: false,
+                            sameSite: 'lax',
+                            maxAge: cookieMaxAge
+                        });
+                        return res.json({ success: true, user: staffUser });
+                    } catch (tokenErr) {
+                        console.error('JWT creation error on staff-login:', tokenErr);
+                        // fallback to returning user without cookie
                         return res.json({ success: true, user: staffUser });
                     }
                 } else {
@@ -379,13 +380,34 @@ module.exports = (db) => {
         )
     })
 
-        // Return current staff profile from server-side session
-        router.get('/staff/me', (req, res) => {
-            if (req.session && req.session.staffUser) {
-                return res.json({ success: true, data: req.session.staffUser });
-            }
-            return res.status(401).json({ success:false, message: 'Not authenticated' });
-        });
+                // Return current staff profile from JWT (tigerToken) set as HttpOnly cookie
+                router.get('/staff/me', (req, res) => {
+                        try {
+                            // verifyJwtCookie middleware attaches decoded token to req.user when present
+                            if (req.user && req.user.id) {
+                                // fetch fresh staff record from DB
+                                db.query('SELECT * FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [req.user.id], (err, results) => {
+                                    if (err) return res.status(500).json({ success: false, message: err.message });
+                                    if (results && results.length > 0) {
+                                        // include minimal fields consistent with previous session shape
+                                        const s = results[0];
+                                        const staffProfile = {
+                                            staffAccount_ID: s.staffAccount_ID,
+                                            staffRole_ID: s.staffRole_ID,
+                                            staffEmail: s.email,
+                                            staffName: s.name || s.staffName || ''
+                                        };
+                                        return res.json({ success: true, data: staffProfile });
+                                    }
+                                    return res.status(404).json({ success: false, message: 'Staff user not found' });
+                                });
+                                return;
+                            }
+                        } catch (e) {
+                            console.warn('[staff/me] error', e);
+                        }
+                        return res.status(401).json({ success:false, message: 'Not authenticated' });
+                });
 
     return router;
 };

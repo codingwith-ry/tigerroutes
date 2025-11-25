@@ -1,0 +1,215 @@
+[
+  {
+    "category": "General Information",
+    "question": "What is TigerRoutes?",
+    "answer": "TigerRoutes is a web-based career guidance platform for UST Senior High School students. It combines academic performance, SHS track, and psychometric test results (RIASEC and Big Five) to recommend suitable UST college programs and career paths."
+  },
+  {
+    "category": "General Information",
+    "question": "Who can use TigerRoutes?",
+    "answer": "Only UST-SHS students with valid '@shs.ust.edu.ph' email accounts can register and access the TigerRoutes system."
+  },
+  {
+    "category": "General Information",
+    "question": "What is the purpose of TigerRoutes?",
+    "answer": "TigerRoutes helps UST-SHS students make smarter and more intentional college program choices by reducing the likelihood of course mismatch, academic difficulty, and shifting."
+  },
+  {
+    "category": "General Information",
+    "question": "Is TigerRoutes mandatory for all UST-SHS students?",
+    "answer": "No. Using TigerRoutes is voluntary, but it is highly recommended for students who want guidance in choosing the most suitable UST college programs."
+  },
+  {
+    "category": "Assessments and Profile",
+    "question": "What assessments are used in TigerRoutes?",
+    "answer": "TigerRoutes uses two standardized psychometric assessments: the RIASEC Interest Profiler (Holland Codes) and the Big Five Personality Traits (OCEAN)."
+  },
+  {
+    "category": "Assessments and Profile",
+    "question": "How does the system calculate program recommendations?",
+    "answer": "TigerRoutes uses a Rule-Based Scoring Engine that calculates a Total Alignment Score using this formula: (RIASEC × 40%) + (Big Five × 30%) + (Academic × 20%) + (Track × 10%)."
+  },
+  {
+    "category": "Assessments and Profile",
+    "question": "What data do I need to complete my profile?",
+    "answer": "You will need your SHS Track and Strand, grades in Math, Science, English, and General Average, along with your RIASEC and Big Five test results."
+  },
+  {
+    "category": "Assessments and Profile",
+    "question": "Are my grades from Grade 10 or Grade 11 used?",
+    "answer": "For Grade 11 students, Grade 10 final grades are used. For Grade 12 students, Grade 11 grades are used, following the USTET format."
+  },
+  {
+    "category": "Program Recommendations",
+    "question": "What do the program recommendations include?",
+    "answer": "Your results will include your top 10 UST programs, their program descriptions, possible career paths, and an alignment score showing how well each program fits your profile."
+  },
+  {
+    "category": "Program Recommendations",
+    "question": "Can I view or download my results?",
+    "answer": "Yes. You can view your assessment history and export your results as a PDF file for personal reference or counseling purposes."
+  },
+  {
+    "category": "Program Recommendations",
+    "question": "How are career paths determined?",
+    "answer": "Career paths are derived from each program's corresponding RIASEC and Big Five profiles, matched to your interests, personality, and academic background."
+  },
+  {
+    "category": "Program Recommendations",
+    "question": "Why did I get a specific program recommendation?",
+    "answer": "TigerRoutes matches your assessment scores with predefined program profiles. For example, high Investigative scores may align with Science or Engineering, while Social and Agreeable traits may fit Education or Nursing."
+  },
+  {
+    "category": "AI Chatbot",
+    "question": "What can the AI Chatbot help me with?",
+    "answer": "The chatbot can explain your RIASEC and Big Five results, describe UST programs and career paths, clarify your alignment scores, compare programs, and answer system-related questions."
+  },
+  {
+    "category": "AI Chatbot",
+    "question": "Can I ask the chatbot about other universities?",
+    "answer": "No. The TigerRoutes chatbot is limited to UST programs and guidance for Thomasian-SHS students only."
+  },
+  {
+    "category": "AI Chatbot",
+    "question": "Can I ask the chatbot for personal advice?",
+    "answer": "You may ask for academic or career insights, but the chatbot does not replace professional counseling. You are encouraged to consult your UST-SHS guidance counselor for personalized advice."
+  },
+  {
+    "category": "Counselor and Admin Features",
+    "question": "How do counselors use TigerRoutes?",
+    "answer": "Guidance counselors can access student analytics, review assessment results, and provide feedback for low satisfaction scores to help students better understand their program matches."
+  },
+  {
+    "category": "Counselor and Admin Features",
+    "question": "Can administrators manage counselor accounts?",
+    "answer": "Yes. Admins can add or deactivate counselor accounts, view system logs, and access dashboard analytics for system monitoring."
+  },
+  {
+    "category": "Technical and Privacy Information",
+    "question": "Is my data secure?",
+    "answer": "Yes. TigerRoutes uses HTTPS with TLS encryption, JWT-based authentication, time-limited OTP recovery, and AWS EC2 + RDS for secure cloud deployment."
+  },
+  {
+    "category": "Technical and Privacy Information",
+    "question": "How fast does the system generate results?",
+    "answer": "TigerRoutes generates program and career path recommendations in less than 10 seconds under normal internet conditions."
+  },
+  {
+    "category": "Technical and Privacy Information",
+    "question": "Can I use TigerRoutes on my phone?",
+    "answer": "Yes. TigerRoutes is web and mobile responsive and works smoothly on Chrome, Firefox, Edge, and Safari across Windows, macOS, Android, and iOS devices."
+  },
+  {
+    "category": "Feedback and Support",
+    "question": "What if I disagree with my recommended program?",
+    "answer": "You can rate your results and leave feedback. Counselors review feedback and may provide additional advice or clarification."
+  },
+  {
+    "category": "Feedback and Support",
+    "question": "Who can I contact for issues or questions?",
+    "answer": "You can reach your UST-SHS guidance counselor via their consultation email or use the TigerRoutes AI Chatbot for immediate assistance."
+  },
+  {
+    "category": "Feedback and Support",
+    "question": "Can I retake the assessments?",
+    "answer": "Yes. You may retake the RIASEC and Big Five assessments anytime to see how changes in your profile affect your recommendations."
+  },
+  {
+    "category": "RIASEC Traits",
+    "question": "What does the Realistic (R) trait mean?",
+    "answer": "The Realistic type describes people who enjoy hands-on activities, tools, machines, physical tasks, and practical problem-solving. Students with high Realistic scores often enjoy engineering, architecture, industrial design, sports science, or technical fields."
+  },
+  {
+    "category": "RIASEC Traits",
+    "question": "What does the Investigative (I) trait mean?",
+    "answer": "The Investigative type describes individuals who enjoy analyzing, researching, experimenting, and solving abstract problems. High Investigative students often match Science, Engineering, Medicine, Research, and Computer Science programs."
+  },
+  {
+    "category": "RIASEC Traits",
+    "question": "What does the Artistic (A) trait mean?",
+    "answer": "The Artistic type reflects creativity, originality, self-expression, and preference for flexible, unstructured environments. High Artistic students often match Fine Arts, Design, Architecture, Music, Communication, and Media programs."
+  },
+  {
+    "category": "RIASEC Traits",
+    "question": "What does the Social (S) trait mean?",
+    "answer": "The Social type reflects a preference for helping, teaching, guiding, and connecting with others. Students with high Social scores often suit Education, Nursing, Psychology, Guidance Counseling, and Tourism programs."
+  },
+  {
+    "category": "RIASEC Traits",
+    "question": "What does the Enterprising (E) trait mean?",
+    "answer": "The Enterprising type involves leadership, persuasion, entrepreneurship, and business decision-making. High Enterprising students often match Business Administration, Marketing, Management, Entrepreneurship, Law, and Political Science programs."
+  },
+  {
+    "category": "RIASEC Traits",
+    "question": "What does the Conventional (C) trait mean?",
+    "answer": "The Conventional type reflects organization, structure, detail orientation, and data management. Students with high Conventional scores often align with Accountancy, Finance, IT, HRM office work, and administrative programs."
+  },
+
+  {
+    "category": "Big Five Traits",
+    "question": "What does Openness to Experience mean?",
+    "answer": "Openness represents imagination, creativity, curiosity, and appreciation for new ideas. High Openness aligns with fields requiring creativity or conceptual thinking such as Arts, Design, Psychology, Philosophy, and Research."
+  },
+  {
+    "category": "Big Five Traits",
+    "question": "What does Conscientiousness mean?",
+    "answer": "Conscientiousness reflects organization, discipline, responsibility, and goal-directed behavior. High Conscientiousness matches Accountancy, Nursing, Education, Engineering, and Science programs where precision and consistency matter."
+  },
+  {
+    "category": "Big Five Traits",
+    "question": "What does Extraversion mean?",
+    "answer": "Extraversion measures sociability, energy, assertiveness, and comfort in group interactions. High Extraversion aligns with Tourism, Hospitality, Marketing, Communications, Leadership, and Performing Arts."
+  },
+  {
+    "category": "Big Five Traits",
+    "question": "What does Agreeableness mean?",
+    "answer": "Agreeableness reflects compassion, cooperation, kindness, and empathy. High Agreeableness aligns well with Nursing, Education, Psychology, Social Sciences, and community-related programs."
+  },
+  {
+    "category": "Big Five Traits",
+    "question": "What does Neuroticism mean?",
+    "answer": "Neuroticism reflects emotional sensitivity and tendency to experience stress. Low Neuroticism (emotional stability) is preferred for high-pressure programs like Medicine, Engineering, and Accountancy, while moderate levels may indicate strong empathy for Psychology or Social Sciences."
+  },
+
+  {
+    "category": "Total Alignment Score",
+    "question": "How is the Total Alignment Score computed?",
+    "answer": "TigerRoutes uses a weighted scoring formula to determine how well a student matches each UST program: Total Alignment Score = (RIASEC × 0.40) + (Big Five × 0.30) + (Academic × 0.20) + (Track × 0.10). This ensures that interests and personality have the largest influence, while academics and SHS track contribute to preparedness."
+  },
+  {
+    "category": "Total Alignment Score",
+    "question": "Why is RIASEC weighted the highest in the alignment score?",
+    "answer": "RIASEC is weighted at 40% because extensive research shows that vocational interests are the strongest predictor of long-term academic satisfaction and career persistence. It ensures that recommended programs match a student's natural inclinations."
+  },
+  {
+    "category": "Total Alignment Score",
+    "question": "Why is the Big Five Personality test included in the score?",
+    "answer": "Personality traits strongly influence how students behave in academic and professional settings. For example, Conscientiousness predicts academic success, while high Agreeableness suits healthcare and social fields. This is why Big Five contributes 30% of the score."
+  },
+  {
+    "category": "Total Alignment Score",
+    "question": "How does academic performance affect program recommendations?",
+    "answer": "Academic grades account for 20% of the alignment score. Programs have varying academic thresholds (e.g., strong Math for Engineering, strong English for AB programs). Academic performance helps measure readiness for specific programs."
+  },
+  {
+    "category": "Total Alignment Score",
+    "question": "How does my SHS Track affect my score?",
+    "answer": "Your SHS Track contributes 10% to the alignment score. Some programs have ideal tracks—for example, STEM for Engineering, ABM for Business, HUMSS for Social Sciences. You can still receive cross-track recommendations, but the score may be slightly lower."
+  },
+
+  {
+    "category": "Total Alignment Score",
+    "question": "Can you give an example of how the alignment score is calculated?",
+    "answer": "Example: If a student applying for BS Psychology has RIASEC score 85, Big Five score 80, Academic score 78, and Track score 90: (85 × 0.40) + (80 × 0.30) + (78 × 0.20) + (90 × 0.10) = 34 + 24 + 15.6 + 9 = 82.6% Total Alignment Score."
+  },
+  {
+    "category": "Total Alignment Score",
+    "question": "Why do some programs have higher scores than others?",
+    "answer": "Scores differ based on how closely your personal profile matches the predefined program criteria. Some programs may heavily require Investigative traits or high Conscientiousness, while others require Artistic or Social traits. Your unique profile influences the ranking."
+  },
+  {
+    "category": "Total Alignment Score",
+    "question": "Does a lower score mean I am not allowed to take the program?",
+    "answer": "No. A lower score does not mean you are not allowed to take the program—it simply means your profile aligns less closely with the program's ideal student profile. You can still pursue any program based on your personal goals and motivation."
+  }
+]

@@ -2,6 +2,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX, FiGift, FiInfo, FiAlertTriangle } from "react-icons/fi";
+import { BsBriefcase, BsPerson } from "react-icons/bs";
 import { UserCircle2, SquarePen } from "lucide-react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
@@ -109,6 +110,110 @@ const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
                         Submit
                     </button>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const TopTraitsSection = ({ riasec, bigFive }) => {
+    const getTopThree = (obj) =>
+        Object.entries(obj || {})
+            .filter(([k]) => !/id$/i.test(k)) // ignore ID fields
+            .map(([trait, value]) => ({ trait, value: Number(value || 0) }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 3);
+
+    const riasecShort = {
+        realistic: "Individuals with strong Realistic traits enjoy hands-on activities, working with tools, machines, and physical environments. They prefer practical tasks, outdoor work, mechanics, engineering, operating equipment, or building things. They often value measurable results, physical activity, and real-world problem solving over abstract theories or social interaction.",
+        
+        investigative: "Investigative individuals are analytical, curious, and enjoy exploring ideas through research, experimentation, and critical thinking. They like tasks involving science, technology, mathematics, and problem-solving. They value logic, accuracy, and understanding how things work. They often prefer independent work that requires deep thought and discovery.",
+        
+        artistic: "Artistic individuals thrive in creative, expressive, and flexible environments. They enjoy tasks involving imagination, design, writing, music, performance, or the visual arts. They prefer unstructured tasks that allow originality, emotional expression, and innovation. They value beauty, aesthetics, and the freedom to break conventions.",
+        
+        social: "People high in Social traits enjoy helping, teaching, guiding, counseling, and collaborating with others. They excel in empathetic communication, teamwork, and community-oriented work. They prefer roles where they can support, inspire, or care for people. They value human connection, service, and positive interpersonal relationships.",
+        
+        enterprising: "Enterprising individuals are persuasive, influential, and motivated by leadership roles. They enjoy initiating projects, managing teams, taking risks, and driving business or organizational success. They excel in entrepreneurship, sales, marketing, public speaking, and strategic decision-making. They value achievement, influence, and competitive environments.",
+        
+        conventional: "Conventional individuals are organized, detail-oriented, and thrive in structured environments. They enjoy tasks that involve planning, data management, documentation, processes, and systems. They excel in administrative work, accounting, information organization, and ensuring operational efficiency. They value accuracy, order, and reliability."
+    };
+
+    const bigFiveShort = {
+        openness: "Openness reflects creativity, imagination, intellectual curiosity, and a willingness to explore new ideas and experiences. Individuals high in Openness enjoy learning, innovation, art, diverse cultures, and abstract thinking. They tend to be flexible, original, and comfortable with change and unconventional concepts.",
+        
+        conscientiousness: "Conscientiousness represents discipline, organization, responsibility, and strong work ethic. People high in this trait are reliable, goal-oriented, careful with details, and good at planning. They value order, structure, and achievement, often excelling in tasks that require persistence, focus, and time management.",
+        
+        extraversion: "Extraversion describes sociability, energy, assertiveness, and enthusiasm in social settings. Extroverted individuals enjoy interacting with people, leading conversations, participating in group activities, and staying active. They gain energy from social engagement and are often expressive, outgoing, and action-oriented.",
+        
+        agreeableness: "Agreeableness reflects empathy, kindness, trust, and a cooperative attitude. Individuals high in this trait enjoy helping others, building harmonious relationships, and avoiding conflict. They tend to be supportive, compassionate, patient, and considerate, valuing fairness and collaboration over competition.",
+        
+        neuroticism: "Neuroticism represents emotional sensitivity, vulnerability to stress, and tendency to experience emotions like anxiety, worry, or mood shifts. People higher in this trait may react more strongly to challenges or pressure. While they may be more cautious or reflective, they benefit from supportive environments and clear emotional grounding."
+    };
+
+
+    const riasecTop = getTopThree(riasec);
+    const bigFiveTop = getTopThree(bigFive);
+
+    return (
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <BsBriefcase className="w-5 h-5 text-white" />
+                    </div>
+                    <h4 className="font-bold text-lg text-gray-800">Top 3 RIASEC Traits</h4>
+                </div>
+                <ul className="space-y-4">
+                    {riasecTop.map((t, idx) => (
+                        <li key={t.trait} className="group">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                        {idx + 1}
+                                    </span>
+                                    <div className="font-semibold text-gray-800 capitalize">{t.trait}</div>
+                                </div>
+                                <div className="text-blue-600 font-bold text-lg">{t.value}%</div>
+                            </div>
+                            <div className="text-xs text-gray-600 ml-8 mb-2">{riasecShort[t.trait] || ''}</div>
+                            <div className="w-full bg-blue-100 rounded-full h-2 overflow-hidden ml-8" style={{ width: 'calc(100% - 2rem)' }}>
+                                <div 
+                                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                                    style={{ width: `${t.value}%` }}
+                                />
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-purple-100 p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <BsPerson className="w-5 h-5 text-white" />
+                    </div>
+                    <h4 className="font-bold text-lg text-gray-800">Top 3 Big Five Traits</h4>
+                </div>
+                <ul className="space-y-4">
+                    {bigFiveTop.map((t, idx) => (
+                        <li key={t.trait} className="group">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                        {idx + 1}
+                                    </span>
+                                    <div className="font-semibold text-gray-800 capitalize">{t.trait}</div>
+                                </div>
+                                <div className="text-purple-600 font-bold text-lg">{t.value}%</div>
+                            </div>
+                            <div className="text-xs text-gray-600 ml-8 mb-2">{bigFiveShort[t.trait] || ''}</div>
+                            <div className="w-full bg-purple-100 rounded-full h-2 overflow-hidden ml-8" style={{ width: 'calc(100% - 2rem)' }}>
+                                <div 
+                                    className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full transition-all duration-500 ease-out"
+                                    style={{ width: `${t.value}%` }}
+                                />
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );
@@ -471,6 +576,8 @@ const AssessmentResults = () => {
                     </div>
                 )}
                 </div>
+
+                <TopTraitsSection riasec={riasec} bigFive={bigFive} />
 
                 {/* Program Recommendations Section */}
                 <div className="bg-white rounded-xl shadow p-6">

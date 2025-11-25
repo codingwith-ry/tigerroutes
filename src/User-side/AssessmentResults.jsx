@@ -705,7 +705,7 @@ const AssessmentResults = () => {
 
                     {/* Bottom Message */}
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600 italic">
+                        <p className="text-md font-bold text-gray-600 italic">
                             Remember: The right program is the one that aligns with your passions, strengths, and future aspirations. Trust your journey! 🌟
                         </p>
                     </div>

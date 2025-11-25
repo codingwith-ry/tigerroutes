@@ -247,24 +247,38 @@ const AssessmentPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
-        <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 flex items-center justify-center">
-          <div className="text-center">Loading profile data...</div>
-        </main>
-      </div>
-    );
+        return (
+            <div className="min-h-screen w-full bg-[#FFFCED] flex flex-col">
+                <UserNavbar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Preparing for an assessment...</p>
+                    </div>
+                </div>
+            </div>
+        );
   }
 
-  if (error) {
-    return (
-      <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
-        <main className="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 flex items-center justify-center">
-          <div className="text-center text-red-600">Error: {error}</div>
-        </main>
-      </div>
-    );
-  }
+    if (error) {
+        return (
+            <div className="min-h-screen w-full bg-[#FFFCED] flex flex-col">
+                <UserNavbar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-red-500">
+                        <p className="text-lg font-semibold">Error loading Assessment Page</p>
+                        <p className="mt-2">{error}</p>
+                        <button 
+                            onClick={() => { window.location.reload(); }}
+                            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">

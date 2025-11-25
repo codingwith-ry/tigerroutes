@@ -1,53 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { fetchStaffProfile } from '../utils/staffProfile';
+import { useAuth } from '../utils/AuthContext';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
 const AdminHeader = ({ title }) => {
   const [profile, setProfile] = useState(null);
+  const { user: authUser, refreshUser } = useAuth();
 
   useEffect(() => {
+    // Ensure AuthContext fetches the current user using the server-side cookie (tigerroutes.sid)
     let mounted = true;
     (async () => {
-      const p = await fetchStaffProfile();
-      if (mounted) setProfile(p);
-      // If no session/profile was returned, the user likely navigated directly to a protected admin URL.
-      // Show a notice and redirect to home after 5 seconds.
-      if (!p) {
-        try {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Not authenticated',
-            html: 'You are not logged in. Redirecting to home in <strong></strong> seconds.',
-            timer: 5000,
-            allowOutsideClick: false,
-            didOpen: () => {
-              const b = Swal.getHtmlContainer().querySelector('strong');
-              let i = 5;
-              b.textContent = String(i);
-              const t = setInterval(() => {
-                i -= 1;
-                if (b) b.textContent = String(i);
-              }, 1000);
-              Swal.getTimerLeft = () => 0; // noop to avoid warnings
-              Swal.getPopup().addEventListener('swalClose', () => clearInterval(t));
-            }
-          }).then(() => {
-            // navigate to home
-            try { window.location.href = '/'; } catch (e) { window.location.replace('/'); }
-          });
-        } catch (e) {
-          // fallback redirect if Swal fails
-          setTimeout(() => { try { window.location.href = '/'; } catch (err) { window.location.replace('/'); } }, 5000);
-        }
+      try {
+        await refreshUser();
+        // also try the legacy staff profile fetch as a fallback
+        const p = await fetchStaffProfile();
+        if (mounted && p) setProfile(p);
+      } catch (e) {
+        // ignore — we'll show an auth notice below if no auth user exists
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [refreshUser]);
+
+  // When AuthContext receives a user from `/api/me`, prefer that as the profile source.
+  useEffect(() => {
+    if (authUser) setProfile(authUser);
+  }, [authUser]);
 
   const initials = (() => {
     try {
-      const staffUser = profile || JSON.parse(sessionStorage.getItem('staffUser') || 'null');
+      const staffUser = profile || authUser || JSON.parse(sessionStorage.getItem('staffUser') || 'null');
       if (!staffUser) return 'AU';
       const name = staffUser.firstName || staffUser.first_name || staffUser.lastName || staffUser.last_name || staffUser.name || staffUser.fullName || staffUser.displayName || staffUser.staffName || staffUser.email || '';
       let base = String(name || '').trim();

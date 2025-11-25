@@ -299,16 +299,26 @@ const handleForgotPassword = () => {
 
 
 
-          {/* Sign up */}
-          <div className="text-center text-sm text-gray-700">
+          {/* Sign up + Admin login link */}
+          <div className="text-center text-sm text-gray-700 space-y-2">
+          <div>
             Don't have an account?{" "}
-            <span 
+            <span
               onClick={handleSignUp}
               className="text-[#F6BE1E] font-semibold hover:underline cursor-pointer"
             >
               Sign Up
             </span>
           </div>
+          <div>
+            <span
+              onClick={() => navigate('/admin')}
+              className="text-sm text-[#F6BE1E] font-semibold hover:underline cursor-pointer"
+            >
+              Login as Admin
+            </span>
+          </div>
+        </div>
         </form>
 
         <div className="mt-6 text-center text-xs text-gray-500">

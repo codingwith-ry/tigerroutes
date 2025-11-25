@@ -1,6 +1,6 @@
-
 const express = require('express');
 const nodemailer = require('nodemailer');
+const path = require('path');
 
 module.exports = (db) => {
 
@@ -86,17 +86,94 @@ module.exports = (db) => {
                 console.warn('Failed to write staff log for create counselor:', logErr);
             }
 
-            res.status(201).json({
-                success: true,
-                message: 'Counselor added successfully',
-                data: {
-                    staffAccount_ID: accountResult.insertId,
-                    staffProfile_ID: staffProfileId,
-                    name,
-                    email,
-                    password: generatedPassword
-                }
-            });
+            // Send account details email to the new counselor using the project's mailer
+            let mailSent = false;
+            let mailError = null;
+            try {
+                    const transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                                    user: 'tigerroutes.contact@gmail.com',
+                                    pass: 'epki kwhr jdff egaj'
+                            }
+                    });
+
+                    const mailOptions = {
+                            from: 'tigerroutes.contact@gmail.com',
+                            to: email,
+                            subject: 'TigerRoutes — Your Counselor Account Details',
+                            text: `Hello ${name},\n\nYour TigerRoutes counselor account has been created.\nEmail: ${email}\nPassword: ${generatedPassword}\n\nLog in: http://localhost:3000/admin\n\nPlease change your password after first login.`,
+                            html: `
+                                <div style="font-family: Inter, Arial, sans-serif; background:#f3f4f6; padding:24px;">
+                                    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(17,24,39,0.06);">
+                                        <div style="padding:28px 32px;text-align:center;background:linear-gradient(90deg,#fffaf0,#fffdf7);">
+                                            <img src="cid:tiger_logo" alt="TigerRoutes" style="width:120px;height:auto;display:block;margin:0 auto 12px;" />
+                                            <h1 style="margin:0;font-size:20px;color:#111827;font-weight:600;">Counselor Account Details</h1>
+                                            <p style="margin:8px 0 0;color:#6b7280;font-size:13px;">Welcome to TigerRoutes — please keep this information secure.</p>
+                                        </div>
+                                        <div style="padding:20px 32px 28px;color:#374151;font-size:14px;line-height:1.5;">
+                                            <p style="margin:0 0 12px;">Hello <strong>${name}</strong>,</p>
+                                            <p style="margin:0 0 16px;">Your counselor account has been created. Use the credentials below to sign in. For security, change your password after logging in.</p>
+
+                                            <table role="presentation" style="width:100%;margin:8px 0 18px;border-collapse:collapse;">
+                                                <tr>
+                                                    <td style="padding:8px 12px;background:#f9fafb;border-radius:8px 0 0 8px;width:120px;font-weight:600;color:#111827;">Email</td>
+                                                    <td style="padding:8px 12px;background:#f9fafb;border-radius:0 8px 8px 0;color:#111827;">${email}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:8px 12px;border-radius:8px 0 0 8px;font-weight:600;color:#111827;">Password</td>
+                                                    <td style="padding:8px 12px;border-radius:0 8px 8px 0;color:#111827;"><code style="background:#fff2d7;padding:4px 8px;border-radius:6px;color:#7c2d12;font-weight:700;">${generatedPassword}</code></td>
+                                                </tr>
+                                            </table>
+
+                                            <div style="text-align:center;margin-top:8px;">
+                                                <a href="http://localhost:3000/admin" target="_blank" rel="noopener" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#F6BE1E;color:#111827;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(246,190,30,0.18);">
+                                                    Go to Admin Login
+                                                </a>
+                                            </div>
+
+                                            <p style="margin:16px 0 0;color:#6b7280;font-size:12px;">If you did not request this account or believe this is an error, contact your administrator immediately.</p>
+                                        </div>
+                                        <div style="padding:12px 20px;background:#fafafa;border-top:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:12px;">
+                                            &copy; 2025 TigerRoutes. All rights reserved.
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            attachments: [
+                                {
+                                    filename: '04_TigerRoutes_Logo.png',
+                                    path: path.join(__dirname, '..', 'public', 'images', '02_TigerRoutes_Logo.png'),
+                                    cid: 'tiger_logo'
+                                }
+                            ]
+                    };
+
+                    await transporter.sendMail(mailOptions);
+                    mailSent = true;
+            } catch (mailErr) {
+                    console.error('Failed to send counselor account email:', mailErr && mailErr.stack ? mailErr.stack : mailErr);
+                    mailError = mailErr && mailErr.message ? mailErr.message : String(mailErr);
+            }
+
+            // Return created response; include mail status for visibility
+            const responsePayload = {
+                    success: true,
+                    message: 'Counselor added successfully',
+                    data: {
+                            staffAccount_ID: accountResult.insertId,
+                            staffProfile_ID: staffProfileId,
+                            name,
+                            email,
+                            password: generatedPassword
+                    }
+            };
+            if (!mailSent) {
+                    responsePayload.mailWarning = 'Failed to send account email to counselor';
+                    responsePayload.mailError = mailError;
+            }
+
+            res.status(201).json(responsePayload);
         } catch (error) {
             console.error('Error adding counselor:', error);
             res.status(500).json({
@@ -120,7 +197,13 @@ module.exports = (db) => {
                     sp.officeDetails,
                     sp.consultationDetails,
                     sp.about,
-                    s.strandName as strand
+                    s.strandName as strand,
+                    (
+                      SELECT DATE_FORMAT(MAX(sl.date), '%Y-%m-%d %H:%i:%s')
+                      FROM tbl_stafflogs sl
+                      WHERE sl.staffAccount_ID = sa.staffAccount_ID
+                        AND sl.action LIKE 'Staff login:%'
+                    ) AS lastLogin
                 FROM tbl_staffaccounts sa
                 LEFT JOIN tbl_staffroles sr ON sa.staffRole_ID = sr.staffRole_ID
                 LEFT JOIN tbl_staffprofiles sp ON sa.staffProfile_ID = sp.staffProfile_ID
@@ -249,8 +332,9 @@ module.exports = (db) => {
         const { name, email, strand, status, officeLocation, consultationHours, about, adminStaffAccountId } = req.body;
         // db in this project is a Connection (created via mysql.createConnection).
         // The promise() wrapper on a Connection exposes beginTransaction/commit/rollback and query.
-        const conn = db.promise();
+        let conn;
         try {
+            conn = await db.promise().getConnection();
             await conn.beginTransaction();
 
             // Fetch existing values so we can generate a detailed change summary
@@ -321,20 +405,23 @@ module.exports = (db) => {
             }
             res.json({ success: true, message: 'Updated' });
         } catch (err) {
-            try { await conn.rollback(); } catch (e) { console.error('Rollback error', e); }
+            try { if (conn) await conn.rollback(); } catch (e) { console.error('Rollback error', e); }
             console.error(err);
             res.status(500).json({ success:false, message: 'DB error', error: err.message});
+        } finally {
+            try { if (conn) conn.release(); } catch (e) { /* ignore release errors */ }
         }
     });
 
     router.post('/counselor/delete', async (req, res) => {
+        let conn;
         try {
             const { id, adminEmail, adminPassword } = req.body;
             if (!id || !adminEmail || !adminPassword) {
                 return res.status(400).json({ success: false, message: 'Missing required fields' });
             }
 
-            const conn = db.promise();
+            conn = await db.promise().getConnection();
 
             // Verify admin credentials
             const [adminRows] = await conn.query('SELECT * FROM tbl_staffaccounts WHERE email = ? AND password = ?', [adminEmail, adminPassword]);
@@ -372,9 +459,11 @@ module.exports = (db) => {
 
             return res.json({ success: true, message: 'Counselor deleted' });
         } catch (err) {
-            try { await db.promise().rollback(); } catch (e) { /* ignore */ }
+            try { if (conn) await conn.rollback(); } catch (e) { /* ignore */ }
             console.error('Error deleting counselor:', err);
             return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        } finally {
+            try { if (conn) conn.release(); } catch (e) { /* ignore */ }
         }
     });
 
@@ -439,22 +528,57 @@ module.exports = (db) => {
             });
 
             const mailOptions = {
-                // ensure 'from' matches the authenticated SMTP user
                 from: 'tigerroutes.contact@gmail.com',
                 to: counselor.email,
-                subject: 'TigerRoutes Counselor Account Details',
+                subject: 'TigerRoutes — Your Counselor Account Details',
+                // Plain-text fallback for clients that don't render HTML
+                text: `Hello ${counselor.name},\n\nYour TigerRoutes counselor account has been created/updated.\nEmail: ${counselor.email}\nPassword: ${counselor.password}\n\nLog in: http://localhost:3000/admin\n\nPlease change your password after first login.`,
+                // HTML email with inline CID logo, clear details table and CTA button
                 html: `
-                    <p>Dear ${counselor.name},</p>
-                    <p>Your TigerRoutes counselor account has been created/updated. Here are your account details:</p>
-                    <ul>
-                      <li><strong>Email:</strong> ${counselor.email}</li>
-                      <li><strong>Password:</strong> <code>${counselor.password}</code></li>
-                    </ul>
-                    <p>You can log in at <a href="http://localhost:3000/admin">TigerRoutes Login</a>. For security, please change your password after logging in.</p>
-                    <p>If you did not request this, please contact your administrator immediately.</p>
-                `
-            };
+                  <div style="font-family: Inter, Arial, sans-serif; background:#f3f4f6; padding:24px;">
+                    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(17,24,39,0.06);">
+                      <div style="padding:28px 32px;text-align:center;background:linear-gradient(90deg,#fffaf0,#fffdf7);">
+                        <img src="cid:tiger_logo" alt="TigerRoutes" style="width:120px;height:auto;display:block;margin:0 auto 12px;" />
+                        <h1 style="margin:0;font-size:20px;color:#111827;font-weight:600;">Counselor Account Details</h1>
+                        <p style="margin:8px 0 0;color:#6b7280;font-size:13px;">Welcome to TigerRoutes — please keep this information secure.</p>
+                      </div>
+                      <div style="padding:20px 32px 28px;color:#374151;font-size:14px;line-height:1.5;">
+                        <p style="margin:0 0 12px;">Hello <strong>${counselor.name}</strong>,</p>
+                        <p style="margin:0 0 16px;">Your counselor account has been created/updated. Use the credentials below to sign in. For security, change your password after logging in.</p>
 
+                        <table role="presentation" style="width:100%;margin:8px 0 18px;border-collapse:collapse;">
+                          <tr>
+                            <td style="padding:8px 12px;background:#f9fafb;border-radius:8px 0 0 8px;width:120px;font-weight:600;color:#111827;">Email</td>
+                            <td style="padding:8px 12px;background:#f9fafb;border-radius:0 8px 8px 0;color:#111827;">${counselor.email}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:8px 12px;border-radius:8px 0 0 8px;font-weight:600;color:#111827;">Password</td>
+                            <td style="padding:8px 12px;border-radius:0 8px 8px 0;color:#111827;"><code style="background:#fff2d7;padding:4px 8px;border-radius:6px;color:#7c2d12;font-weight:700;">${counselor.password}</code></td>
+                          </tr>
+                        </table>
+
+                        <div style="text-align:center;margin-top:8px;">
+                          <a href="http://localhost:3000/admin" target="_blank" rel="noopener" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#F6BE1E;color:#111827;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(246,190,30,0.18);">
+                            Go to Admin Login
+                          </a>
+                        </div>
+
+                        <p style="margin:16px 0 0;color:#6b7280;font-size:12px;">If you did not request this account or believe this is an error, contact your administrator immediately.</p>
+                      </div>
+                      <div style="padding:12px 20px;background:#fafafa;border-top:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:12px;">
+                        &copy; 2025 TigerRoutes. All rights reserved.
+                      </div>
+                    </div>
+                  </div>
+                 `,
+                attachments: [
+                  {
+                    filename: '04_TigerRoutes_Logo.png',
+                    path: path.join(__dirname, '..', 'public', 'images', '02_TigerRoutes_Logo.png'),
+                    cid: 'tiger_logo'
+                  }
+                ]
+            };
             try {
                 await transporter.sendMail(mailOptions);
             } catch (mailErr) {

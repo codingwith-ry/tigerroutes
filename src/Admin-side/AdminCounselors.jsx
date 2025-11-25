@@ -16,10 +16,10 @@ const AdminCounselors = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const [counselors, setCounselors] = useState([
-    { name: "Dr. John Cruz", strand: "STEM", lastLogin: "2025-09-16 08:10", status: "Active" },
-    { name: "Dr. Lily Cruz", strand: "ABM", lastLogin: "2025-09-16 06:45", status: "Active" },
-  { name: "Ms. Carla Rivera", strand: "HUMSS", lastLogin: "2025-09-15 19:20", status: "Active" },
-    { name: "Dr. John Doe", strand: "TVL", lastLogin: "2025-09-18 08:20", status: "Inactive" },
+  //   { name: "Dr. John Cruz", strand: "STEM", lastLogin: "2025-09-16 08:10", status: "Active" },
+  //   { name: "Dr. Lily Cruz", strand: "ABM", lastLogin: "2025-09-16 06:45", status: "Active" },
+  // { name: "Ms. Carla Rivera", strand: "HUMSS", lastLogin: "2025-09-15 19:20", status: "Active" },
+  //   { name: "Dr. John Doe", strand: "TVL", lastLogin: "2025-09-18 08:20", status: "Inactive" },
   ]);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const AdminCounselors = () => {
           staffAccount_ID: c.staffAccount_ID,
           name: c.name,
           strand: c.strand || 'N/A',
-          lastLogin: 'N/A', 
+          lastLogin: c.lastLogin, 
           status: c.status === 1 ? 'Active' : 'Inactive',
           email: c.email,
           about: c.about,

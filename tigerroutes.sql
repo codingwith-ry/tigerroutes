@@ -86,12 +86,14 @@ CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
   `staffAccount_ID` int NOT NULL,
   `counselorNotes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `date` timestamp NULL DEFAULT NULL,
+  `edited_date` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`counselorNote_ID`),
   KEY `studentAssessment_ID` (`studentAssessment_ID`),
   KEY `staffAccount_ID` (`staffAccount_ID`),
   CONSTRAINT `FK_tbl_counselornotes_tbl_studentassessments` FOREIGN KEY (`studentAssessment_ID`) REFERENCES `tbl_studentassessments` (`studentAssessment_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `tbl_counselornotes_ibfk_2` FOREIGN KEY (`staffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 -- Dumping data for table tigerroutesdb.tbl_counselornotes: ~0 rows (approximately)
 

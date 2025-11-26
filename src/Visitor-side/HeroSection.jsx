@@ -1,6 +1,49 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { animate } from "framer-motion";
 
+const NumberCounter = ({ end = 0, duration = 1.6, suffix = "" }) => {
+  const [value, setValue] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef(null);
+
+  // observe when the element enters the viewport and start once
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.45 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // animate only after it becomes visible
+  useEffect(() => {
+    if (!started) return;
+    const controls = animate(0, end, {
+      duration,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate(v) {
+        setValue(Math.floor(v));
+      },
+    });
+    return () => controls.stop();
+  }, [started, end, duration]);
+
+  return (
+    <p ref={ref} className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">
+      {value}
+      {suffix}
+    </p>
+  );
+};
 
 const HeroSection = () => {
   const getStarted = () => {
@@ -38,7 +81,7 @@ const HeroSection = () => {
         {/* Stat Highlights */}
         <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-8 sm:gap-12 mt-10 sm:mt-12 text-lg sm:text-xl font-medium font-sfpro w-full items-center">
           <div className="text-center min-w-[120px]">
-            <p className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">50+</p>
+            <NumberCounter end={50} suffix="+" />
             <p className="text-base sm:text-lg md:text-xl">UST PROGRAMS</p>
           </div>
           <div className="text-center min-w-[120px]">
@@ -46,7 +89,7 @@ const HeroSection = () => {
             <p className="text-base sm:text-lg md:text-xl">POWERED MATCHING</p>
           </div>
           <div className="text-center min-w-[120px]">
-            <p className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">100%</p>
+            <NumberCounter end={100} suffix="%" />
             <p className="text-base sm:text-lg md:text-xl">PERSONALIZED</p>
           </div>
         </div>

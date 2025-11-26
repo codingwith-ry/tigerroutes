@@ -14,9 +14,9 @@ const Footer = () => {
           {/* Left: Logo + Text */}
           <div className="text-center md:text-left">
             <img 
-              src="/images/TIGER ROUTES-BLACK.png"
+              src="/images/TigerRoutes_B&W.png"
               alt="TigerRoutes Logo"
-              className="h-12 mx-auto md:mx-0"
+              className="h-16 mx-auto md:mx-0"
             />
             <p className="mt-3 text-sm leading-relaxed max-w-xs text-left">
               Your AI Career Navigator for Thomasian Senior High School Students. TigerRoutes helps students discover UST academic programs that fit their skills, interests, and personality through psychometric assessments and personalized recommendations.

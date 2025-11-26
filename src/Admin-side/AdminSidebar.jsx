@@ -78,7 +78,7 @@ const AdminSidebar = () => {
         }).then(() => {
           try { localStorage.clear(); } catch (_) {}
           try { sessionStorage.clear(); } catch (_) {}
-          navigate("/");
+          navigate("/admin");
           Swal.fire({
             icon: "success",
             title: "Logged Out",
@@ -115,11 +115,11 @@ const AdminSidebar = () => {
   return (
     <>
       {/* Topbar for Mobile */}
-      <div className="md:hidden flex justify-between items-center p-7 bg-[#fdfcf8] border-b">
+      <div className="md:hidden flex justify-between items-center p-5 bg-[#fdfcf8] border-b">
         <img
-          src="/images/TIGER ROUTES.png"
+          src="/images/02_TigerRoutes_Logo.png"
           alt="TigerRoutes Logo"
-          className="h-8 object-contain"
+          className="h-10 object-contain"
         />
         <button onClick={() => setIsOpen(true)}>
           <Menu className="w-6 h-6" />
@@ -133,11 +133,11 @@ const AdminSidebar = () => {
           md:translate-x-0 md:static md:w-64 flex flex-col`}
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-7 border-b">
+        <div className="flex justify-between items-center p-5 border-b">
           <img
-            src="/images/TIGER ROUTES.png"
+            src="/images/02_TigerRoutes_Logo.png"
             alt="TigerRoutes Logo"
-            className="h-8 object-contain"
+            className="h-12 object-contain"
           />
           <button className="md:hidden" onClick={() => setIsOpen(false)}>
             <X className="w-6 h-6" />

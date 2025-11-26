@@ -192,13 +192,14 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
     if (!confirmPassword) {
       Swal.fire({
         icon: "warning",
-        title: "Password Required",
-        text: "Please enter your password to confirm.",
+        title: "Confirmation Required",
+        text: "Please enter your admin password to confirm deletion (this is only used locally as confirmation).",
         confirmButtonColor: "#FB9724",
       });
       return;
     }
-    // Determine admin identity from sessionStorage set at login
+
+    // Ensure we have an authenticated staff profile (JWT cookie should be present)
     let staffUser = null;
     try {
       staffUser = await fetchStaffProfile();
@@ -206,19 +207,20 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
       staffUser = null;
     }
 
-    if (!staffUser || !staffUser.email) {
-      Swal.fire({ icon: 'error', title: 'Not authenticated', text: 'No logged-in staff user found.' , confirmButtonColor: '#FB9724' });
+    if (!staffUser || !staffUser.staffAccount_ID) {
+      Swal.fire({ icon: 'error', title: 'Not authenticated', text: 'No logged-in staff user found. Please login again.', confirmButtonColor: '#FB9724' });
       return;
     }
 
     const doDelete = async () => {
       try {
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        // Send only the counselor id; server will use JWT cookie to identify the admin
         const resp = await fetch(`${base}/api/counselor/delete`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: counselor?.staffAccount_ID, adminEmail: staffUser.email, adminPassword: confirmPassword })
+          body: JSON.stringify({ id: counselor?.staffAccount_ID })
         });
         const result = await resp.json();
         if (!resp.ok || !result.success) {

@@ -31,6 +31,26 @@ const PORT = 5000;
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+// Diagnostic: check presence and validity of PASSWORD_REVEAL_KEY (do NOT log the key itself)
+try {
+  const raw = process.env.PASSWORD_REVEAL_KEY;
+  if (!raw) {
+    console.warn('PASSWORD_REVEAL_KEY is not set in environment. Reveal/encryption will be unavailable.');
+  } else {
+    // provide diagnostic info about raw vs cleaned key without printing the key
+    const cleaned = raw.replace(/\uFEFF/g, '').trim().replace(/[^A-Za-z0-9+/=]/g, '');
+    try {
+      const buf = Buffer.from(cleaned, 'base64');
+      console.log('PASSWORD_REVEAL_KEY present; raw length =', raw.length, ', cleaned length =', cleaned.length, ', decoded length =', buf.length);
+      if (buf.length !== 32) console.warn('PASSWORD_REVEAL_KEY decoded length is not 32 bytes; encryption will fail.');
+    } catch (e) {
+      console.warn('PASSWORD_REVEAL_KEY is present but cleaned value is not valid base64:', e && e.message ? e.message : e);
+    }
+  }
+} catch (e) {
+  console.warn('Error while checking PASSWORD_REVEAL_KEY:', e && e.message ? e.message : e);
+}
+
 // Session support (store sessions server-side; cookie contains opaque session id)
 const session = require('express-session');
 app.use(session({

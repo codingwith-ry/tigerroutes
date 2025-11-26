@@ -67,5 +67,6 @@ function App() {
     </Router>
   );
 }
+//test@ust.edu.ph, password=54321
 
 export default App;

@@ -4,65 +4,96 @@ const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const secret = 'greenP1ace'
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
 const path = require('path');
+const { decrypt, encrypt } = require('./encryption');
 
 module.exports = (db) => {
     const router = express.Router();
     const client = new OAuth2Client();
     const resetCodes = {};
 
-    // Register endpoint
-    router.post('/register', (req, res) => {
+    // Register endpoint - hash password before saving
+    router.post('/register', async (req, res) => {
         const { name, email, password } = req.body;
-        if (name, !email || !password) {
+        if (!name || !email || !password) {
             return res.status(400).json({error: 'Please fill in all fields'});
         }
-        db.query(
-            'INSERT into tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
-            [name, email, password],
-            (err, result) => {
-                if (err) return res.status(500).json({error: err.message});
-                res.json({success:true, id: result.insertId});
-            }
-        )
+
+        try {
+            const hashed = await bcrypt.hash(password, SALT_ROUNDS);
+            db.query(
+                'INSERT into tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
+                [name, email, hashed],
+                (err, result) => {
+                    if (err) return res.status(500).json({error: err.message});
+                    res.json({success:true, id: result.insertId});
+                }
+            );
+        } catch (err) {
+            console.error('[register] bcrypt error', err);
+            return res.status(500).json({ error: 'Failed to create account' });
+        }
     });
 
-    // Login Endpoint
+    // Login Endpoint - verify hashed password
     router.post('/login', (req, res) => {
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required'});
         }
         db.query(
-            'SELECT * FROM tbl_studentaccounts WHERE email = ? AND password = ?',
-            [email, password],
-            (err, results) => {
+            'SELECT * FROM tbl_studentaccounts WHERE email = ?',
+            [email],
+            async (err, results) => {
                 if (err) return res.status(500).json({ error: err.message});
                 if (results.length > 0) {
                     const user = results[0];
-                    const token = jwt.sign(
-                        { id: user.studentAccount_ID, email: user.email, name: user.name },
-                        secret,
-                        { expiresIn: '1h' }
-                    );
+                    try {
+                        let match = false;
+                        try {
+                            match = await bcrypt.compare(password, user.password || '');
+                        } catch (e) {
+                            match = false;
+                        }
 
-                    // Align cookie lifetime with JWT when not remembering the user.
-                    // JWT token expiry is '1h' above; use 1 hour for non-remembered logins,
-                    // and extend to 30 days when rememberMe is true.
-                    const cookieMaxAge = req.body && req.body.rememberMe
-                        ? 30 * 24 * 60 * 60 * 1000 // 30 days
-                        : 1 * 60 * 60 * 1000; // 1 hour (match jwt expiry)
+                        // Migration: if stored password is plaintext and matches, re-hash it
+                        if (!match && user.password === password) {
+                            try {
+                                const newHash = await bcrypt.hash(password, SALT_ROUNDS);
+                                await db.promise().query('UPDATE tbl_studentaccounts SET password = ? WHERE studentAccount_ID = ?', [newHash, user.studentAccount_ID]);
+                                match = true;
+                                user.password = newHash;
+                            } catch (e) {
+                                console.error('[login] failed to migrate plaintext password to hash', e);
+                            }
+                        }
 
-                    // Always set the tigerToken cookie on successful login (HttpOnly).
-                    res.cookie('tigerToken', token, {
-                        httpOnly: true,
-                        secure: false,      // set to true in production when using HTTPS
-                        sameSite: 'lax',    // lax is safe for dev
-                        maxAge: cookieMaxAge
-                    });
-                    res.json({ success: true, user: results[0] });
+                        if (!match) return res.json({ success: false, error: 'Invalid email or password' });
+
+                        const token = jwt.sign(
+                            { id: user.studentAccount_ID, email: user.email, name: user.name },
+                            secret,
+                            { expiresIn: '1h' }
+                        );
+
+                        const cookieMaxAge = req.body && req.body.rememberMe
+                            ? 30 * 24 * 60 * 60 * 1000 // 30 days
+                            : 1 * 60 * 60 * 1000; // 1 hour (match jwt expiry)
+
+                        res.cookie('tigerToken', token, {
+                            httpOnly: true,
+                            secure: false,
+                            sameSite: 'lax',
+                            maxAge: cookieMaxAge
+                        });
+                        res.json({ success: true, user });
+                    } catch (bcryptErr) {
+                        console.error('[login] bcrypt compare error', bcryptErr);
+                        return res.status(500).json({ error: 'Authentication error' });
+                    }
                 } else {
-                    // No match
                     res.json({ success: false, error: 'Invalid email or password' });
                 }
             }
@@ -200,35 +231,31 @@ module.exports = (db) => {
         res.json({ success: true });
     });
 
-    //resetting the password itself
-    router.post('/reset-password', (req,res) => {
+    //resetting the password itself - use bcrypt to hash passwords
+    router.post('/reset-password', async (req,res) => {
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and new password required'});
         }
 
-        // First fetch current password and ensure new password is different
-        db.query('SELECT password FROM tbl_studentaccounts WHERE email = ? LIMIT 1', [email], (selErr, selRows) => {
-            if (selErr) return res.status(500).json({ error: selErr.message });
+        try {
+            const [selRows] = await db.promise().query('SELECT password FROM tbl_studentaccounts WHERE email = ? LIMIT 1', [email]);
             if (!selRows || selRows.length === 0) return res.status(404).json({ error: 'Account not found.' });
 
-            const current = selRows[0].password || '';
-            if (current === password) {
+            const currentHash = selRows[0].password || '';
+            const isSame = await bcrypt.compare(password, currentHash);
+            if (isSame) {
                 return res.status(400).json({ error: 'New password must be different from the previous password.' });
             }
 
-            db.query(
-                'UPDATE tbl_studentaccounts SET password = ? WHERE email = ?',
-                [password, email],
-                (err, results) => {
-                    if (err) return res.status(500).json({ error: err.message});
-                    if (results.affectedRows === 0 ) {
-                        return res.status(404).json({ error: 'Account not found.'});
-                    }
-                    res.json({ success: true });
-                }
-            );
-        });
+            const newHash = await bcrypt.hash(password, SALT_ROUNDS);
+            const [result] = await db.promise().query('UPDATE tbl_studentaccounts SET password = ? WHERE email = ?', [newHash, email]);
+            if (result.affectedRows === 0) return res.status(404).json({ error: 'Account not found.'});
+            return res.json({ success: true });
+        } catch (err) {
+            console.error('[reset-password] error', err);
+            return res.status(500).json({ error: 'Failed to reset password' });
+        }
     });
 
     //token verification using Google API
@@ -347,29 +374,75 @@ module.exports = (db) => {
             return res.status(400).json({ error: 'Email and password required'});
         }
         db.query(
-            'SELECT sa.*, sr.role FROM tbl_staffaccounts sa  LEFT JOIN tbl_staffroles sr ON sa.staffRole_ID = sr.staffRole_ID WHERE sa.email = ? AND sa.password = ?',
-            [email, password],
-            (err, results) => {
+            'SELECT sa.*, sr.role FROM tbl_staffaccounts sa  LEFT JOIN tbl_staffroles sr ON sa.staffRole_ID = sr.staffRole_ID WHERE sa.email = ?',
+            [email],
+            async (err, results) => {
                 if (err) return res.status(500).json({ error: err.message});
-                                if (results.length > 0) {
-                    // User Found
+                if (results.length > 0) {
                     const staffUser = results[0];
-                    // Log staff login
                     try {
-                        const actionText = `Staff login: ${staffUser.email} (ID:${staffUser.staffAccount_ID})`;
-                        db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffUser.staffAccount_ID || null, actionText]).catch(() => {});
-                    } catch (e) {
-                        // ignore logging failures
-                    }
-                    // Create JWT for staff user and set `tigerToken` cookie (HttpOnly)
-                    try {
+                        let match = false;
+                        const stored = staffUser.password || '';
+                        // If this is a counselor (staffRole_ID == 1) we store reversible encrypted passwords in `password`.
+                        // AES-256-GCM-encrypted passwords stored. Any counselor rows with bcrypt should be removed or
+                        // re-provisioned by the admin.
+                        if (staffUser.staffRole_ID === 1) {
+                            try {
+                                try {
+                                    // Treat stored value as encrypted ciphertext (base64), decrypt and compare plaintext
+                                    const decrypted = decrypt(stored);
+                                    match = decrypted === password;
+                                } catch (dErr) {
+                                    console.error('[staff-login] failed to decrypt counselor password', dErr);
+                                    match = false;
+                                }
+                            } catch (e) {
+                                console.error('[staff-login] counselor compare error', e);
+                                match = false;
+                            }
+                        } else {
+                            try {
+                                match = await bcrypt.compare(password, stored);
+                            } catch (e) {
+                                match = false;
+                            }
+                            // Migration: handle legacy plaintext password for non-counselor staff (including admins)
+                            // If the stored value is not a bcrypt hash and the provided password matches the stored plaintext,
+                            // hash it and update the DB so future logins use bcrypt.
+                            try {
+                                const storedRaw = staffUser.password || '';
+                                const looksLikeBcrypt = storedRaw.startsWith('$2');
+                                if (!match && storedRaw && !looksLikeBcrypt) {
+                                    // Compare plaintext equality as a fallback migration check
+                                    if (storedRaw === password) {
+                                        try {
+                                            const newHash = await bcrypt.hash(password, SALT_ROUNDS);
+                                            await db.promise().query('UPDATE tbl_staffaccounts SET password = ? WHERE staffAccount_ID = ?', [newHash, staffUser.staffAccount_ID]);
+                                            match = true;
+                                            staffUser.password = newHash;
+                                        } catch (e) {
+                                            console.error('[staff-login] failed to migrate plaintext password to hash', e);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('[staff-login] migration check error', e);
+                            }
+                        }
+                        if (!match) return res.json({ success: false, error: 'Invalid email or password' });
+
+                        // Log staff login (non-blocking)
+                        try {
+                            const actionText = `Staff login: ${staffUser.email} (ID:${staffUser.staffAccount_ID})`;
+                            db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffUser.staffAccount_ID || null, actionText]).catch(() => {});
+                        } catch (e) {}
+
                         const tokenPayload = {
                             id: staffUser.staffAccount_ID,
                             email: staffUser.email,
                             name: staffUser.name || staffUser.staffName || '',
                             staffRole_ID: staffUser.staffRole_ID
                         };
-                        // staff tokens are valid for 8 hours
                         const token = jwt.sign(tokenPayload, secret, { expiresIn: '8h' });
                         const cookieMaxAge = 8 * 60 * 60 * 1000; // 8 hours
                         res.cookie('tigerToken', token, {
@@ -379,13 +452,11 @@ module.exports = (db) => {
                             maxAge: cookieMaxAge
                         });
                         return res.json({ success: true, user: staffUser });
-                    } catch (tokenErr) {
-                        console.error('JWT creation error on staff-login:', tokenErr);
-                        // fallback to returning user without cookie
-                        return res.json({ success: true, user: staffUser });
+                    } catch (bcryptErr) {
+                        console.error('[staff-login] bcrypt error', bcryptErr);
+                        return res.status(500).json({ error: 'Authentication error' });
                     }
                 } else {
-                    //No Match
                     res.json({ success: false, error: 'Invalid email or password '});
                 }
             }

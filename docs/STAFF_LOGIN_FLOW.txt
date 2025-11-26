@@ -1,0 +1,64 @@
+Staff Login Flow (server/loginRoutes.js)
+
+Overview:
+- Endpoint: POST /staff-login
+- Purpose: authenticate staff accounts (counselors and admins/other staff) and issue a JWT cookie named `tigerToken` on success.
+- Token: signed JWT containing { id, email, name, staffRole_ID }, expires in 8 hours. Cookie options: HttpOnly, SameSite=lax, maxAge=8h.
+- Logging: Successful logins write a row to `tbl_stafflogs` (non-blocking).
+
+Role-dependent checks and hashing rules:
+
+1) Counselors (staffRole_ID === 1)
+- Storage: Counselor passwords are stored as reversible AES-256-GCM ciphertext in the `password` column (base64).
+- Login behavior:
+  - Treat stored value as ciphertext: call `decrypt(stored)` (server/encryption.js) and compare the decrypted plaintext to the supplied password.
+  - If decryption fails, authentication fails (and a server-side log is written).
+  - If decryption fails, authentication fails (and a server-side log is written).
+  - Notes:
+  - Reversible decryption requires `PASSWORD_REVEAL_KEY` environment variable: a base64-encoded 32-byte key. If that key is missing or malformed, decryption will fail and counselor logins that rely on reversible passwords will not authenticate.
+  - The application no longer treats counselor `password` values that are bcrypt hashes as valid; those accounts should be deleted or re-provisioned by an admin.
+
+2) Admins and other non-counselor staff (e.g., staffRole_ID === 2)
+- Storage: Passwords should be stored as bcrypt hashes (one-way). SALT_ROUNDS = 10 in code.
+- Login behavior:
+  - Attempt `bcrypt.compare(password, stored)`.
+  - Migration: If bcrypt compare fails but the stored value equals the submitted plaintext (i.e., legacy plaintext DB value), the server will:
+    - Hash the submitted plaintext with bcrypt and update `tbl_staffaccounts.password` for that staff account.
+    - Set `match = true` and proceed to issue the JWT.
+  - This migration is applied to any non-counselor staff (including admins) so legacy plaintext passwords are upgraded on first successful login.
+
+Migration & safety notes:
+- The migration to bcrypt for non-counselor staff is opportunistic and performed only when the supplied password equals the stored plaintext and bcrypt comparison fails.
+- The migration logs errors but does not block authentication except when the final result is a failed match.
+- Counselor accounts are NOT automatically converted to bcrypt (because the system intentionally stores reversible ciphertext for counselors to support admin reveals). If a counselor row contains plaintext (rare), the reveal/create endpoints will generate encrypted values or reject writes when encryption key is not available.
+
+Security configuration and runtime requirements:
+- `PASSWORD_REVEAL_KEY` (env): Required to decrypt counselor passwords. Must be a base64-encoded 32-byte value. The server emits a startup diagnostic showing raw/cleaned length and decoded length; decoded length must be 32.
+- JWT secret: In the current code the signing key is `greenP1ace` (hard-coded). This should be moved into env (e.g., `JWT_SECRET`) for production and rotated safely.
+- Cookie settings: `httpOnly: true, sameSite: 'lax', secure` is currently `false` (development); in production set `secure: true` and consider `sameSite` and TTL policies appropriate to your deployment.
+- SALT_ROUNDS: 10 (bcrypt). Adjust as needed for your security/performance tradeoff.
+
+DB notes:
+- Staff table: `tbl_staffaccounts` contains fields including `staffAccount_ID`, `email`, `password`, `staffRole_ID`, etc.
+- Logs table: `tbl_stafflogs` used for non-blocking insertion of login actions (action text and UTC timestamp).
+
+Developer hints:
+- Code locations:
+  - `server/loginRoutes.js` — main login logic, migration code and JWT issuance.
+  - `server/encryption.js` — AES-256-GCM encrypt/decrypt helpers and base64 key normalization.
+  - `server/admincounselorRoutes.js` — counselor create/reveal/send/change password flows (writes reversible encrypted passwords into the `password` column).
+- When testing counselor reveal/login, ensure `.env` contains a correct `PASSWORD_REVEAL_KEY` (no quotes, no BOM). Use Node to generate a key and verify decoded length 32 before adding to `.env`:
+
+  node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+  # then verify decoded length:
+  node -e "const k=process.argv[1]; console.log('decoded length =', Buffer.from(k,'base64').length)" -- "PASTEKEY"
+
+- Consider migrating the JWT secret to an env var (`JWT_SECRET`) and rotate it when moving to production.
+
+Change history / rationale:
+- Initially the app used bcrypt for staff passwords. User requested admins/counselors support reveal capability — counselors were moved to reversible encryption while admins remain one-way hashed for safety.
+- Automatic migration for admins avoids forcing all staff to reset passwords; it upgrades legacy plaintext rows on successful login.
+
+Contact:
+- If anything looks wrong during login (mismatched behavior, decryption errors), check server logs for messages prefixed with `[staff-login]` or startup diagnostic lines about `PASSWORD_REVEAL_KEY`.
+

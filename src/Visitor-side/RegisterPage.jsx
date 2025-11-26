@@ -11,6 +11,7 @@ const RegisterPage = () => {
 
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [passwordLengthError, setPasswordLengthError] = useState('');
   
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -44,14 +45,23 @@ const handleInputChange = (e) => {
   }
 
   if (name === 'password' || name === 'confirmPassword') {
+    // password match error
     setPasswordError(
       name === 'password' && value !== formData.confirmPassword && formData.confirmPassword
         ? 'Passwords do not match.'
         : name === 'confirmPassword' && value !== formData.password && formData.password
         ? 'Passwords do not match.'
         : ''
-    )
-  }
+    );
+
+    // password length validation (apply to password field)
+    const passVal = name === 'password' ? value : formData.password;
+    if (passVal && passVal.length < 8) {
+      setPasswordLengthError('Password must be at least 8 characters.');
+    } else {
+      setPasswordLengthError('');
+    }
+  };
 };
 
   const handleSubmit = async (e) => {
@@ -80,6 +90,15 @@ const handleInputChange = (e) => {
 
     if (emailError || passwordError) {
       return;
+    }
+
+       // enforce minimum password length
+    if (!formData.password || formData.password.length < 8) {
+      setPasswordLengthError('Password must be at least 8 characters.');
+      Swal.fire({ icon: 'error', title: 'Weak Password', text: 'Password must be at least 8 characters.' });
+      return;
+    } else {
+      setPasswordLengthError('');
     }
 
        const first = formData.firstName.trim();
@@ -319,7 +338,12 @@ const handleInputChange = (e) => {
               required
               className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
             />
-            {passwordError && (
+            {passwordLengthError && (
+              <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
+                {passwordLengthError}
+              </div>
+            )}
+            {passwordError && !passwordLengthError && (
               <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
                 {passwordError}
               </div>

@@ -47,18 +47,19 @@ module.exports = (db) => {
             }
 
             // Create staff account
-            // Generate a random 6-character password (letters, numbers, special chars)
+            // Generate a random 8-character password (letters, numbers, special chars)
             const generatePassword = () => {
                 const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 const numbers = '0123456789';
                 const specials = '!@#$%^&*()-_=+[]{};:<>?,.';
                 const all = letters + numbers + specials;
+                const desiredLength = 8;
                 let pw = '';
                 // ensure at least one letter, one number and one special
                 pw += letters[Math.floor(Math.random() * letters.length)];
                 pw += numbers[Math.floor(Math.random() * numbers.length)];
                 pw += specials[Math.floor(Math.random() * specials.length)];
-                for (let i = 3; i < 6; i++) pw += all[Math.floor(Math.random() * all.length)];
+                for (let i = 3; i < desiredLength; i++) pw += all[Math.floor(Math.random() * all.length)];
                 // shuffle
                 pw = pw.split('').sort(() => 0.5 - Math.random()).join('');
                 return pw;
@@ -629,17 +630,18 @@ module.exports = (db) => {
                 return res.status(404).json({ success: false, message: 'Counselor not found' });
             }
 
-            // generate new 6-character password (letters, numbers, special chars)
+            // generate new 8-character password (letters, numbers, special chars)
             const generatePassword = () => {
                 const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 const numbers = '0123456789';
                 const specials = '!@#$%^&*()-_=+[]{};:<>?,.';
                 const all = letters + numbers + specials;
+                const desiredLength = 8;
                 let pw = '';
                 pw += letters[Math.floor(Math.random() * letters.length)];
                 pw += numbers[Math.floor(Math.random() * numbers.length)];
                 pw += specials[Math.floor(Math.random() * specials.length)];
-                for (let i = 3; i < 6; i++) pw += all[Math.floor(Math.random() * all.length)];
+                for (let i = 3; i < desiredLength; i++) pw += all[Math.floor(Math.random() * all.length)];
                 pw = pw.split('').sort(() => 0.5 - Math.random()).join('');
                 return pw;
             };

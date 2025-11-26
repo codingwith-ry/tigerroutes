@@ -9,6 +9,7 @@ const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [passwordLengthError, setPasswordLengthError] = useState("");
   const email = sessionStorage.getItem("resetEmail");
 
   const handleBackToLogin = () => {
@@ -52,57 +53,55 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    await Swal.fire({
-      icon: "success",
-      title: "Password Changed!",
-      text: "You have successfully changed your password. Redirecting to landing page...",
-      timer: 3000,
-      timerProgressBar: true,
-      showConfirmButton: false,
-      customClass: {
-        popup: "rounded-xl",
-        title: "text-green-600",
-      },
-    }).then(() => {
-      navigate("/"); // diretso landing page after 3s
-    });
-
-    // Submit new password
-    const res = await fetch("http://localhost:5000/api/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      await Swal.fire({
-        icon: "success",
-        title: "Password Reset Successful!",
-        text: "You can now log in with your new password.",
-        confirmButtonText: "OK",
-        customClass: {
-          popup: "rounded-xl",
-          confirmButton:
-            "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
-        },
-        buttonsStyling: false,
-      });
-      navigate("/"); // landing page
+    // enforce minimum password length
+    if (!password || password.length < 8) {
+      setPasswordLengthError('Password must be at least 8 characters.');
+      Swal.fire({ icon: 'error', title: 'Weak Password', text: 'Password must be at least 8 characters.' });
+      return;
     } else {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: data.error || "Password reset failed.",
-        confirmButtonText: "OK",
-        customClass: {
-          popup: "rounded-xl",
-          confirmButton:
-            "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
-        },
-        buttonsStyling: false,
+      setPasswordLengthError('');
+    }
+
+    // Submit new password and wait for server confirmation before showing success
+    try {
+      const res = await fetch("http://localhost:5000/api/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
+
+      const data = await res.json();
+
+      if (data && data.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "Password Reset Successful!",
+          text: "You can now log in with your new password.",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton:
+              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          },
+          buttonsStyling: false,
+        });
+        navigate("/"); // landing page
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: (data && data.error) || "Password reset failed.",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton:
+              "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500",
+          },
+          buttonsStyling: false,
+        });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Server error' });
     }
   };
 
@@ -140,9 +139,17 @@ const ResetPasswordPage = () => {
               type={showPassword ? "text" : "password"}
               placeholder="New password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setPassword(v);
+                if (v && v.length < 8) setPasswordLengthError('Password must be at least 8 characters.');
+                else setPasswordLengthError('');
+              }}
               className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 pr-12"
             />
+            {passwordLengthError && (
+              <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>{passwordLengthError}</div>
+            )}
             <span
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400"

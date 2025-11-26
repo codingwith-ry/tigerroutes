@@ -206,17 +206,29 @@ module.exports = (db) => {
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and new password required'});
         }
-        db.query(
-            'UPDATE tbl_studentaccounts SET password = ? WHERE email = ?',
-            [password, email],
-            (err, results) => {
-                if (err) return res.status(500).json({ error: err.message});
-                if (results.affectedRows === 0 ) {
-                    return res.status(404).json({ error: 'Account not found.'});
-                }
-                res.json({ success: true });
+
+        // First fetch current password and ensure new password is different
+        db.query('SELECT password FROM tbl_studentaccounts WHERE email = ? LIMIT 1', [email], (selErr, selRows) => {
+            if (selErr) return res.status(500).json({ error: selErr.message });
+            if (!selRows || selRows.length === 0) return res.status(404).json({ error: 'Account not found.' });
+
+            const current = selRows[0].password || '';
+            if (current === password) {
+                return res.status(400).json({ error: 'New password must be different from the previous password.' });
             }
-        )
+
+            db.query(
+                'UPDATE tbl_studentaccounts SET password = ? WHERE email = ?',
+                [password, email],
+                (err, results) => {
+                    if (err) return res.status(500).json({ error: err.message});
+                    if (results.affectedRows === 0 ) {
+                        return res.status(404).json({ error: 'Account not found.'});
+                    }
+                    res.json({ success: true });
+                }
+            );
+        });
     });
 
     //token verification using Google API

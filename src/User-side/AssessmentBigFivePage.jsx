@@ -294,20 +294,20 @@ const AssessmentBigFivePage = () => {
         if (result.isConfirmed) {
           // Save progress and then navigate
           handleSaveProgress().then(() => {
-            navigate("/user-dashboard"); // Change to your desired route
+            navigate("/assessment"); // Change to your desired route
           });
         } else if (result.isDenied) {
           // Leave without saving
           setHasUnsavedChanges(false);
           localStorage.removeItem("bigfive_temp_answers");
           localStorage.removeItem("bigfive_temp_progress");
-          navigate("/user-dashboard"); // Change to your desired route
+          navigate("/assessment"); // Change to your desired route
         }
         // If cancelled, do nothing (stay on page)
       });
     } else {
       // No unsaved changes, navigate directly
-      navigate("/user-dashboard"); // Change to your desired route
+      navigate("/assessment"); // Change to your desired route
     }
   };
 

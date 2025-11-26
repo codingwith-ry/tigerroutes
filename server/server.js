@@ -4,10 +4,16 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
-const {
-  BedrockAgentRuntimeClient,
-  InvokeAgentCommand
-} = require("@aws-sdk/client-bedrock-agent-runtime");
+// Bedrock SDK is optional — guard require so server can run without it.
+let BedrockAgentRuntimeClient, InvokeAgentCommand;
+let client = null;
+try {
+  const bedrockPkg = require("@aws-sdk/client-bedrock-agent-runtime");
+  BedrockAgentRuntimeClient = bedrockPkg.BedrockAgentRuntimeClient;
+  InvokeAgentCommand = bedrockPkg.InvokeAgentCommand;
+} catch (err) {
+  console.warn("Bedrock SDK not available — chatbot route will be disabled.", err && err.message ? err.message : err);
+}
 
 
 const app = express();
@@ -61,27 +67,49 @@ const dbConfig = {
 
 const db = mysql.createPool(dbConfig);
 
+// Try initial getConnection but do not crash the process on transient errors.
 db.getConnection((err, conn) => {
   if (err) {
-    console.error('MySQL connection error:', err && err.message ? err.message : err);
-    process.exit(1);
+    console.error('MySQL initial connection error:', err && err.message ? err.message : err);
+    console.warn('Server will continue running; pool will attempt to reconnect on demand.');
+    return; // do not exit the process
   }
-  console.log('Connected to MySQL as', process.env.DB_USER, '@', process.env.DB_HOST);
+  console.log('Connected to MySQL as', process.env.DB_USER, '@', dbConfig.host);
   conn.release();
 });
 
+// Monitor connection errors on acquired connections
+if (typeof db.on === 'function') {
+  db.on('connection', (connection) => {
+    connection.on('error', (err) => {
+      console.error('MySQL connection error (connection event):', err && err.message ? err.message : err);
+    });
+  });
+}
 
-// Initialize Bedrock client
-const client = new BedrockAgentRuntimeClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+
+// Initialize Bedrock client only when SDK loaded and required env vars present
+if (typeof BedrockAgentRuntimeClient !== 'undefined') {
+  if (process.env.AWS_REGION && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    client = new BedrockAgentRuntimeClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      }
+    });
+  } else {
+    console.warn('Bedrock SDK present but AWS credentials/region missing — chatbot route will be disabled until configured.');
   }
-});
+}
 
 //chatbot route
 app.post("/api/chatbot", async (req, res) => {
+  if (!client) {
+    // Bedrock SDK not available or not configured
+    return res.status(501).json({ error: 'Chatbot not configured on this server.' });
+  }
+
   try {
     const { userMessage, sessionId } = req.body;
 
@@ -105,14 +133,12 @@ app.post("/api/chatbot", async (req, res) => {
     res.json({ output: finalOutput });
 
   } catch (error) {
-    console.error("Bedrock agent error:", error);
+    console.error("Bedrock agent error:", error && error.message ? error.message : error);
     res.status(500).json({ error: "Failed to invoke agent" });
   }
 });
 
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
-});
+// NOTE: single app.listen occurs at the bottom using PORT
     
 //importing all login/register routes
 const loginRoutes = require('./loginRoutes.js')(db); 

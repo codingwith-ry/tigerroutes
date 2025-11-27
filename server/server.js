@@ -125,36 +125,27 @@ if (typeof BedrockAgentRuntimeClient !== 'undefined') {
 
 //chatbot route
 app.post("/api/chatbot", async (req, res) => {
-  if (!client) {
-    // Bedrock SDK not available or not configured
-    return res.status(501).json({ error: 'Chatbot not configured on this server.' });
-  }
-
   try {
-    const { userMessage, sessionId } = req.body;
+    const { userMessage } = req.body;
 
     const command = new InvokeAgentCommand({
-      agentId: process.env.BEDROCK_AGENT_ID,
-      agentAliasId: process.env.BEDROCK_AGENT_ALIAS,
-      sessionId: sessionId || "default-session",
-      inputText: userMessage
+      agentId: process.env.AGENT_ID,
+      agentAliasId: process.env.AGENT_ALIAS_ID,
+      sessionId: "my-session-1",
+      inputText: userMessage,
     });
 
     const response = await client.send(command);
 
-    let finalOutput = "";
-
-    for (const event of response.completion) {
-      if (event.chunk) {
-        finalOutput += Buffer.from(event.chunk.bytes).toString("utf-8");
-      }
+    let text = "";
+    for await (const chunk of response.completion) {
+      text += new TextDecoder().decode(chunk.chunk.bytes);
     }
 
-    res.json({ output: finalOutput });
-
+    res.json({ reply: text });
   } catch (error) {
-    console.error("Bedrock agent error:", error && error.message ? error.message : error);
-    res.status(500).json({ error: "Failed to invoke agent" });
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 });
 

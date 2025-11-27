@@ -142,6 +142,14 @@ app.post("/api/chatbot", async (req, res) => {
       text += new TextDecoder().decode(chunk.chunk.bytes);
     }
 
+    text = text
+      .replace(/\\n/g, "\n") // turn \\n into real newlines
+      .replace(/\n{2,}/g, "\n") // clean multiple blank lines
+      .trim();
+
+    text = text.replace(/\\/g, "").trim();
+
+
     res.json({ reply: text });
   } catch (error) {
     console.error(error);

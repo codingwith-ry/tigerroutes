@@ -21,6 +21,8 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [isSaving, setIsSaving] = useState(false);
+
     // validation state
     const [errors, setErrors] = useState({
         selectedStrand: null,
@@ -211,6 +213,7 @@ const ProfilePage = () => {
             englishGrade
         };
 
+        setIsSaving(true);
         fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`, {
             method: 'PUT',
             credentials: 'include',
@@ -236,6 +239,7 @@ const ProfilePage = () => {
                         text: data.error || 'Failed to update profile.',
                     });
                 }
+                setIsSaving(false);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -244,6 +248,7 @@ const ProfilePage = () => {
                     title: 'Save failed',
                     text: 'An unexpected error occurred while saving your profile.',
                 });
+                setIsSaving(false);
             });
     }
 
@@ -453,10 +458,22 @@ const ProfilePage = () => {
                     <div className="flex justify-end gap-4">
                         <button
                             type="submit"
-                            disabled={Object.values(errors).some(Boolean)}
-                            className={`px-6 py-2 text-sm rounded-md shadow-md ${Object.values(errors).some(Boolean) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#FBBF24] text-white'}`}
+                            disabled={isSaving || Object.values(errors).some(Boolean)}
+                            aria-busy={isSaving}
+                            className={`px-6 py-2 text-sm rounded-md shadow-md transition-colors ${
+                                isSaving || Object.values(errors).some(Boolean)
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : 'bg-[#FBBF24] hover:bg-yellow-500 text-white'
+                            }`}
                         >
-                            Save Profile
+                            {isSaving ? (
+                               <span className="flex items-center gap-2">
+                                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block" />
+                                    Saving...
+                               </span>
+                            ) : (
+                                'Save Profile'
+                           )}
                         </button>
                     </div>
                 </form>

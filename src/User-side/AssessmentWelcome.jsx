@@ -57,12 +57,18 @@ const AssessmentPage = () => {
     if (!authLoading) {
       fetchData();
     }
-    getAssessmentProgress(pendingAssessment);
 
     return () => {
       document.title = "Default Title";
     };
-  }, [authLoading, user, pendingAssessment]);
+  }, [authLoading, user]);
+
+  useEffect(() => {
+  if (pendingAssessment) {
+    getAssessmentProgress(pendingAssessment);
+    }
+  }, [pendingAssessment]);
+
 
   const fetchData = async () => {
     try {
@@ -87,7 +93,6 @@ const AssessmentPage = () => {
       if (pendingResponse.ok) {
         const pendingData = await pendingResponse.json();
         if (pendingData) {
-          console.log('Pending assessment found:', pendingData);
           setPendingAssessment(pendingData.data);
           // Store the pending assessment ID in localStorage
           localStorage.setItem('currentAssessmentId', pendingData.assessment_ID);

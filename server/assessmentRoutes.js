@@ -61,9 +61,8 @@ module.exports = (db) => {
                     genAverageGrade: user.genAverageGrade
                 };
 
-                res.json(userData);
+                return res.status(200).json({ success: true, userData });
             });
-
         } catch (error) {
             console.error('Error fetching student profile:', error);
             res.status(500).json({ error: 'Internal server error' });
@@ -515,7 +514,7 @@ module.exports = (db) => {
                     : 0;
                 const counselorReplies = results.filter(a => a.counselorName && a.counselorNotes).length;
 
-                res.json({
+                return res.status(200).json({
                     success: true,
                     data: {
                         stats: {
@@ -529,7 +528,7 @@ module.exports = (db) => {
             });
 
         } catch (error) {
-            return res.json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: error.message });
         }
     });
     

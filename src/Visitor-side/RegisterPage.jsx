@@ -8,7 +8,6 @@ import { useEffect } from "react";
 
 
 const RegisterPage = () => {
-
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordLengthError, setPasswordLengthError] = useState('');
@@ -61,7 +60,7 @@ const handleInputChange = (e) => {
     } else {
       setPasswordLengthError('');
     }
-  };
+  }
 };
 
   const handleSubmit = async (e) => {
@@ -146,51 +145,6 @@ const handleInputChange = (e) => {
   };
 
   useEffect(() => {}, []);
-
-
-  function handleGoogleResponse(response) {
-    // Decode JWT to get user info
-    const jwt = response.credential;
-    const base64Url = jwt.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join('')
-      );
-      const user = JSON.parse(jsonPayload);
-      const { email, name } = user;
-
-      sessionStorage.setItem('user', JSON.stringify({ name, email}));
-
-
-      //Send to backend for registration/login
-      fetch('http://localhost:5000/api/google-auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            Swal.fire({
-              icon: 'success',
-              title: data.isNew ? 'Account Created!' : 'Welcome Back!',
-              text: "Logged in as " + email,
-            });
-            navigate('/home');
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Google Sign-In Failed',
-              text: data.error || 'An error occurred.',
-            });
-          }
-        });
-  }
 
   const handleGoogleSignIn = () => {
   if (!window.google || !window.google.accounts) {

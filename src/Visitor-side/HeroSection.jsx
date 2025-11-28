@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { animate } from "framer-motion";
+import PropTypes from "prop-types";
 
 const NumberCounter = ({ end = 0, duration = 1.6, suffix = "" }) => {
   const [value, setValue] = useState(0);
@@ -96,6 +97,12 @@ const HeroSection = () => {
       </div>
     </div>
   );
+};
+
+NumberCounter.propTypes = {
+  end: PropTypes.number,
+  duration: PropTypes.number,
+  suffix: PropTypes.string,
 };
 
 export default HeroSection;

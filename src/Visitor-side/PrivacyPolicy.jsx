@@ -11,7 +11,7 @@ const sections = [
       <>
         <p className="mb-4 text-gray-700">
           TigerRoutes: AI Career Navigator for Thomasian-SHS Students
-          ("TigerRoutes") is a guidance tool developed to provide personalized
+          (&rdquo;TigerRoutes&rdquo;) is a guidance tool developed to provide personalized
           college program recommendations and career guidance for senior high
           school students. This Privacy Policy describes what data we collect,
           how it is used, and your rights.

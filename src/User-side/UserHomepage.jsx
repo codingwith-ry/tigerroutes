@@ -26,7 +26,7 @@ const UserHomepage = () => {
     if (!authLoading) {
       fetchAnalytics();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [authLoading, user]);
 
 

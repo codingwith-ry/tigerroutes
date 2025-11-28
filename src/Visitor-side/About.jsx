@@ -12,7 +12,7 @@ const About = () => {
             <strong>TigerRoutes</strong> is your personalized college decision companion built specifically for Thomasian Senior High School students. Combining AI-powered assessments with real academic and career data, it helps you discover the best-fit UST programs based on your personality, interests, and strengths.
           </p>
           <p className="text-base sm:text-lg text-[#333] leading-relaxed mb-6">
-            Whether you're still undecided or just want more clarity, TigerRoutes gives you confidence and direction. Our goal is simple: to help you take the next step toward a fulfilling and informed college journey—no guesswork, just data-backed insights.
+            Whether you&rsquo;re still undecided or just want more clarity, TigerRoutes gives you confidence and direction. Our goal is simple: to help you take the next step toward a fulfilling and informed college journey—no guesswork, just data-backed insights.
           </p>
           <ul className="space-y-3 text-base text-[#1e1e1e]">
             <li className="flex items-start gap-2">

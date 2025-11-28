@@ -231,7 +231,7 @@ const CrossTrackPage = ({ programRecommendations }) => {
     </div>
   );
 };
-// Updated PDF Generation Function
+
 const generatePDF = async (assessmentData) => {
   try {
     const pdf = new jsPDF('p', 'pt', 'letter'); // 'l' for landscape

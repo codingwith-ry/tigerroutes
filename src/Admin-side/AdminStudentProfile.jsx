@@ -3,7 +3,6 @@ import {
   Calendar,
   Star,
   TrendingUp,
-  ClipboardList,
   MessageSquareText,
   Award,
   User,
@@ -14,7 +13,6 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { useParams } from "react-router-dom";
 import { fetchStaffProfile } from '../utils/staffProfile';
-/* eslint-disable react/prop-types */
 
 const AdminStudentProfile = () => {
   const { id } = useParams();
@@ -22,8 +20,6 @@ const AdminStudentProfile = () => {
 
   // API-sourced state
   const [assessmentData, setAssessmentData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [programRecommendations, setProgramRecommendations] = useState({ track_aligned: [], cross_track: [] });
 
   // Load assessment details using either the URL param or sessionStorage
@@ -33,14 +29,12 @@ const AdminStudentProfile = () => {
 
     let cancelled = false;
     async function loadDetails() {
-      setLoading(true);
-      setError(null);
       try {
         const res = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
         const payload = await res.json();
         if (cancelled) return;
         if (!payload || !payload.success) {
-          setError(payload?.message || 'Failed to load assessment details');
+          console.log(payload?.message || 'Failed to load assessment details');
           setAssessmentData(null);
           setStudentFeedback(null);
         } else {
@@ -61,10 +55,10 @@ const AdminStudentProfile = () => {
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading assessment details', err);
-          setError(err.message || 'Network error');
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) 
+          console.log('Finished loading assessment details');
       }
     }
 

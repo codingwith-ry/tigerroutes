@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 const CookiesModal = ({ isOpen, onClose }) => {
   const [cookiePreferences, setCookiePreferences] = useState({
@@ -98,6 +99,11 @@ const CookiesModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+};
+
+CookiesModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired
 };
 
 export default CookiesModal;

@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 const path = require('path');
 const { decrypt } = require('./utils/encryption');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 module.exports = (db) => {
     const router = express.Router();

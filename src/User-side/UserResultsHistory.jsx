@@ -7,6 +7,7 @@ import Footer from "../Visitor-side/Footer";
 import Swal from "sweetalert2";
 import { useAuth } from "../utils/AuthContext";
 import Chatbot from "./Chatbot";
+import PropTypes from 'prop-types';
 
 const UserResultsHistory = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const UserResultsHistory = () => {
   useEffect(() => {
     document.title = 'TigerRoutes | Results';
     if (!authLoading) fetchAssessmentHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [authLoading, user]);
 
   // Filter assessments when search, date filter, or original data changes
@@ -259,6 +260,18 @@ const UserResultsHistory = () => {
         confirmButton: 'px-6 py-2 rounded-lg text-white font-medium hover:bg-yellow-500'
       }
     });
+  };
+
+  ProgressCircle.propTypes = {
+    value: PropTypes.number.isRequired,
+    max: PropTypes.number.isRequired,
+    color: PropTypes.string.isRequired,
+    children: PropTypes.node
+  };
+
+  handleShowFeedback.propTypes = {
+    feedback: PropTypes.string.isRequired,
+    userRating: PropTypes.number.isRequired
   };
 
   if (loading) {

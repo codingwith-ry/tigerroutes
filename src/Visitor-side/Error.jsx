@@ -30,7 +30,7 @@ const Error404Page = () => {
             Page Not Found
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Our sad tiger couldn't find what you're looking for.
+            Our sad tiger couldn&rsquo;t find what you&rsquo;re looking for.
           </p>
           <p className="text-sm text-gray-600">
             The page might have wandered off into the digital jungle.

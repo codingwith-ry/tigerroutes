@@ -8,6 +8,7 @@ import Testimonials from "./Testimonials";
 import FloatingChatButton from "./FloatingChatButton";
 import CTA from "./CTA";
 import Footer from "./Footer";
+import PropTypes from 'prop-types';
 
 const ScrollAnimationWrapper = ({ children }) => {
   return (
@@ -58,6 +59,10 @@ const LandingPage = () => {
       </ScrollAnimationWrapper>
     </div>
   );
+};
+
+ScrollAnimationWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export default LandingPage;

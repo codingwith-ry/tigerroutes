@@ -1,0 +1,59 @@
+Issue: repeated `/api/me` requests after admin/counselor login
+
+Summary:
+The app repeatedly called `/api/me` after login or when visiting admin pages. This produced many identical network requests and put unnecessary load on the backend.
+
+Root cause (what happened):
+- `AuthProvider` exported a function `refreshUser` defined directly inside the component body.
+- Every render of `AuthProvider` recreated a new `refreshUser` function instance (different reference identity).
+- Other components (for example `AdminHeader` or `UserNavbar`) used `refreshUser` inside a `useEffect` dependency array such as:
+    useEffect(() => { refreshUser(); }, [refreshUser]);
+- Because `refreshUser` changed identity on every render, the effect re-ran immediately, calling `refreshUser` again. That triggered a state change and a new render, which produced a new `refreshUser`, repeating the cycle.
+
+Additional amplification:
+- If multiple components called `refreshUser` concurrently or repeatedly (e.g., on mount and after login), concurrent network calls overlapped.
+- Without a guard this could produce many inflight requests.
+
+Fix applied (high level):
+1) Memoize `refreshUser` with `useCallback` so the function identity is stable across renders.
+2) Add an in-flight guard (a `useRef` boolean) to ignore concurrent calls while a refresh is already running.
+
+Before (problematic) example:
+  // inside AuthProvider
+  const refreshUser = async () => {
+    setLoading(true);
+    // fetch('/api/me') ... setUser(...)
+    setLoading(false);
+  };
+
+  useEffect(() => { refreshUser(); }, []);
+
+Other components did:
+  useEffect(() => { refreshUser(); }, [refreshUser]);
+
+After (fixed) example:
+  const refreshInFlight = useRef(false);
+  const refreshUser = useCallback(async () => {
+    if (refreshInFlight.current) return;
+    refreshInFlight.current = true;
+    setLoading(true);
+    // fetch('/api/me') ... setUser(...)
+    setLoading(false);
+    refreshInFlight.current = false;
+  }, []);
+
+Why this works:
+- `useCallback(..., [])` returns the same function reference across renders so effects depending on `refreshUser` do not re-run due to a changed function identity.
+- The `refreshInFlight` guard prevents overlapping requests by returning early if a refresh is already in progress.
+
+Verification steps:
+1. Start the app, log in as admin/counselor.
+2. Open browser DevTools → Network tab and confirm `/api/me` is requested once on login/refresh only.
+3. Optionally add a `console.debug('refreshUser called', new Date().toISOString())` inside `refreshUser` to timestamp calls.
+
+Recommendations:
+- Prefer stable function identities for callbacks that appear in effect dependencies.
+- Avoid listing functions in dependency arrays unless they are memoized or you want the effect to re-run when they change.
+- For shared actions (like refreshing auth), expose a stable API from context and add simple concurrency guards if the action triggers network calls.
+
+File created by GitHub Copilot assistant to document the issue and the fix.

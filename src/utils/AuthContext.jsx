@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
@@ -8,7 +8,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [justLoggedOut, setJustLoggedOut] = useState(false);
 
-  const refreshUser = async () => {
+  // Use a ref to prevent concurrent refreshes and useCallback to ensure
+  // the function identity is stable so components which list
+  // `refreshUser` in their effect deps don't repeatedly re-run.
+  const refreshInFlight = useRef(false);
+  const refreshUser = useCallback(async () => {
+    if (refreshInFlight.current) return;
+    refreshInFlight.current = true;
     setLoading(true);
     try {
       const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -25,8 +31,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     } finally {
       setLoading(false);
+      refreshInFlight.current = false;
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshUser();

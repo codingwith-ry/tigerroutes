@@ -432,7 +432,8 @@ module.exports = (db) => {
           JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
           JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
           LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
-          WHERE sp.strand_ID = ? AND r.track_aligned = 'Y'
+          -- Use strand from assessment profile (ap.strand_ID) so recommendations are scoped to the assessment's recorded strand
+          WHERE ap.strand_ID = ? AND r.track_aligned = 'Y'
           GROUP BY p.program_ID, p.programName
           ORDER BY reco_count DESC, avgAlignment DESC
           LIMIT 5
@@ -440,19 +441,19 @@ module.exports = (db) => {
         const progParams = [strandId];
         // apply date and grade filters by rewriting WHERE, since we already include base conditions above
         if (startDate && endDate) {
-          programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) BETWEEN ? AND ?');
+          programsSql = programsSql.replace('WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) BETWEEN ? AND ?');
           progParams.push(startDate, endDate);
         } else if (startDate) {
-          programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) >= ?');
+          programsSql = programsSql.replace('WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) >= ?');
           progParams.push(startDate);
         } else if (endDate) {
-          programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) <= ?');
+          programsSql = programsSql.replace('WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\' AND DATE(sa.date) <= ?');
           progParams.push(endDate);
         }
         if (grade) {
           const g = parseInt(grade, 10);
           if (!Number.isNaN(g)) {
-            programsSql = programsSql.replace('WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE sp.strand_ID = ? AND r.track_aligned = \'Y\' AND ap.gradeLevel = ?');
+            programsSql = programsSql.replace('WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\'', 'WHERE ap.strand_ID = ? AND r.track_aligned = \'Y\' AND ap.gradeLevel = ?');
             progParams.push(g);
           }
         }

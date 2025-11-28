@@ -76,25 +76,34 @@ const AssessmentPage = () => {
         throw new Error('No user found');
       }
 
-      // Fetch user profile and pending assessment in parallel
+      // Fetch user profile and pending assessment in parallel (no-cache to avoid 304 cached responses)
       const [profileResponse, pendingResponse] = await Promise.all([
-        fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include' }),
-        fetch(`http://localhost:5000/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include' })
+        fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include', cache: 'no-store' }),
+        fetch(`http://localhost:5000/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include', cache: 'no-store' })
       ]);
-      
+
       if (!profileResponse.ok) {
         throw new Error('Failed to fetch user data');
-      } else{
+      } else {
         const profileData = await profileResponse.json();
-        setUserData(profileData.userData);
+        // Normalize API wrapper: { success: true, userData: {...} } or { success: true, data: {...} }
+        const normalizedProfile = (profileData && (profileData.userData || profileData.data)) ? (profileData.userData || profileData.data) : profileData;
+        // Debug: log the normalized profile so we can inspect what fields the component sees
+        // eslint-disable-next-line no-console
+        console.debug('AssessmentWelcome: normalizedProfile ->', normalizedProfile);
+        setUserData(normalizedProfile);
 
         // Check if there's a pending assessment
         if (pendingResponse.ok) {
           const pendingData = await pendingResponse.json();
-          if (pendingData) {
+          if (pendingData && pendingData.data) {
+            // Debug: log the pending payload
+            // eslint-disable-next-line no-console
+            console.debug('AssessmentWelcome: pendingData ->', pendingData);
             setPendingAssessment(pendingData.data);
-            // Store the pending assessment ID in localStorage
-            localStorage.setItem('currentAssessmentId', pendingData.assessment_ID);
+            // Store the pending assessment ID in localStorage using known possible fields
+            const pendingId = pendingData.data.pendingAssessment_ID || pendingData.data.pendingAssessmentId || pendingData.pendingAssessment_ID || pendingData.assessment_ID || '';
+            if (pendingId) localStorage.setItem('currentAssessmentId', pendingId);
           }
         }
       }

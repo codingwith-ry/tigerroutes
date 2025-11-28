@@ -12,8 +12,16 @@ jest.mock('../utils/AuthContext', () => ({
 }));
 
 // Mock heavy components to keep the test focused
-jest.mock('../User-side/UserNavbar', () => () => <div>UserNavbar</div>);
-jest.mock('../Visitor-side/Footer', () => () => <div>Footer</div>);
+jest.mock('../User-side/UserNavbar', () => {
+  const UserNavbar = () => <div>UserNavbar</div>;
+  UserNavbar.displayName = 'UserNavbar';
+  return UserNavbar;
+});
+jest.mock('../Visitor-side/Footer', () => {
+  const Footer = () => <div>Footer</div>;
+  Footer.displayName = 'Footer';
+  return Footer;
+});
 
 // Mock SweetAlert2
 jest.mock('sweetalert2', () => ({

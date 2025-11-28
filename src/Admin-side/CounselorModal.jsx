@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { fetchStaffProfile } from '../utils/staffProfile';
 
+/* eslint-disable react/prop-types */
+
 const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving = false }) => {
   const [formData, setFormData] = useState({
     title: "",

@@ -3,6 +3,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom"; // Add this import
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+/* eslint-disable react/prop-types */
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);

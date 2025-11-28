@@ -7,6 +7,8 @@ import CounselorModal from "./CounselorModal";
 import Swal from "sweetalert2";
 import { fetchStaffProfile } from '../utils/staffProfile';
 
+/* eslint-disable react/prop-types */
+
 
 const AdminCounselors = () => {
   const [searchTerm, setSearchTerm] = useState("");

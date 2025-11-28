@@ -3,6 +3,7 @@ import { Home, ClipboardCheck, Users, Activity, Menu, X, LogOut } from "lucide-r
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import { fetchStaffProfile } from '../utils/staffProfile';
+/* eslint-disable react/prop-types */
 
 const AdminSidebar = () => {
   const navigate = useNavigate();

@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { useParams } from "react-router-dom";
 import { fetchStaffProfile } from '../utils/staffProfile';
+/* eslint-disable react/prop-types */
 
 const AdminStudentProfile = () => {
   const { id } = useParams();

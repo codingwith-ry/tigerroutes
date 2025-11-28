@@ -3,6 +3,7 @@ import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import { Mail, MapPin, BookOpen, Clock, Dot, MessageSquareText } from "lucide-react";
 import { useParams } from "react-router-dom";
+/* eslint-disable react/prop-types */
 
 const CounselorPreview = () => {
   const { counselorName } = useParams(); // dynamic name from URL

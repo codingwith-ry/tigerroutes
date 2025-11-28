@@ -66,7 +66,7 @@ const AssessmentPage = () => {
   useEffect(() => {
   if (pendingAssessment) {
     getAssessmentProgress(pendingAssessment);
-    }
+  }
   }, [pendingAssessment]);
 
 
@@ -84,18 +84,18 @@ const AssessmentPage = () => {
       
       if (!profileResponse.ok) {
         throw new Error('Failed to fetch user data');
-      }
+      } else{
+        const profileData = await profileResponse.json();
+        setUserData(profileData.userData);
 
-      const profileData = await profileResponse.json();
-      setUserData(profileData);
-
-      // Check if there's a pending assessment
-      if (pendingResponse.ok) {
-        const pendingData = await pendingResponse.json();
-        if (pendingData) {
-          setPendingAssessment(pendingData.data);
-          // Store the pending assessment ID in localStorage
-          localStorage.setItem('currentAssessmentId', pendingData.assessment_ID);
+        // Check if there's a pending assessment
+        if (pendingResponse.ok) {
+          const pendingData = await pendingResponse.json();
+          if (pendingData) {
+            setPendingAssessment(pendingData.data);
+            // Store the pending assessment ID in localStorage
+            localStorage.setItem('currentAssessmentId', pendingData.assessment_ID);
+          }
         }
       }
     } catch (err) {

@@ -39,7 +39,8 @@ const AdminLogin = () => {
           const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
           const meRes = await fetch(`${base}/api/staff/me`, { credentials: 'include' });
           if (meRes.ok) {
-            // let components fetch the profile via fetchStaffProfile() when they mount
+            // We do not persist the full staff profile to client-side storage for security.
+            // Let components fetch the authoritative profile via /api/staff/me when they mount.
             navigate('/admin/dashboard');
           } else {
             // session not available yet - warn but continue to dashboard where fetchStaffProfile will fallback

@@ -10,32 +10,45 @@ const AdminSidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Read initial staffUser from sessionStorage synchronously to avoid UI flicker
-  const parseSessionStaff = () => {
-    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch (e) { console.warn('Failed to parse staffUser from sessionStorage', e); return null; }
-  };
-  const initialStaff = React.useRef(parseSessionStaff());
-
-  const [staffUser, setStaffUser] = useState(() => initialStaff.current);
-  const [loadingStaff, setLoadingStaff] = useState(true);
+  const [staffUser, setStaffUser] = useState(null);  
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const p = await fetchStaffProfile();
-        if (mounted && p) setStaffUser(p);
+        if (mounted && p) {
+          setStaffUser(p);
+        } else if (mounted && !p) {
+          // No valid staff profile found: kick user out to admin login similar to UserNavbar behavior
+          try {
+            // Clear any client-side storage to avoid stale state
+            try { sessionStorage.removeItem('staffUser'); } catch (e) { console.warn('sessionStorage.removeItem failed', e); }
+            try { localStorage.clear(); } catch (e) { console.warn('localStorage.clear failed', e); }
+          } catch (e) { console.warn('clearing client storage failed', e); }
+          // Show warning modal then redirect to admin login
+          Swal.fire({
+            icon: 'warning',
+            title: 'Not Authorized',
+            text: 'You must be logged in as staff to access this page. Redirecting to admin login...',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            customClass: { popup: 'rounded-xl' },
+          });
+          setTimeout(() => navigate('/admin'), 3000);
+        }
       } catch (e) {
         console.warn('fetchStaffProfile failed', e);
-      } finally {
-        if (mounted) setLoadingStaff(false);
       }
     })();
     return () => { mounted = false; };
   }, []);
 
-  // While staff profile is loading, prefer the initial session value to avoid flicker of admin-only links
-  const effectiveStaff = loadingStaff ? initialStaff.current : staffUser;
+  // Only consider the authoritative staffUser returned from the server. Do not rely on client-side sessionStorage.
+  const effectiveStaff = staffUser;
   const isSupervisor = effectiveStaff?.staffRole_ID === 2 || (effectiveStaff?.role || '').toString().toLowerCase() === 'supervisor';
 
   const links = [

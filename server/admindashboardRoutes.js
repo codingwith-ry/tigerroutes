@@ -82,21 +82,19 @@ module.exports = (db) => {
         FROM (
         SELECT
             a.studentAssessment_ID,
-            a.studentAccount_ID,
+            a.assessmentProfile_ID,
             MAX(r.alignmentScore) AS top_score
             FROM tbl_studentassessments a
             JOIN tbl_recommendations r
                 ON r.studentAssessment_ID = a.studentAssessment_ID
                 -- Incase I need to only use track aligned check
                 WHERE r.track_aligned = 'Y'
-                GROUP BY a.studentAssessment_ID, a.studentAccount_ID
+                GROUP BY a.studentAssessment_ID, a.studentAccount_ID, a.assessmentProfile_ID
         ) ts
-        JOIN tbl_studentaccounts sa
-            ON sa.studentAccount_ID = ts.studentAccount_ID
-        JOIN tbl_studentprofiles sp
-            ON sp.studentProfile_ID = sa.studentProfile_ID
+        JOIN tbl_assessmentprofiles ap
+            ON ap.assessmentProfile_ID = ts.assessmentProfile_ID
         JOIN tbl_strands s
-            ON s.strand_ID = sp.strand_ID
+            ON s.strand_ID = ap.strand_ID
         GROUP BY s.strand_ID, s.strandName
         ORDER BY s.strandName;`;
 

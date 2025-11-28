@@ -6,7 +6,9 @@ export async function fetchStaffProfile() {
       const res = await fetch(`${base}/api/staff/me`, { credentials: 'include' });
       if (res.ok) {
         const body = await res.json();
-        if (body && body.success && body.data) return body.data;
+        if (body && body.success && body.data) {
+          return body.data;
+        }
       }
     } catch (err) {
       // ignore and fall back to sessionStorage

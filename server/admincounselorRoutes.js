@@ -25,7 +25,7 @@ const bcrypt = {
 module.exports = (db) => {
 
     const router = express.Router();
-    // All admin counselor routes require a valid JWT (tigerToken)
+    // All admin counselor routes require a valid staff JWT (`tigerStaffToken`)
     router.use(requireJwt);
 
     // POST: Add a new counselor.

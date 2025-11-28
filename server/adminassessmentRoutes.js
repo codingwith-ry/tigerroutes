@@ -158,7 +158,9 @@ module.exports = (db) => {
       router.post('/assessment/:id/notes', async (req, res) => {
         try {
           const assessmentId = req.params.id;
-          const { staffAccount_ID, counselorNotes } = req.body;
+          const counselorNotes = req.body && req.body.counselorNotes;
+          const staffAccount_ID = req.user && (req.user.staffAccount_ID || req.user.id);
+
           if (!assessmentId || !staffAccount_ID || !counselorNotes) {
             return res.status(400).json({ success: false, message: 'assessment id, staffAccount_ID and counselorNotes are required' });
           }
@@ -192,7 +194,7 @@ module.exports = (db) => {
           const assessmentId = req.params.id;
           const noteId = req.params.noteId;
           // staffAccount_ID may be supplied in query or body
-          const staffAccount_ID = req.query.staffAccount_ID || req.body.staffAccount_ID;
+          const staffAccount_ID = req.user && (req.user.staffAccount_ID || req.user.id);
 
           if (!assessmentId || !noteId || !staffAccount_ID) {
             return res.status(400).json({ success: false, message: 'assessment id, note id and staffAccount_ID are required' });
@@ -202,7 +204,7 @@ module.exports = (db) => {
           const [noteRows] = await db.promise().query('SELECT counselorNotes FROM tbl_counselornotes WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?', [noteId, assessmentId, staffAccount_ID]);
           const noteContent = noteRows && noteRows[0] ? (noteRows[0].counselorNotes || '') : '';
 
-          // Delete only when the note belongs to the staffAccount_ID provided
+          // Delete only when the note belongs to the staffAccount_ID of the authenticated user
           const deleteSql = `DELETE FROM tbl_counselornotes WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?`;
           const [result] = await db.promise().query(deleteSql, [noteId, assessmentId, staffAccount_ID]);
 
@@ -234,13 +236,14 @@ module.exports = (db) => {
         try {
           const assessmentId = req.params.id;
           const noteId = req.params.noteId;
-          const { staffAccount_ID, counselorNotes } = req.body;
+          const counselorNotes = req.body && req.body.counselorNotes;
+          const staffAccount_ID = req.user && (req.user.staffAccount_ID || req.user.id);
 
           if (!assessmentId || !noteId || !staffAccount_ID || typeof counselorNotes === 'undefined') {
             return res.status(400).json({ success: false, message: 'assessment id, note id, staffAccount_ID and counselorNotes are required' });
           }
 
-          // Update only when the note belongs to the staffAccount_ID provided
+          // Update only when the note belongs to the staffAccount_ID of the authenticated user
           const updateSql = `UPDATE tbl_counselornotes SET counselorNotes = ?, edited_date = UTC_TIMESTAMP() WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?`;
           const [updateResult] = await db.promise().query(updateSql, [counselorNotes, noteId, assessmentId, staffAccount_ID]);
 

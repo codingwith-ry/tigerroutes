@@ -83,7 +83,7 @@ module.exports = (db) => {
                             ? 30 * 24 * 60 * 60 * 1000 // 30 days
                             : 1 * 60 * 60 * 1000; // 1 hour (match jwt expiry)
 
-                        res.cookie('tigerToken', token, {
+                        res.cookie('tigerStaffToken', token, {
                             httpOnly: true,
                             secure: false,
                             sameSite: 'lax',
@@ -369,6 +369,7 @@ module.exports = (db) => {
                     if (err) console.error('Error destroying session on logout:', err);
                     // Clear cookies related to authentication
                     res.clearCookie('tigerToken', { httpOnly: true, secure: false, sameSite: 'lax' });
+                    res.clearCookie('tigerStaffToken', { httpOnly: true, secure: false, sameSite: 'lax' });
                     const sessionCookieName = process.env.SESSION_COOKIE_NAME || 'tigerroutes.sid';
                     res.clearCookie(sessionCookieName, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
                     return res.json({ success: true });
@@ -380,6 +381,7 @@ module.exports = (db) => {
         }
         // Fallback: clear cookies even if no session object
         res.clearCookie('tigerToken', { httpOnly: true, secure: false, sameSite: 'lax' });
+        res.clearCookie('tigerStaffToken', { httpOnly: true, secure: false, sameSite: 'lax' });
         const sessionCookieName = process.env.SESSION_COOKIE_NAME || 'tigerroutes.sid';
         res.clearCookie(sessionCookieName, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
         res.json({ success: true });
@@ -468,7 +470,7 @@ module.exports = (db) => {
                         };
                         const token = jwt.sign(tokenPayload, secret, { expiresIn: '8h' });
                         const cookieMaxAge = 8 * 60 * 60 * 1000; // 8 hours
-                        res.cookie('tigerToken', token, {
+                        res.cookie('tigerStaffToken', token, {
                             httpOnly: true,
                             secure: false,
                             sameSite: 'lax',
@@ -486,7 +488,7 @@ module.exports = (db) => {
         )
     })
 
-                // Return current staff profile from JWT (tigerToken) set as HttpOnly cookie
+                // Return current staff profile from JWT (`tigerStaffToken`) set as HttpOnly cookie
                 router.get('/staff/me', (req, res) => {
                         try {
                             // verifyJwtCookie middleware attaches decoded token to req.user when present

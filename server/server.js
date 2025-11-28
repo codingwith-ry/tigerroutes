@@ -66,7 +66,7 @@ app.use(session({
     }
 }));
 
-// JWT cookie verification middleware (reads tigerToken cookie and sets req.user)
+// JWT cookie verification middleware (reads `tigerStaffToken` for staff or `tigerToken` for users and sets `req.user`)
 const verifyJwtCookie = require('./middleware/verifyJwtCookie');
 app.use(verifyJwtCookie);
 

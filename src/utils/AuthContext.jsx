@@ -12,8 +12,14 @@ export const AuthProvider = ({ children }) => {
   // the function identity is stable so components which list
   // `refreshUser` in their effect deps don't repeatedly re-run.
   const refreshInFlight = useRef(false);
+  // Prevent rapid repeated refreshes (anti-spam). Stores timestamp of last refresh.
+  const lastRefreshTs = useRef(0);
   const refreshUser = useCallback(async () => {
+    const now = Date.now();
+    // If a refresh happened recently, skip to avoid bursty calls from multiple components
+    if (now - lastRefreshTs.current < 3000) return;
     if (refreshInFlight.current) return;
+    lastRefreshTs.current = now;
     refreshInFlight.current = true;
     setLoading(true);
     try {

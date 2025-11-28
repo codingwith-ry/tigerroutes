@@ -10,20 +10,33 @@ const AdminSidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const [staffUser, setStaffUser] = useState(() => {
+  // Read initial staffUser from sessionStorage synchronously to avoid UI flicker
+  const parseSessionStaff = () => {
     try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch (e) { console.warn('Failed to parse staffUser from sessionStorage', e); return null; }
-  });
+  };
+  const initialStaff = React.useRef(parseSessionStaff());
+
+  const [staffUser, setStaffUser] = useState(() => initialStaff.current);
+  const [loadingStaff, setLoadingStaff] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const p = await fetchStaffProfile();
-      if (mounted && p) setStaffUser(p);
+      try {
+        const p = await fetchStaffProfile();
+        if (mounted && p) setStaffUser(p);
+      } catch (e) {
+        console.warn('fetchStaffProfile failed', e);
+      } finally {
+        if (mounted) setLoadingStaff(false);
+      }
     })();
     return () => { mounted = false; };
   }, []);
 
-  const isSupervisor = staffUser?.staffRole_ID === 2 || (staffUser?.role || '').toString().toLowerCase() === 'supervisor';
+  // While staff profile is loading, prefer the initial session value to avoid flicker of admin-only links
+  const effectiveStaff = loadingStaff ? initialStaff.current : staffUser;
+  const isSupervisor = effectiveStaff?.staffRole_ID === 2 || (effectiveStaff?.role || '').toString().toLowerCase() === 'supervisor';
 
   const links = [
     {
@@ -130,7 +143,7 @@ const AdminSidebar = () => {
       </div>
 
       {/* Sidebar */}
-      <aside
+          <aside
         className={`fixed inset-y-0 left-0 w-64 bg-[#fdfcf8] border-r transform transition-transform duration-300 z-50
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 md:static md:w-64 flex flex-col`}

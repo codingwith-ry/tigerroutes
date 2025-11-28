@@ -83,7 +83,7 @@ module.exports = (db) => {
                             ? 30 * 24 * 60 * 60 * 1000 // 30 days
                             : 1 * 60 * 60 * 1000; // 1 hour (match jwt expiry)
 
-                        res.cookie('tigerStaffToken', token, {
+                        res.cookie('tigerToken', token, {
                             httpOnly: true,
                             secure: false,
                             sameSite: 'lax',

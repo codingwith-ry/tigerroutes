@@ -6,9 +6,9 @@ module.exports = (db) => {
   // Protect admin logs endpoints with JWT requirement
   router.use(requireJwt);
 
-  // GET /admin/staff-logs
+  // GET /staff-logs
   // Query params: page (1-based), limit, q (general search), staff (staff name or id), date (YYYY-MM-DD), dateFrom, dateTo
-  router.get('/admin/staff-logs', async (req, res) => {
+  router.get('/staff-logs', async (req, res) => {
     try {
       const page = Math.max(1, parseInt(req.query.page, 10) || 1);
       const limit = Math.max(1, parseInt(req.query.limit, 10) || 50);

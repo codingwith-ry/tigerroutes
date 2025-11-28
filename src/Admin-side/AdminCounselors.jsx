@@ -31,7 +31,7 @@ const AdminCounselors = () => {
 
   const fetchCounselors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/counselors', { credentials: 'include' });
+      const response = await fetch('http://localhost:5000/api/admin/counselors', { credentials: 'include' });
       const result = await response.json();
       if (result.success) {
         setCounselors(result.data.map(c => ({
@@ -208,7 +208,7 @@ const AdminCounselors = () => {
                               }
 
                               const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                              const resp = await fetch(`${base}/api/counselor/reveal`, {
+                              const resp = await fetch(`${base}/api/admin/counselor/reveal`, {
                                 method: 'POST',
                                 credentials: 'include',
                                 headers: { 'Content-Type': 'application/json' },
@@ -240,7 +240,7 @@ const AdminCounselors = () => {
 
                               if (remind.isConfirmed) {
                                 // Trigger sending the counselor password email via admin endpoint
-                                const mailResp = await fetch(`${base}/api/counselor/send-password`, {
+                                const mailResp = await fetch(`${base}/api/admin/counselor/send-password`, {
                                   method: 'POST',
                                   credentials: 'include',
                                   headers: { 'Content-Type': 'application/json' },
@@ -255,9 +255,9 @@ const AdminCounselors = () => {
                               } else if (remind.isDenied) {
                                 // Admin chose to change the counselor's password
                                 try {
-                                  const changeResp = await fetch(`${base}/api/counselor/change-password`, {
+                                  const changeResp = await fetch(`${base}/api/admin/counselor/change-password`, {
                                     method: 'POST',
-                                      credentials: 'include',
+                                    credentials: 'include',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                   });
@@ -275,9 +275,9 @@ const AdminCounselors = () => {
                                       });
                                       if (show.isConfirmed) {
                                         // send the new password via email
-                                        const mailResp2 = await fetch(`${base}/api/counselor/send-password`, {
+                                        const mailResp2 = await fetch(`${base}/api/admin/counselor/send-password`, {
                                           method: 'POST',
-                                            credentials: 'include',
+                                          credentials: 'include',
                                           headers: { 'Content-Type': 'application/json' },
                                           body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                         });
@@ -420,14 +420,14 @@ const AdminCounselors = () => {
                       let response;
                       
                       if (counselorData.id) {
-                        response = await fetch(`${base}/api/counselor/${encodeURIComponent(counselorData.id)}`, {
+                        response = await fetch(`${base}/api/admin/counselor/${encodeURIComponent(counselorData.id)}`, {
                           method: 'PUT',
                             credentials: 'include',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(counselorData)
                         });
                       } else {
-                        response = await fetch(`${base}/api/counselor/add`, {
+                        response = await fetch(`${base}/api/admin/counselor/add`, {
                           method: 'POST',
                             credentials: 'include',
                             headers: { 'Content-Type': 'application/json' },

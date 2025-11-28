@@ -273,7 +273,7 @@ module.exports = (db) => {
       });
   // GET /api/admin/strand-analytics
   // Returns per-strand metrics: avgAlignment (avg of per-assessment avg alignment where track_aligned='Y'), assessments_count, avgSatisfaction
-  router.get('/admin/strand-analytics', async (req, res) => {
+  router.get('/strand-analytics', async (req, res) => {
     try {
       const startDate = (req.query.startDate || '').trim();
       const endDate = (req.query.endDate || '').trim();
@@ -511,7 +511,7 @@ module.exports = (db) => {
 
   // GET /api/admin/total-assessments
   // Returns combined counts from completed assessments and pending assessments
-  router.get('/admin/total-assessments', async (req, res) => {
+  router.get('/total-assessments', async (req, res) => {
     try {
       const [doneRows] = await db.promise().query('SELECT COUNT(*) AS completed FROM tbl_studentassessments');
       const [pendingRows] = await db.promise().query('SELECT COUNT(*) AS pending FROM tbl_pendingassessments');

@@ -163,6 +163,23 @@ app.get('/__health', (req, res) => res.json({ ok: true }));
 const loginRoutes = require('./loginRoutes.js')(db); 
 app.use('/api', loginRoutes);
 
+// Mount admin routers early so they are not intercepted by other /api routers
+// importing admin dashboard route (mount under /api/admin to avoid collisions with user routes)
+const admindashboardRoutes = require('./admindashboardRoutes.js')(db);
+app.use('/api/admin', admindashboardRoutes);
+
+// importing admin counselor routes
+const admincounselorRoutes = require('./admincounselorRoutes.js')(db);
+app.use('/api/admin', admincounselorRoutes);
+
+// importing admin assessment routes
+const adminassessmentRoutes = require('./adminassessmentRoutes.js')(db);
+app.use('/api/admin', adminassessmentRoutes);
+
+// importing admin logs route
+const adminlogsRoutes = require('./adminlogs.js')(db);
+app.use('/api/admin', adminlogsRoutes);
+
 //importing all profile routes
 const profileRoutes = require('./profileRoutes.js')(db);
 app.use('/api', profileRoutes);
@@ -170,22 +187,6 @@ app.use('/api', profileRoutes);
 //importing all assessment routes
 const assessmentRoutes = require('./assessmentRoutes.js')(db);
 app.use('/api', assessmentRoutes);
-
-//importing admin dashboard route
-const admindashboardRoutes = require('./admindashboardRoutes.js')(db);
-app.use('/api', admindashboardRoutes);
-
-//importing admin counselor routes
-const admincounselorRoutes = require('./admincounselorRoutes.js')(db);
-app.use('/api', admincounselorRoutes);
-
-// importing admin assessment routes
-const adminassessmentRoutes = require('./adminassessmentRoutes.js')(db);
-app.use('/api', adminassessmentRoutes);
-
-// importing admin logs route
-const adminlogsRoutes = require('./adminlogs.js')(db);
-app.use('/api', adminlogsRoutes);
 
 // If this file is the entrypoint, start listening. Otherwise export `app` for tests.
 if (require.main === module) {

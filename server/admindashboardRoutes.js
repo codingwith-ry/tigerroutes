@@ -11,7 +11,7 @@ module.exports = (db) => {
     router.use(requireJwt);
 
     //Admin dashboard initialization
-    router.get('/admin/dashboard-stats', (req, res) => {
+    router.get('/dashboard-stats', (req, res) => {
         
         //Count total students
         const studentsQuery = 'SELECT COUNT(*) as totalStudents FROM tbl_studentaccounts';
@@ -73,7 +73,7 @@ module.exports = (db) => {
     });
 
 
-    router.get('/admin/strand-alignment', (req, res) => {
+    router.get('/strand-alignment', (req, res) => {
         const sql = `
         SELECT
         s.strandName,
@@ -111,7 +111,7 @@ module.exports = (db) => {
         });
     });
 
-    router.get('/admin/top-programs', (req, res) => {
+    router.get('/top-programs', (req, res) => {
         const sql = `
         SELECT
             p.programName,
@@ -137,7 +137,7 @@ module.exports = (db) => {
     });
 
     // Get students who have no completed assessments (may have pending assessments)
-    router.get('/admin/unassessed-students', (req, res) => {
+    router.get('/unassessed-students', (req, res) => {
         const sql = `
         SELECT s.studentAccount_ID, s.name, s.email, pa.pendingAssessment_ID
         FROM tbl_studentaccounts s
@@ -161,7 +161,7 @@ module.exports = (db) => {
     });
 
     // Send reminder email to student about completing their assessment
-    router.post('/admin/remind-student', async (req, res) => {
+    router.post('/remind-student', async (req, res) => {
         try {
             const { studentAccount_ID } = req.body;
             if (!studentAccount_ID) return res.status(400).json({ success: false, message: 'studentAccount_ID is required' });

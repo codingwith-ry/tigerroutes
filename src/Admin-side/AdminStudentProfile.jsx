@@ -30,7 +30,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadDetails() {
       try {
-        const res = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
+        const res = await fetch(`http://localhost:5000/api/admin/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
         const payload = await res.json();
         if (cancelled) return;
         if (!payload || !payload.success) {
@@ -75,7 +75,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadPrograms() {
       try {
-        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/programs`, { credentials: 'include' });
+        const res = await fetch(`http://localhost:5000/api/admin/assessment/${encodeURIComponent(assessmentId)}/programs`, { credentials: 'include' });
         const body = await res.json();
         if (cancelled) return;
         if (body && body.success) {
@@ -148,7 +148,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadNotes() {
       try {
-        const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
+        const res = await fetch(`http://localhost:5000/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
         const body = await res.json();
         if (cancelled) return;
         if (body && body.success) {
@@ -200,7 +200,7 @@ const AdminStudentProfile = () => {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, {
+      const res = await fetch(`http://localhost:5000/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -210,7 +210,7 @@ const AdminStudentProfile = () => {
       if (body && body.success) {
         // reload notes
         setNewNote('');
-        const refresh = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
+        const refresh = await fetch(`http://localhost:5000/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
         const refreshed = await refresh.json();
         if (refreshed && refreshed.success) {
           const notes = (refreshed.data || []).map(n => ({
@@ -258,7 +258,7 @@ const AdminStudentProfile = () => {
     if (!confirmed.isConfirmed) return;
 
     try {
-      const url = `http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}?staffAccount_ID=${encodeURIComponent(staffAccount_ID)}`;
+      const url = `http://localhost:5000/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}?staffAccount_ID=${encodeURIComponent(staffAccount_ID)}`;
       const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
       const body = await res.json();
       if (body && body.success) {
@@ -309,7 +309,7 @@ const AdminStudentProfile = () => {
     if (!confirmed.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}`, {
+      const res = await fetch(`http://localhost:5000/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

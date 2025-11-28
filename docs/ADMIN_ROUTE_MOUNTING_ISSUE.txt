@@ -1,0 +1,158 @@
+Issue: Admin API requests returning 401 with message "Authentication required (tigerToken)"
+
+Summary
+- Symptom: After staff login the admin UI calls endpoints under `/api/admin/*` but the responses are 401 with the JSON error: `"Authentication required (tigerToken)"`.
+- Observed in browser DevTools: `tigerStaffToken` cookie exists and is being sent, but the server responds as if a student token (`tigerToken`) is required.
+- Root cause (discovered): some user-facing routers that are mounted at `/api` apply `requireUserJwt` at the router level (i.e. `router.use(requireUserJwt)`). When Express routing order mounted these user routers before the admin routers, the `/api/admin/*` requests were intercepted by the user router's middleware and rejected as missing `tigerToken` before the admin router could handle them.
+
+Problematic sample (what caused the issue)
+- The following mount order will cause admin requests to be intercepted by the user routers:
+
+// server.js (problematic ordering)
+const loginRoutes = require('./loginRoutes.js')(db);
+app.use('/api', loginRoutes);
+
+const profileRoutes = require('./profileRoutes.js')(db);
+app.use('/api', profileRoutes); // profileRoutes uses router.use(requireUserJwt)
+
+const assessmentRoutes = require('./assessmentRoutes.js')(db);
+app.use('/api', assessmentRoutes); // assessmentRoutes uses router.use(requireUserJwt)
+
+// admin routers mounted after user routers (these will not be reached for /api/admin/* if earlier routers intercept)
+const admindashboardRoutes = require('./admindashboardRoutes.js')(db);
+app.use('/api/admin', admindashboardRoutes);
+
+const admincounselorRoutes = require('./admincounselorRoutes.js')(db);
+app.use('/api/admin', admincounselorRoutes);
+
+
+Why this matters
+- Express evaluates middleware/routers in the order they are declared and mounted. If a router that uses `router.use(requireUserJwt)` is mounted at `/api` first, any request whose path begins with `/api` (including `/api/admin/...`) will be routed into that router and hit its middleware.
+- The user middleware `requireUserJwt` expects the `tigerToken` cookie. If the request should instead be handled by an admin router that expects `tigerStaffToken`, the admin middleware will never run because the request was already rejected.
+
+Middleware sample (user-facing) that produced the error message
+// server/middleware/requireUserJwt.js
+module.exports = function requireUserJwt(req, res, next) {
+  try {
+    const token = req.cookies && req.cookies.tigerToken;
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Authentication required (tigerToken)' });
+    }
+    // verify token and attach req.user
+    ...
+  } catch (err) {
+    return res.status(401).json({ success: false, error: 'Authentication required' });
+  }
+};
+
+
+Corrected/fixed approach (mount admin routers before general '/api' routers)
+// server.js (recommended ordering)
+// Mount admin routers first so '/api/admin/*' requests reach these routers directly
+const admindashboardRoutes = require('./admindashboardRoutes.js')(db);
+app.use('/api/admin', admindashboardRoutes);
+
+const admincounselorRoutes = require('./admincounselorRoutes.js')(db);
+app.use('/api/admin', admincounselorRoutes);
+
+const adminassessmentRoutes = require('./adminassessmentRoutes.js')(db);
+app.use('/api/admin', adminassessmentRoutes);
+
+const adminlogsRoutes = require('./adminlogs.js')(db);
+app.use('/api/admin', adminlogsRoutes);
+
+// Then mount public/user routers which may use requireUserJwt at router-level
+const profileRoutes = require('./profileRoutes.js')(db);
+app.use('/api', profileRoutes);
+
+const assessmentRoutes = require('./assessmentRoutes.js')(db);
+app.use('/api', assessmentRoutes);
+
+
+Alternative / additional fixes
+- Avoid applying `requireUserJwt` globally at the router level for routers mounted at `/api`. Instead apply auth middleware only per-route or to grouped endpoints that truly require student auth. This reduces the chance of accidental interception.
+- Mount admin routers on a dedicated subdomain or a clearly separate prefix (as done `/api/admin`), and ensure they are mounted before any routers that use broad `/api` mounts.
+
+Reproduction steps
+1. Start the server with the problematic mount ordering (user `/api` routers mounted before admin routers).
+2. Log in as staff so `tigerStaffToken` cookie is set (HttpOnly, etc.).
+3. Visit the admin dashboard in the browser and watch DevTools -> Network.
+4. Observe `GET /api/admin/dashboard-stats` returns 401 JSON with `"Authentication required (tigerToken)"`.
+5. Check server logs or insert temporary console logs in `verifyJwtCookie` / `requireUserJwt` to confirm the request was routed into the user router and rejected there.
+
+Verification steps (after fix)
+1. Restart server with admin routers mounted before user routers.
+2. Log in as staff and confirm `tigerStaffToken` appears in Cookies and is included in subsequent requests (for cross-origin dev you must use `{ credentials: 'include' }` and correct cookie SameSite/secure settings or use CRA proxy).
+3. In DevTools -> Network select `GET /api/admin/dashboard-stats` and check:
+   - Request Cookies include `tigerStaffToken`.
+   - Response is 200 and contains `{ success: true, data: ... }`.
+4. Optionally add short dev logging to `verifyJwtCookie` and `requireJwt` to trace which middleware verified the token.
+
+Notes & recommendations
+- Keep the admin mount order fixed (admin routers mounted before any broad `/api` router that uses `router.use(requireUserJwt)`).
+- Review `profileRoutes` and `assessmentRoutes` to apply `requireUserJwt` only where needed; global router-level protection at `/api` is convenient but brittle when other `/api/*` subpaths must use different auth.
+- For cross-origin dev (localhost:3000 -> localhost:5000) cookie sending depends on cookie attributes. If cookies are set with `SameSite=Lax`, cross-origin XHR/fetch requests may not include them. Use `SameSite=None` + `Secure` (requires HTTPS) or use CRA proxy (set `proxy` in React `package.json`) for same-origin development.
+
+References
+- Express routing order and middleware: mounting order matters. (See Express docs for `app.use` and routers.)
+- Browser cookie `SameSite` behavior for cross-site requests.
+
+Created: (automated) — please keep this file with the repo to document the issue and the fix.
+
+Visual Aids
+----------------------
+Below are two visualizations produced during debugging which explain why the wrong router mount order causes `/api/admin/*` requests to be rejected by user-level middleware.
+
+Figure 1 — "Why This Happens in Express"
+
+Think of Express like checkpoint gates lined up in order. Every request goes through each gate in the order you mounted them:
+
+  First gate -> second gate -> third gate -> ...
+
+If a gate blocks a request, the request never reaches the next gates.
+
+You accidentally mounted the routers like this:
+
+  /api   (USER GATE that checks `tigerToken`)
+    ↓
+  /api   (another USER GATE checking `tigerToken`)
+    ↓
+  /api/admin   (ADMIN GATE that checks `tigerStaffToken`)
+
+So when a request goes to:
+
+  GET /api/admin/dashboard-stats
+
+It first hits the user gate, because `/api/admin/...` still starts with `/api`.
+
+That user-gate middleware does this (shortened):
+
+```js
+const token = req.cookies && req.cookies.tigerToken;
+if (!token) return res.status(401).json({ success:false, error: 'Authentication required (tigerToken)' });
+// verify token and attach req.user
+```
+
+Admin requests don't have `tigerToken`, only `tigerStaffToken`. So that middleware blocks the request before the admin routes get a chance.
+
+Figure 2 — "Visualizing the Wrong Setup"
+
+Imagine this wrong order:
+
+  Wrong Order:
+    - User Auth Router (requires `tigerToken`)
+    - User Profile Router (requires `tigerToken`)
+    - User Assessment Router (requires `tigerToken`)
+    - Admin Router (should check `tigerStaffToken`)
+
+Every admin request goes through the three user routers first → gets blocked.
+
+Quick checklist (visual reasoning):
+- Mounting order matters — earlier `app.use('/api', router)` catches prefixes like `/api/admin`.
+- Prefer mounting `app.use('/api/admin', adminRouter)` before any generic `app.use('/api', ...)` router that applies user-only middleware at router-level.
+
+Notes
+- The ASCII/code reproductions above are included so the explanation is searchable and readable in plain text regardless of image availability.
+- If you want the screenshots included in the repo for richer documentation, add them under `docs/images/` with the filenames `chatgpt-visual-1.png` and `chatgpt-visual-2.png`.
+
+End of visual aids.

@@ -24,10 +24,11 @@ import AdminAssessment from "./Admin-side/AdminAssessment";
 import AdminCounselors from "./Admin-side/AdminCounselors";
 import AdminStudentProfile from './Admin-side/AdminStudentProfile';
 import ActivityLogs from './Admin-side/ActivityLogs';
+import AdminPreviewCounselor from "./Admin-side/AdminPreviewCounselor";
+import { AdminAuthProvider } from './utils/AdminAuthContext';
 import PrivacyPolicy from './Visitor-side/PrivacyPolicy';
 import TermsOfService from './Visitor-side/TermsOfService';
 import CookiesModal from './Visitor-side/CookiesModal';
-import AdminPreviewCounselor from "./Admin-side/AdminPreviewCounselor";
 
 function App() {
   return (
@@ -52,16 +53,16 @@ function App() {
           <Route path="/assessmentRIASEC/:assessmentId" element={<AssessmentRIASEC />} />
           <Route path="/assessment/results/:assessmentId" element={<AssessmentResults />} />
           <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/assessment" element={<AdminAssessment />} />
-          <Route path="/admin/counselors" element={<AdminCounselors />} />
-          <Route path="/admin/activity-logs" element={<ActivityLogs />} />
-          <Route path="/admin/assessment/:id" element={<AdminStudentProfile />} /> 
+          <Route path="/admin/dashboard" element={<AdminAuthProvider><AdminDashboard /></AdminAuthProvider>} />
+          <Route path="/admin/assessment" element={<AdminAuthProvider><AdminAssessment /></AdminAuthProvider>} />
+          <Route path="/admin/counselors" element={<AdminAuthProvider><AdminCounselors /></AdminAuthProvider>} />
+          <Route path="/admin/activity-logs" element={<AdminAuthProvider><ActivityLogs /></AdminAuthProvider>} />
+          <Route path="/admin/assessment/:id" element={<AdminAuthProvider><AdminStudentProfile /></AdminAuthProvider>} /> 
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookies-settings" element={<CookiesModal />} />
-          <Route path="/admin/preview" element={<AdminPreviewCounselor />} />
-          <Route path="/admin/preview/:counselorName" element={<AdminPreviewCounselor />} />
+          <Route path="/admin/preview" element={<AdminAuthProvider><AdminPreviewCounselor/></AdminAuthProvider>} />
+          <Route path="/admin/preview/:counselorName" element={<AdminAuthProvider><AdminPreviewCounselor/></AdminAuthProvider>} />
         </Routes>
       </div>
     </Router>

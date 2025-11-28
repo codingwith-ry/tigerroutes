@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { fetchStaffProfile } from '../utils/staffProfile';
-import { useAuth } from '../utils/AuthContext';
+import { useAdminAuth } from '../utils/AdminAuthContext';
 import PropTypes from 'prop-types';
 /* eslint-disable react/prop-types */
 
 const AdminHeader = ({ title }) => {
   const [profile, setProfile] = useState(null);
-  const { user: authUser, refreshUser } = useAuth();
+  const { user: authUser, refreshUser } = useAdminAuth();
 
   useEffect(() => {
     // Ensure AuthContext fetches the current user using the server-side cookie (tigerroutes.sid)

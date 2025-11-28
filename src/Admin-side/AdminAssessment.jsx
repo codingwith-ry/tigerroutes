@@ -121,7 +121,7 @@ const AdminAssessment = () => {
         if (dateRangeFilter.endDate) params.set('endDate', dateRangeFilter.endDate);
         if (gradeFilter) params.set('grade', gradeFilter);
 
-        const url = `${base}/api/assessments?${params.toString()}`;
+        const url = `${base}/api/admin/assessments?${params.toString()}`;
         const res = await fetch(url, { signal: controller.signal, credentials: 'include' });
         const data = await res.json();
         if (data && data.success) {

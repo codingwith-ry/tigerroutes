@@ -1,8 +1,8 @@
 export async function fetchStaffProfile() {
   try {
     // Prefer server-side session endpoint (HttpOnly cookie) — non-breaking: fall back to legacy sessionStorage
+    const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     try {
-      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const res = await fetch(`${base}/api/staff/me`, { credentials: 'include' });
       if (res.ok) {
         const body = await res.json();
@@ -29,7 +29,7 @@ export async function fetchStaffProfile() {
     if (!id) return null;
 
     try {
-      const res2 = await fetch(`http://localhost:5000/api/counselor/${encodeURIComponent(id)}`);
+      const res2 = await fetch(`${base}/api/admin/counselor/${encodeURIComponent(id)}`, { credentials: 'include' });
       if (!res2.ok) return null;
       const body2 = await res2.json();
       if (!body2 || !body2.success) return null;

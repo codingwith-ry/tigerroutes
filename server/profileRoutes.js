@@ -4,8 +4,7 @@ const express = require('express');
 
 module.exports = (db) => {
     const router = express.Router();
-    const requireJwt = require('./middleware/requireJwt');
-
+    const requireUserJwt = require('./middleware/requireUserJwt');
     // Public endpoint: strands are safe for admin dashboard and public UI to fetch
     router.get('/strands', (req, res) => {
         db.query('SELECT * FROM tbl_strands', (err, results) => {
@@ -14,8 +13,8 @@ module.exports = (db) => {
         });
     });
 
-    // Require JWT cookie (tigerToken) for all other user-facing profile APIs
-    router.use(requireJwt);
+    // Require student JWT cookie (tigerToken) for all other user-facing profile APIs
+    router.use(requireUserJwt);
 
     router.get('/student/:id', (req, res) => {
         const id = req.params.id;

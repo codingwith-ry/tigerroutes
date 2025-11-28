@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Swal from "sweetalert2";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
+import Chatbot from "./Chatbot";
 
 const AssessmentPage = () => {
   const navigate = useNavigate();
@@ -14,6 +15,9 @@ const AssessmentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const [progress, setProgress] = useState({
     riasecTotal: 42,
@@ -58,7 +62,7 @@ const AssessmentPage = () => {
     return () => {
       document.title = "Default Title";
     };
-  }, []);
+  }, [authLoading, user, pendingAssessment]);
 
   const fetchData = async () => {
     try {
@@ -666,6 +670,13 @@ const AssessmentPage = () => {
           )}
         </div>
         
+        <Chatbot 
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            onOpen={() => setIsChatOpen(true)}
+            minimized={isMinimized}
+            onMinimize={() => setIsMinimized(!isMinimized)}
+          />
       </main>
       <Footer />
     </div>

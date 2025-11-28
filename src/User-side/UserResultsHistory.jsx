@@ -6,6 +6,7 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import Swal from "sweetalert2";
 import { useAuth } from "../utils/AuthContext";
+import Chatbot from "./Chatbot";
 
 const UserResultsHistory = () => {
   const navigate = useNavigate();
@@ -18,6 +19,9 @@ const UserResultsHistory = () => {
   const [filteredAssessments, setFilteredAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -690,6 +694,13 @@ const UserResultsHistory = () => {
           )}
         </div>
       </div>
+      <Chatbot 
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            onOpen={() => setIsChatOpen(true)}
+            minimized={isMinimized}
+            onMinimize={() => setIsMinimized(!isMinimized)}
+          />
       <div className="mt-5">
         <Footer />
       </div>

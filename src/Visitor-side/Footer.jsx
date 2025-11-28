@@ -12,13 +12,13 @@ const Footer = () => {
       <footer className="bg-[#F6BE1E] text-black px-6 py-12 font-sfpro">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
           {/* Left: Logo + Text */}
-          <div className="text-center md:text-left">
+          <div className="text-left md:text-center md:mx-auto">
             <img 
               src="/images/TigerRoutes_B&W.png"
               alt="TigerRoutes Logo"
               className="h-16 mx-auto md:mx-0"
             />
-            <p className="mt-3 text-sm leading-relaxed max-w-xs text-left">
+            <p className="mt-3 text-sm leading-relaxed max-w text-left">
               Your AI Career Navigator for Thomasian Senior High School Students. TigerRoutes helps students discover UST academic programs that fit their skills, interests, and personality through psychometric assessments and personalized recommendations.
             </p>
           </div>

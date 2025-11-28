@@ -471,38 +471,48 @@ const AssessmentResults = () => {
 
                         {/* Mobile Layout */}
                         <div className="block sm:hidden space-y-3 text-sm">
-                        <div>
-                            <span className="font-semibold">Name:</span>
-                            <p>{userData?.name || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">Email:</span>
-                            <p className="break-words">{userData?.email || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">Grade Level:</span>
-                            <p>{userData?.gradeLevel || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">Strand:</span>
-                            <p>{userData?.strand || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">Math Grade:</span>
-                            <p>{formatGrade(userData?.mathGrade)}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">Science Grade:</span>
-                            <p>{formatGrade(userData?.scienceGrade)}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">English Grade:</span>
-                            <p>{formatGrade(userData?.englishGrade)}</p>
-                        </div>
-                        <div>
-                            <span className="font-semibold">Average Grade:</span>
-                            <p>{formatGrade(userData?.genAverageGrade)}</p>
-                        </div>
+                            <div>
+                                <span className="font-semibold">Name:</span>
+                                <p className="mt-1">{assessmentProfile?.name || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <span className="font-semibold">Email:</span>
+                                <p className="break-words mt-1">{assessmentProfile?.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <span className="font-semibold">Grade Level:</span>
+                                <p className="mt-1">{assessmentProfile?.gradeLevel || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <span className="font-semibold">Strand:</span>
+                                <p className="mt-1">{assessmentProfile?.strandName || assessmentProfile?.strand || 'N/A'}</p>
+                            </div>
+
+                            {/* Grades block */}
+                            <div className="pt-3 border-t border-gray-200">
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <span className="font-semibold">Math Grade:</span>
+                                        <p className="mt-1">{formatGrade(assessmentProfile?.mathGrade)}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-semibold">Science Grade:</span>
+                                        <p className="mt-1">{formatGrade(assessmentProfile?.scienceGrade)}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-semibold">English Grade:</span>
+                                        <p className="mt-1">{formatGrade(assessmentProfile?.englishGrade)}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-semibold">Average Grade:</span>
+                                        <p className="mt-1">{formatGrade(assessmentProfile?.genAverageGrade)}</p>
+                                    </div>
+                                </div>
+
+                                <p className="mt-3 text-gray-500 text-xs">
+                                    As of {assessmentProfile?.date ? new Date(assessmentProfile.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : 'N/A'}.
+                                </p>
+                            </div>
                         </div>
                     </div>
                     </div>

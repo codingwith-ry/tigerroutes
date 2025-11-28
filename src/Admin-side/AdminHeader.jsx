@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchStaffProfile } from '../utils/staffProfile';
 import { useAuth } from '../utils/AuthContext';
-import Swal from 'sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css';
+import PropTypes from 'prop-types';
 
 const AdminHeader = ({ title }) => {
   const [profile, setProfile] = useState(null);
@@ -64,3 +63,7 @@ const AdminHeader = ({ title }) => {
 };
 
 export default AdminHeader;
+
+AdminHeader.propTypes = {
+  title: PropTypes.string
+};

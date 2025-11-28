@@ -10,7 +10,7 @@ const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const [staffUser, setStaffUser] = useState(() => {
-    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; }
+    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch (e) { console.warn('Failed to parse staffUser from sessionStorage', e); return null; }
   });
 
   useEffect(() => {
@@ -76,8 +76,8 @@ const AdminSidebar = () => {
           method: 'POST',
           credentials: 'include'
         }).then(() => {
-          try { localStorage.clear(); } catch (_) {}
-          try { sessionStorage.clear(); } catch (_) {}
+          try { localStorage.clear(); } catch (e) { console.warn('localStorage.clear failed', e); }
+          try { sessionStorage.clear(); } catch (e) { console.warn('sessionStorage.clear failed', e); }
           navigate("/admin");
           Swal.fire({
             icon: "success",
@@ -94,8 +94,8 @@ const AdminSidebar = () => {
         }).catch((err) => {
           console.error('Logout request failed', err);
           // Still clear client storage to avoid local re-entry; warn user server logout may have failed
-          try { localStorage.clear(); } catch (_) {}
-          try { sessionStorage.clear(); } catch (_) {}
+          try { localStorage.clear(); } catch (e) { console.warn('localStorage.clear failed', e); }
+          try { sessionStorage.clear(); } catch (e) { console.warn('sessionStorage.clear failed', e); }
           navigate("/");
           Swal.fire('Logged out (local)', 'Local session cleared but server logout may have failed.', 'warning');
         });
@@ -105,6 +105,8 @@ const AdminSidebar = () => {
 
   const isLinkActive = (link) => {
     if (location.pathname === link.path) return true;
+    // check matches array (some links provide alternate matching paths)
+    if (link.matches?.some(path => location.pathname.includes(path))) return true;
     // check if current route starts with any child route
     if (link.children) {
       return link.children.some((child) => location.pathname.startsWith(child));
@@ -154,7 +156,7 @@ const AdminSidebar = () => {
                 setIsOpen(false);
               }}
               className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                (link.matches?.some(path => location.pathname.includes(path)) || location.pathname === link.path)
+                (isLinkActive(link))
                   ? "bg-yellow-100 text-yellow-600"
                   : "hover:bg-gray-100"
               }`}

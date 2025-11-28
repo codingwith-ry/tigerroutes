@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
-import { Mail, Phone, MapPin, BookOpen, Clock, Dot, MessageSquareText } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Mail, MapPin, BookOpen, Clock, Dot, MessageSquareText } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const CounselorPreview = () => {
-  const navigate = useNavigate();
   const { counselorName } = useParams(); // dynamic name from URL
   const decodedName = decodeURIComponent(counselorName || "");
 
   const [counselor, setCounselor] = useState(null);
-  const [loading, setLoading] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [recentComments, setRecentComments] = useState([]);
 
@@ -123,6 +122,8 @@ const CounselorPreview = () => {
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
           <div className="bg-white rounded-xl p-6 shadow border border-gray-200">
             {/* Profile Header */}
+            {loading && <div className="p-4 text-center text-gray-600">Loading counselor...</div>}
+            {error && <div className="p-4 text-center text-red-600">{error}</div>}
             <div className="flex items-center gap-5 mb-6">
               <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-xl font-bold text-white">
                 {decodedName

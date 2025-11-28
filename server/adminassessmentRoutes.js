@@ -298,24 +298,43 @@ module.exports = (db) => {
       }
 
       // Base numeric aggregation per strand
+      // Use only the assessment profile's `strand_ID` to attribute assessments to strands.
+      // Assessments without an assessment profile (ap) will be excluded from strand aggregates.
       let sql = `
         SELECT
           s.strand_ID,
           s.strandName,
           ROUND(AVG(pa.avgAlignment), 2) AS avgAlignment,
-          COUNT(DISTINCT a.studentAssessment_ID) AS assessments_count,
-          ROUND(AVG(a.rating), 2) AS avgSatisfaction
+          COUNT(DISTINCT a_res.studentAssessment_ID) AS assessments_count,
+          ROUND(AVG(a_res.rating), 2) AS avgSatisfaction
         FROM tbl_strands s
-        LEFT JOIN tbl_studentprofiles sp ON sp.strand_ID = s.strand_ID
-        LEFT JOIN tbl_studentaccounts sa ON sa.studentProfile_ID = sp.studentProfile_ID
-        LEFT JOIN tbl_studentassessments a ON a.studentAccount_ID = sa.studentAccount_ID
-        LEFT JOIN tbl_assessmentprofiles ap ON a.assessmentProfile_ID = ap.assessmentProfile_ID
+
+        /*
+          Build a derived table of assessments where we resolve the strand for each
+          assessment using COALESCE(ap.strand_ID, sp.strand_ID) as resolved_strand.
+          This ensures we include assessments that are only attached to an assessment
+          profile (ap) even when the student's profile (sp) is NULL.
+        */
+        LEFT JOIN (
+          SELECT
+            a.studentAssessment_ID,
+            a.studentAccount_ID,
+            a.date,
+            a.rating,
+            a.assessmentProfile_ID,
+            ap.strand_ID AS resolved_strand
+          FROM tbl_studentassessments a
+          LEFT JOIN tbl_assessmentprofiles ap ON a.assessmentProfile_ID = ap.assessmentProfile_ID
+          LEFT JOIN tbl_studentaccounts sa ON a.studentAccount_ID = sa.studentAccount_ID
+        ) a_res ON a_res.resolved_strand = s.strand_ID
+
+        LEFT JOIN tbl_assessmentprofiles ap ON a_res.assessmentProfile_ID = ap.assessmentProfile_ID
         LEFT JOIN (
           SELECT studentAssessment_ID, AVG(alignmentScore) AS avgAlignment
           FROM tbl_recommendations
           WHERE track_aligned = 'Y'
           GROUP BY studentAssessment_ID
-        ) pa ON pa.studentAssessment_ID = a.studentAssessment_ID
+        ) pa ON pa.studentAssessment_ID = a_res.studentAssessment_ID
       `;
 
       if (whereClauses.length > 0) {
@@ -331,6 +350,7 @@ module.exports = (db) => {
         const strandId = r.strand_ID;
 
         // Aggregate RIASEC trait sums for the strand (respect date & grade filters)
+        // Use only the assessment profile's strand (ap.strand_ID = ?).
         let riasecSql = `
           SELECT
             SUM(rr.realistic) AS realistic,
@@ -342,9 +362,9 @@ module.exports = (db) => {
           FROM tbl_riasecresults rr
             JOIN tbl_studentassessments sa ON rr.riasecResult_ID = sa.riasecResult_ID
             JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
-            JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+            LEFT JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
             LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
-            WHERE sp.strand_ID = ?
+            WHERE ap.strand_ID = ?
         `;
         const riasecParams = [strandId];
         if (startDate && endDate) {
@@ -378,6 +398,7 @@ module.exports = (db) => {
         const topRiasec = riasecList.slice(0, 2).map((t) => t.trait.charAt(0).toUpperCase() + t.trait.slice(1));
 
         // Aggregate BigFive trait sums for the strand
+        // Use only the assessment profile's strand (ap.strand_ID = ?).
         let bigFiveSql = `
           SELECT
             SUM(bf.openness) AS openness,
@@ -388,9 +409,9 @@ module.exports = (db) => {
           FROM tbl_bigfiveresults bf
           JOIN tbl_studentassessments sa ON bf.bigFiveResult_ID = sa.bigFiveResult_ID
           JOIN tbl_studentaccounts sac ON sa.studentAccount_ID = sac.studentAccount_ID
-          JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
+          LEFT JOIN tbl_studentprofiles sp ON sac.studentProfile_ID = sp.studentProfile_ID
           LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
-          WHERE sp.strand_ID = ?
+          WHERE ap.strand_ID = ?
         `;
         const bigFiveParams = [strandId];
         if (startDate && endDate) {

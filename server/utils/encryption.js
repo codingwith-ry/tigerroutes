@@ -1,5 +1,3 @@
-//this file is basically needed for reversible encryption/decryption of counselor passwords
-
 const crypto = require('crypto');
 
 // Expect a 32-byte key in base64 in the env var PASSWORD_REVEAL_KEY

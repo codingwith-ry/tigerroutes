@@ -70,9 +70,6 @@ app.use(session({
 const verifyJwtCookie = require('./middleware/verifyJwtCookie');
 app.use(verifyJwtCookie);
 
-//Google Stuffs
-const { OAuth2Client } = require('google-auth-library');
-
 // MySQL connection
 const dbConfig = {
   host: 'tigerroutesdb.c4f8mocc8fh0.us-east-1.rds.amazonaws.com',
@@ -149,6 +146,9 @@ app.post("/api/chatbot", async (req, res) => {
   }
 });
 
+// lightweight health-check used for tests/monitoring
+app.get('/__health', (req, res) => res.json({ ok: true }));
+
 // NOTE: single app.listen occurs at the bottom using PORT
     
 //importing all login/register routes
@@ -179,6 +179,11 @@ app.use('/api', adminassessmentRoutes);
 const adminlogsRoutes = require('./adminlogs.js')(db);
 app.use('/api', adminlogsRoutes);
 
-app.listen(PORT, () => {
-    console.log('Server is running on port', PORT)
-})
+// If this file is the entrypoint, start listening. Otherwise export `app` for tests.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log('Server is running on port', PORT);
+  });
+} else {
+  module.exports = app;
+}

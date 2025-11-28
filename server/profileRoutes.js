@@ -1,7 +1,6 @@
 //This file is where we keep all login/register API routes
 const express = require('express');
-const { OAuth2Client } = require('google-auth-library');
-const nodemailer = require('nodemailer');
+// OAuth and mailer not required in this module; removed unused imports
 
 module.exports = (db) => {
     const router = express.Router();
@@ -20,27 +19,27 @@ module.exports = (db) => {
 
     router.get('/student/:id', (req, res) => {
         const id = req.params.id;
-        db.query('SELECT * FROM tbl_studentaccounts WHERE studentAccount_ID', [id], (err, results) => {
+        db.query('SELECT * FROM tbl_studentaccounts WHERE studentAccount_ID = ?', [id], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length > 0) {
                 res.json(results[0]);
             } else {
                 res.status(404).json({ error: 'User not found' });
             }
-        })
-    })
+        });
+    });
 
     router.put('/student/:id', (req, res) => {
-        const { id } = req.params.id;
-        // const { firstName, lastName } = req.body;
-        // const fullName = firstName + ' ' + lastName;
+        const id = req.params.id;
+        const { firstName, lastName } = req.body;
+        const fullName = ((firstName || '') + ' ' + (lastName || '')).trim();
+
         db.query(
-            'UPDATE tbl_studentaccounts SET name = ? WHERE studentAccount_ID = ?', [id], (err, results) => {
-                [fullName, id],
-                (err, result) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    res.json({ success: true });
-                }
+            'UPDATE tbl_studentaccounts SET name = ? WHERE studentAccount_ID = ?',
+            [fullName, id],
+            (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
             }
         );
     });
@@ -65,7 +64,7 @@ module.exports = (db) => {
                 conn.query(
                     'UPDATE tbl_studentaccounts SET name = ? WHERE studentAccount_ID = ?',
                     [fullName.trim(), studentAccountId],
-                    (err, result) => {
+                    (err) => {
                         if (err) {
                             return conn.rollback(() => {
                                 conn.release();
@@ -137,10 +136,10 @@ module.exports = (db) => {
 
                                 if (existingProfileId) {
                                     // Profile exists - UPDATE the existing one
-                                    conn.query(
+                                        conn.query(
                                         'UPDATE tbl_studentprofiles SET strand_ID = ?, gradeLevel = ? WHERE studentProfile_ID = ?',
                                         [strand_ID, gradeLevel, existingProfileId],
-                                        (err, result) => {
+                                        (err) => {
                                             if (err) {
                                                 return conn.rollback(() => {
                                                     conn.release();
@@ -202,7 +201,7 @@ module.exports = (db) => {
                                                 conn.query(
                                                     'UPDATE tbl_studentaccounts SET studentProfile_ID = ? WHERE studentAccount_ID = ?',
                                                     [newProfileId, studentAccountId],
-                                                    (err, result) => {
+                                                    (err) => {
                                                         if (err) {
                                                             return conn.rollback(() => {
                                                                 conn.release();

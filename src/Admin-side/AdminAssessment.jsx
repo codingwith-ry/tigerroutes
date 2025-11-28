@@ -1,11 +1,11 @@
-import { FileCheck, Calendar, BarChart2, Users, Target, Star, Activity, TrendingUp, Bell, GitBranch, LayoutGrid, Eye } from "lucide-react";
+import { FileCheck, Calendar, BarChart2, Users, Star, TrendingUp, GitBranch, LayoutGrid, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import React from "react";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from './AdminHeader';
 import { useNavigate } from "react-router-dom";
-
+/* eslint-disable react/prop-types */
 
 
 const AdminAssessment = () => {
@@ -196,11 +196,25 @@ const AdminAssessment = () => {
     const strokeWidth = 12;
     const normalizedRadius = radius - strokeWidth / 2;
     const circumference = 2 * Math.PI * normalizedRadius;
-    const strokeDashoffset = circumference - (value / max) * circumference;
+    const safeMax = (typeof max === 'number' && max > 0) ? max : 1;
+    const safeValue = (typeof value === 'number') ? value : 0;
+    const strokeDashoffset = circumference - (safeValue / safeMax) * circumference;
 
     return (
       <div className="relative w-16 h-16 sm:w-12 sm:h-12 md:w-16 md:h-16">
         <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r={normalizedRadius} fill="transparent" stroke="#eef2ff" strokeWidth={strokeWidth} />
+          <circle
+            cx="32"
+            cy="32"
+            r={normalizedRadius}
+            fill="transparent"
+            stroke={color || '#4f46e5'}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+          />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           {children}
@@ -389,7 +403,7 @@ const AdminAssessment = () => {
                             try {
                               sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
                               if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
-                            } catch (e) { /* ignore */ }
+                            } catch (e) { console.warn('sessionStorage unavailable', e); }
                             navigate(`/admin/assessment/${student.assessmentId}`)
                           }}
                         >
@@ -452,7 +466,7 @@ const AdminAssessment = () => {
                           try {
                             sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
                             if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
-                          } catch (e) {}
+                          } catch (e) { console.warn('sessionStorage unavailable', e); }
                           navigate(`/admin/assessment/${student.assessmentId}`)
                         }}
                       >

@@ -7,7 +7,7 @@ const secret = 'greenP1ace'
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
 const path = require('path');
-const { decrypt, encrypt } = require('./encryption');
+const { decrypt } = require('./utils/encryption');
 
 module.exports = (db) => {
     const router = express.Router();
@@ -261,18 +261,38 @@ module.exports = (db) => {
     //token verification using Google API
     async function verify(token) {
         const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com", //Client ID
-        });
-        const payload = ticket.getPayLoad();
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID, //Client ID
+            });
+            const payload = ticket.getPayload();
+            return payload;
     }
 
-    //Authentication with Google
-    router.post('/google-auth', (req, res) => {
-        const { email, name } = req.body;
+    // Authentication with Google (accepts either idToken or email+name)
+    router.post('/google-auth', async (req, res) => {
+        let { idToken, email, name } = req.body;
+
+        // If client supplied an ID token, verify it and extract email/name
+        if (idToken) {
+            let payload;
+            try {
+                payload = await verify(idToken);
+            } catch (err) {
+                console.error('[google-auth] token verification failed:', err && err.message ? err.message : err);
+                return res.status(401).json({ error: 'Invalid Google token' });
+            }
+
+            if (!payload || !payload.email) return res.status(400).json({ error: 'Google token did not contain email' });
+            if (!payload.email_verified) return res.status(403).json({ error: 'Google email not verified' });
+
+            email = payload.email;
+            name = payload.name || '';
+        }
+
         if (!email || !name) {
             return res.status(400).json({ error: 'Missing email or name' });
         }
+
         db.query(
             'SELECT * FROM tbl_studentaccounts WHERE email = ?',
             [email],
@@ -292,7 +312,7 @@ module.exports = (db) => {
                     db.query(
                         'INSERT INTO tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
                         [name, email, ''],
-                        (err2, result2) => {
+                        (err2) => {
                             if (err2) return res.status(500).json({ error: err2.message });
 
                             db.query(
@@ -435,7 +455,9 @@ module.exports = (db) => {
                         try {
                             const actionText = `Staff login: ${staffUser.email} (ID:${staffUser.staffAccount_ID})`;
                             db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffUser.staffAccount_ID || null, actionText]).catch(() => {});
-                        } catch (e) {}
+                        } catch (e) {
+                            console.warn('[staff-login] non-blocking log error', e);
+                        }
 
                         const tokenPayload = {
                             id: staffUser.staffAccount_ID,

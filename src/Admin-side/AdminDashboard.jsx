@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from "react";
 import Swal from 'sweetalert2';
-import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
-import { FileCheck, Calendar, BarChart2, Users } from "lucide-react";
+import { FileCheck, BarChart2, Users } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+/* eslint-disable react/prop-types */
 
 const AdminDashboard = () => {
   // Mock Data
@@ -21,7 +21,7 @@ const AdminDashboard = () => {
     overallAlignment: 0,
     totalCounselors: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = "Admin Dashboard | Overview";
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
   };
 
 
-let statsContent;
+// statsContent variable removed (unused)
 
 
 const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, color }) => (

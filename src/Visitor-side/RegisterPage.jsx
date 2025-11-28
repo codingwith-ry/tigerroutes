@@ -145,19 +145,6 @@ const handleInputChange = (e) => {
     setShowPassword(!showPassword);
   };
 
-  /*  useEffect(() => {
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id: "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
-        callback: handleGoogleResponse,
-      });
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignInDiv"),
-        { theme: "outline",  size: "large"}
-      );
-    }
-  }, []); */
-
   useEffect(() => {}, []);
 
 
@@ -216,8 +203,7 @@ const handleInputChange = (e) => {
   }
 
   const client = window.google.accounts.oauth2.initTokenClient({
-    client_id:
-      "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
+    client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
     scope: "openid email profile",
     callback: async (tokenResponse) => {
       try {

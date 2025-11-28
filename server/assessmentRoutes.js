@@ -185,7 +185,7 @@ module.exports = (db) => {
                                                 bigFiveResult.insertId,
                                                 timestamp
                                             ],
-                                            async (err, assessmentResult) => {
+                                            async (err) => {
                                                 if (err) {
                                                     console.error('Error inserting Student Assessment record:', err);
                                                     return res.status(500).json({ message: 'Error inserting Student Assessment record' });
@@ -671,16 +671,13 @@ module.exports = (db) => {
     router.post('/assessment/submitRating', (req, res) => {
         try {
             const { assessmentId, rating, feedback } = req.body;
-            if (!assessmentId) {
-                return res.status(400).json({ success: false, message: 'assessmentID is required' });
-            }
 
             const updateQuery = `
                 UPDATE tbl_studentassessments 
                 SET rating = ?, feedback = ? 
                 WHERE studentAssessment_ID = ?
             `
-            db.query(updateQuery, [rating, feedback, assessmentId], (err, result) => {
+            db.query(updateQuery, [rating, feedback, assessmentId], (err) => {
                 if (err) {
                     console.error('Error updating rating and feedback:', err);
                     return res.status(500).json({ success: false, message: 'Database error' });
@@ -759,7 +756,7 @@ module.exports = (db) => {
                 pendingAssessmentId
                 ];
 
-                db.query(updateQuery, updateValues, (updateError, updateResults) => {
+                db.query(updateQuery, updateValues, (updateError) => {
                 if (updateError) {
                     console.error('Update error:', updateError);
                     return res.status(500).json({
@@ -853,7 +850,7 @@ module.exports = (db) => {
                             created_At
                         ];
 
-                        db.query(insertQuery, insertValues, (insertError, insertResults) => {
+                        db.query(insertQuery, insertValues, (insertError) => {
                             if (insertError) {
                                 console.error('Insert error:', insertError);
                                 return res.status(500).json({

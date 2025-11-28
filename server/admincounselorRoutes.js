@@ -2,7 +2,7 @@ const express = require('express');
 const requireJwt = require('./middleware/requireJwt');
 const nodemailer = require('nodemailer');
 const path = require('path');
-const { encrypt, decrypt } = require('./encryption');
+const { encrypt, decrypt } = require('./utils/encryption');
 // bcrypt wrapper: prefer native bcrypt, fall back to bcryptjs
 let bcryptLib = null;
 try {

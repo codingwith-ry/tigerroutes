@@ -79,7 +79,7 @@ const handleForgotPassword = () => {
   useEffect(() => {
     if (window.google) {
       window.google.accounts.id.initialize({
-        client_id: "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
         callback: handleGoogleResponse,
       });
     }
@@ -152,8 +152,7 @@ const handleForgotPassword = () => {
   }
 
   const client = window.google.accounts.oauth2.initTokenClient({
-    client_id:
-      "64875843215-fujh9oveth87r16ir4qvu7psoc098j0h.apps.googleusercontent.com",
+    client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
     scope: "openid email profile",
     callback: async (tokenResponse) => {
       try {
@@ -302,7 +301,7 @@ const handleForgotPassword = () => {
           {/* Sign up + Admin login link */}
           <div className="text-center text-sm text-gray-700 space-y-2">
           <div>
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <span
               onClick={handleSignUp}
               className="text-[#F6BE1E] font-semibold hover:underline cursor-pointer"

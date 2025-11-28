@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileCheck, BarChart2 } from 'lucide-react';
+// Icon imports removed — not currently used
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
 

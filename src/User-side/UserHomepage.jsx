@@ -15,10 +15,6 @@ const UserHomepage = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // New state for recent assessment
-  const [recentAssessment, setRecentAssessment] = useState(null);
-  const [loadingAssessment, setLoadingAssessment] = useState(true);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -29,7 +25,6 @@ const UserHomepage = () => {
     // Wait until auth has resolved
     if (!authLoading) {
       fetchAnalytics();
-      fetchRecentAssessment();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user]);
@@ -51,7 +46,6 @@ const UserHomepage = () => {
 
       const data = await response.json();
       setAnalytics(data);
-      setRecentAssessment(data.recentAssessmentData || null);
     } catch (err) {
       console.error('Error fetching analytics:', err);
       setError(err.message);
@@ -59,31 +53,6 @@ const UserHomepage = () => {
       setLoading(false);
     }
   };
-
-  // New function to fetch recent assessment
-  const fetchRecentAssessment = async () => {
-      try {
-      if (!user || !user.studentAccount_ID) {
-        setLoadingAssessment(false);
-        return;
-      }
-
-      const response = await fetch(
-        `http://localhost:5000/api/assessment/recent?studentAccountId=${user.studentAccount_ID}`,
-        { credentials: 'include' }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        setRecentAssessment(data);
-      }
-    } catch (err) {
-      console.error('Error fetching recent assessment:', err);
-    } finally {
-      setLoadingAssessment(false);
-    }
-  };
-
 
   const startAssessment = () => {
     navigate("/assessment");
@@ -119,7 +88,7 @@ const UserHomepage = () => {
                 {user?.name ? user.name.split(' ')[0] : "Student"}
               </span>
             </h2>
-            <p className="mt-2 text-gray-700">Let's continue your career discovery journey.</p>
+            <p className="mt-2 text-gray-700">Let&rsquo;s continue your career discovery journey.</p>
             <h3 className="mt-4 font-bold">Complete your career assessment</h3>
             <p className="text-gray-600 text-sm">
               Take our comprehensive Big Five & RIASEC assessment to discover your ideal UST college programs.
@@ -421,7 +390,7 @@ const UserHomepage = () => {
               <div>
                 <h4 className="font-semibold text-gray-800">Prepare for Your Assessment</h4>
                 <p className="text-sm text-gray-600 mt-1">
-                  Make sure you're in a quiet environment and have 30-40 minutes free to focus.
+                  Make sure you&rsquo;re in a quiet environment and have 30-40 minutes free to focus.
                 </p>
               </div>
             </div>
@@ -472,7 +441,7 @@ const UserHomepage = () => {
               <div>
                 <h4 className="font-semibold text-gray-800">Useful Resources</h4>
                 <p className="text-sm text-gray-600 mt-1">
-                  Visit UST's official site for program details, scholarships, and university information.
+                  Visit UST&rsquo;s official site for program details, scholarships, and university information.
                 </p>
               </div>
             </div>

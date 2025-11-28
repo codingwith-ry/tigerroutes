@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { FiX, FiChevronDown, FiUser, FiMessageCircle, FiSend} from 'react-icons/fi';
 import { RiRobot2Fill } from 'react-icons/ri';
+import PropTypes from 'prop-types';
 
 const TypingAnimation = () => (
     <div className="flex gap-2 px-3 py-5">
@@ -191,6 +192,14 @@ const Chatbot = ({
             )}
         </div>
     );
+};
+
+Chatbot.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    minimized: PropTypes.bool.isRequired,
+    onMinimize: PropTypes.func.isRequired,
+    onOpen: PropTypes.func.isRequired
 };
 
 export default Chatbot;

@@ -1,4 +1,5 @@
 import './App.css';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './Visitor-side/LandingPage';
 import LoginPage from './Visitor-side/LoginPage';
@@ -9,7 +10,6 @@ import ResetPassword from "./Visitor-side/ResetPassword";
 import Error from "./Visitor-side/Error";
 import AssessmentWelcome from "./User-side/AssessmentWelcome";
 import UserHomepage from "./User-side/UserHomepage";
-import UserResults from "./User-side/UserResults";
 import UserResultsHistory from "./User-side/UserResultsHistory";
 import ProfilePage from "./User-side/ProfilePage";
 import NoResultPage from "./User-side/NoResultPage";

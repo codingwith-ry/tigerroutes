@@ -5,7 +5,6 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 
 const AssessmentRIASEC = () => {
-
   useEffect(() => {
       document.title = "Assessment | RIASEC"; // text shown on the browser tab
       return () => {

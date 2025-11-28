@@ -250,7 +250,7 @@ const UserResults = () => {
         {/* What's Next Section */}
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between bg-white rounded-2xl shadow p-6">
           <div>
-          <h3 className="font-semibold text-lg">What's Next?</h3>
+          <h3 className="font-semibold text-lg">What&rsquo;s Next?</h3>
           <p className="text-sm text-gray-500">Download your report and share your feedback!</p>
           </div>
           <div className="flex gap-4">

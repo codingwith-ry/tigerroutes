@@ -9,6 +9,7 @@ import Footer from "../Visitor-side/Footer";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import generatePDF from "./generatePDF";
+import PropTypes from "prop-types";
 
 const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
     const [rating, setRating] = useState(0);
@@ -219,10 +220,7 @@ const TopTraitsSection = ({ riasec, bigFive }) => {
     );
 };
 
-
-
 const AssessmentResults = () => {
-    const [userData, setUserData] = useState(null);
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
@@ -463,7 +461,7 @@ const AssessmentResults = () => {
                             <span className="pl-4">{formatGrade(assessmentProfile?.scienceGrade)}</span>
                             <span className="pl-4">{formatGrade(assessmentProfile?.englishGrade)}</span>
                             <span className="pl-4">{formatGrade(assessmentProfile?.genAverageGrade)}</span>
-                            <p class="pl-5 mt-3 text-gray-500">As of {new Date(assessmentProfile.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.</p>
+                            <p className="pl-5 mt-3 text-gray-500">As of {new Date(assessmentProfile.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.</p>
                             </div>
                         </div>
                         
@@ -658,7 +656,7 @@ const AssessmentResults = () => {
                             Congratulations on Completing Your Assessment!
                         </h3>
                         <p className="text-gray-600 text-base">
-                            You've taken an important step in discovering your career path
+                            You&rsquo;ve taken an important step in discovering your career path
                         </p>
                     </div>
 
@@ -666,7 +664,7 @@ const AssessmentResults = () => {
                     <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
                         <div className="space-y-4 text-gray-700">
                             <p className="text-base leading-relaxed">
-                                You've successfully completed your career assessment and received personalized program recommendations based on your unique interests, personality traits, and academic background. This is a significant milestone in your journey toward finding the right college program at UST.
+                                You&rsquo;ve successfully completed your career assessment and received personalized program recommendations based on your unique interests, personality traits, and academic background. This is a significant milestone in your journey toward finding the right college program at UST.
                             </p>
                             
                             <div className="flex items-start gap-3 bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -676,7 +674,7 @@ const AssessmentResults = () => {
                                 <div>
                                     <h4 className="font-semibold text-gray-800 mt-1 mb-2">Next Steps: Seek Professional Guidance</h4>
                                     <p className="text-sm text-gray-700 leading-relaxed">
-                                        While these recommendations provide valuable insights, we strongly encourage you to schedule a consultation with your <a class="hover:underline" href="https://www.ust.edu.ph/senior-high-school/" target='_blank'><strong>guidance counselor</strong></a> to discuss your results in detail. They can help you understand your assessment better and guide you through the decision-making process.
+                                        While these recommendations provide valuable insights, we strongly encourage you to schedule a consultation with your <a className="hover:underline" href="https://www.ust.edu.ph/senior-high-school/" target='_blank' rel="noreferrer"><strong>guidance counselor</strong></a> to discuss your results in detail. They can help you understand your assessment better and guide you through the decision-making process.
                                     </p>
                                 </div>
                             </div>
@@ -754,7 +752,7 @@ const AssessmentResults = () => {
 
                     {/* Right Column - Counselor Response */}
                     <div className="bg-white rounded-xl shadow p-6">
-                        <h3 className="font-semibold text-lg mb-3">Counselor's Response</h3>
+                        <h3 className="font-semibold text-lg mb-3">Counselor&rsquo;s Response</h3>
                         {assessmentData.counselorNotes ? (
                             <div className="bg-blue-50 p-5 rounded-lg">
                                 <div className="flex items-start gap-3">
@@ -821,7 +819,7 @@ const AssessmentResults = () => {
             ) : (
                 <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between bg-white rounded-2xl shadow p-6">
                     <div>
-                        <h3 className="font-semibold text-lg">What's Next?</h3>
+                        <h3 className="font-semibold text-lg">What&rsquo;s Next?</h3>
                         <p className="text-sm text-gray-500">Share your feedback and donwload your results!</p>
                     </div>
                     <div className="flex gap-4">
@@ -1000,6 +998,23 @@ const ProgramCard = ({ program, index, type }) => {
     );
 };
 
+RatingModal.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    onSubmit: PropTypes.func.isRequired,
+    assessmentId: PropTypes.string.isRequired
+};
+
+TopTraitsSection.propTypes = {
+    riasec: PropTypes.object,
+    bigFive: PropTypes.object
+};
+
+ProgramCard.propTypes = {
+    program: PropTypes.object.isRequired,
+    index: PropTypes.number.isRequired,
+    type: PropTypes.string.isRequired
+};
 
 
 export default AssessmentResults;

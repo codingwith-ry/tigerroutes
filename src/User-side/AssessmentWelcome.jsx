@@ -597,11 +597,11 @@ const AssessmentPage = () => {
 
                 <div className="bg-blue-100 border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-5 text-center">
                   <h3 className="text-blue-700 font-semibold text-base sm:text-lg mb-2 sm:mb-3">
-                    What You'll Discover
+                    What You&rsquo;ll Discover
                   </h3>
                   <p className="text-blue-700 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">
                     Our assessment will help you understand your personality traits,
-                    interests, and work preferences. You'll receive personalized career
+                    interests, and work preferences. You&rsquo;ll receive personalized career
                     recommendations based on the RIASEC and Big Five models, giving you
                     valuable insights into careers that align with who you are and what
                     motivates you.

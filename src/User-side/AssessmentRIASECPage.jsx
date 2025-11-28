@@ -4,7 +4,6 @@ import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
 import { BookOpen, Brain, FileText } from "lucide-react";
 import Swal from "sweetalert2";
-import { nav } from "framer-motion/client";
 import { useAuth } from "../utils/AuthContext";
 
 const AssessmentRIASECPage = () => {
@@ -391,7 +390,7 @@ const AssessmentRIASECPage = () => {
           </h2>
           <p className="text-sm" style={{ color: "#4285F4" }}>
             The test consists of questions about different activities that you will 
-            rate as either "Like" or "Dislike" based on your preferences. Your honest 
+            rate as either &quot;Like&quot; or &quot;Dislike&quot; based on your preferences. Your honest 
             responses will help identify your career interests. The test will take 
             approximately five to ten minutes to complete.
           </p>

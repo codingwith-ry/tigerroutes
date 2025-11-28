@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import PropTypes from 'prop-types';
 
 const ProfilePage = ({ assessmentData }) => {
   const { assessmentID, assessmentProfile, riasec, bigFive } = assessmentData;
@@ -235,9 +236,9 @@ const generatePDF = async (assessmentData) => {
   try {
     const pdf = new jsPDF('p', 'pt', 'letter'); // 'l' for landscape
     const pages = [
-      <ProfilePage assessmentData={assessmentData} />,
-      <TrackAlignedPage programRecommendations={assessmentData.programRecommendations} />,
-      <CrossTrackPage programRecommendations={assessmentData.programRecommendations} />
+      <ProfilePage key="profile" assessmentData={assessmentData} />,
+      <TrackAlignedPage  key="track_aligned" programRecommendations={assessmentData.programRecommendations} />,
+      <CrossTrackPage key="cross_track" programRecommendations={assessmentData.programRecommendations} />
     ];
 
     // Generate each page
@@ -283,6 +284,42 @@ const generatePDF = async (assessmentData) => {
     console.error('Error generating PDF:', error);
     throw error;
   }
+};
+
+ProfilePage.propTypes = {
+  assessmentData: PropTypes.shape({
+    assessmentID: PropTypes.string.isRequired,
+    assessmentProfile: PropTypes.object.isRequired,
+    riasec: PropTypes.object.isRequired,
+    bigFive: PropTypes.object.isRequired,
+  }).isRequired,
+};  
+
+ProgramCard.propTypes = {
+  program: PropTypes.object.isRequired,
+  isTrackAligned: PropTypes.bool.isRequired,
+};
+
+TrackAlignedPage.propTypes = {
+  programRecommendations: PropTypes.shape({
+    track_aligned: PropTypes.array.isRequired,
+  }).isRequired,
+};
+
+CrossTrackPage.propTypes = {
+  programRecommendations: PropTypes.shape({
+    cross_track: PropTypes.array.isRequired,
+  }).isRequired,
+};
+
+generatePDF.propTypes = {
+  assessmentData: PropTypes.shape({
+    assessmentID: PropTypes.string.isRequired,
+    assessmentProfile: PropTypes.object.isRequired,
+    riasec: PropTypes.object.isRequired,
+    bigFive: PropTypes.object.isRequired,
+    programRecommendations: PropTypes.object.isRequired,
+  }).isRequired,
 };
 
 export default generatePDF;

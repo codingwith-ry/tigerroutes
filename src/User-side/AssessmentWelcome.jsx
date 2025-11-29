@@ -137,10 +137,11 @@ const AssessmentPage = () => {
     if (!pendingAssessment) return;
 
     window.scrollTo(0, 0);
+    console.log('Continuing pending assessment:', pendingAssessment);
     localStorage.setItem('currentAssessmentId', pendingAssessment.pendingAssessment_ID);
     localStorage.setItem('riasecAnswers', JSON.stringify(pendingAssessment.riasec_responses || []));
     localStorage.setItem('bigFiveAnswers', JSON.stringify(pendingAssessment.bigfive_responses || []));
-    localStorage.setItem('riasecProgress', pendingAssessment.riasec_progress || 0);
+    localStorage.setItem('riasecProgress', pendingAssessment.riasec_progress|| 0);
     localStorage.setItem('bigFiveProgress', pendingAssessment.bigfive_progress || 0);
     
     // Determine which assessment to continue based on progress

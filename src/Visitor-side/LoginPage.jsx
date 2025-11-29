@@ -45,6 +45,40 @@ const handleForgotPassword = () => {
       id: formData.id,
       rememberMe: rememberMe
     };
+    function showLockAlert(retryAfterSeconds) {
+      let remaining = Number(retryAfterSeconds) || 0;
+      const $html = `
+        <div style="font-size:14px">Too many failed attempts. Please wait <span id="retry-seconds">${remaining}</span>s before trying again.</div>
+      `;
+      let timerInterval = null;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Too many attempts',
+        html: $html,
+        allowOutsideClick: false,
+        showConfirmButton: true,
+        confirmButtonText: 'Close',
+        showCloseButton: true,
+        willOpen: () => {
+          timerInterval = setInterval(() => {
+            remaining = Math.max(0, remaining - 1);
+            const el = Swal.getHtmlContainer().querySelector('#retry-seconds');
+            if (el) el.textContent = String(remaining);
+            if (remaining <= 0) {
+              clearInterval(timerInterval);
+              Swal.close();
+            }
+          }, 1000);
+        },
+        willClose: () => {
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+        }
+      });
+    }
+
     try {
       const res = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
@@ -52,7 +86,12 @@ const handleForgotPassword = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 429) {
+        const retry = data && (data.retryAfter || data.retryAfterSeconds);
+        showLockAlert(retry || 30);
+        return;
+      }
       if (data.success) {
         await refreshUser();
         navigate('/home');

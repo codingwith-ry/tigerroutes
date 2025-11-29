@@ -30,7 +30,40 @@ const AdminLogin = () => {
         // using username as the email field
         body: JSON.stringify({ email: formData.email, password: formData.password })
       });
-      const data = await resp.json();
+      const data = await resp.json().catch(() => ({}));
+
+      if (resp.status === 429) {
+        const retry = data && (data.retryAfter || data.retryAfterSeconds) || 30;
+        let remaining = Number(retry);
+        let timerInterval = null;
+        Swal.fire({
+          icon: 'warning',
+          title: 'Too many attempts',
+          html: `<div>Too many failed attempts. Please wait <span id="retry-seconds">${remaining}</span>s before trying again.</div>`,
+          allowOutsideClick: false,
+          showConfirmButton: true,
+          confirmButtonText: 'Close',
+          showCloseButton: true,
+          willOpen: () => {
+            timerInterval = setInterval(() => {
+              remaining = Math.max(0, remaining - 1);
+              const el = Swal.getHtmlContainer().querySelector('#retry-seconds');
+              if (el) el.textContent = String(remaining);
+              if (remaining <= 0) {
+                clearInterval(timerInterval);
+                Swal.close();
+              }
+            }, 1000);
+          },
+          willClose: () => {
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
+          }
+        });
+        return;
+      }
 
       if (data.success && data.user) {
         // Server should have established a server-side session (HttpOnly cookie).

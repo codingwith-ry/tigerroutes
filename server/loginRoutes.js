@@ -15,6 +15,45 @@ module.exports = (db) => {
     const client = new OAuth2Client();
     const resetCodes = {};
 
+        // Helper: login timer cookie name and helpers
+        const LOGIN_TIMER_COOKIE = 'logintimer';
+
+        function readLoginTimer(req) {
+            try {
+                const raw = req.cookies && req.cookies[LOGIN_TIMER_COOKIE];
+                if (!raw) return { failedAttempts: 0, lockUntil: 0 };
+                let parsed = null;
+                try { parsed = JSON.parse(raw); } catch (e) { return { failedAttempts: 0, lockUntil: 0 }; }
+                return {
+                    failedAttempts: Number(parsed.failedAttempts) || 0,
+                    lockUntil: Number(parsed.lockUntil) || 0
+                };
+            } catch (e) {
+                return { failedAttempts: 0, lockUntil: 0 };
+            }
+        }
+
+        function writeLoginTimer(res, obj) {
+            try {
+                const cookieOptions = {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                    path: '/',
+                    maxAge: 1000 * 60 * 60 * 24 * 30 // keep for 30 days; lock info is within value
+                };
+                res.cookie(LOGIN_TIMER_COOKIE, JSON.stringify(obj), cookieOptions);
+            } catch (e) {
+                // ignore cookie write failure
+            }
+        }
+
+        function clearLoginTimer(res) {
+            try {
+                res.clearCookie(LOGIN_TIMER_COOKIE, { path: '/' });
+            } catch (e) {}
+        }
+
     // Register endpoint - hash password before saving
     router.post('/register', async (req, res) => {
         const { name, email, password } = req.body;
@@ -44,6 +83,13 @@ module.exports = (db) => {
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required'});
         }
+        // Throttle per-device using HttpOnly `logintimer` cookie
+        const timer = readLoginTimer(req);
+        const now = Date.now();
+        if (timer.lockUntil && Number(timer.lockUntil) > now) {
+            const retrySecs = Math.ceil((Number(timer.lockUntil) - now) / 1000);
+            return res.status(429).json({ success: false, error: 'Too many login attempts', retryAfter: retrySecs });
+        }
         db.query(
             'SELECT * FROM tbl_studentaccounts WHERE email = ?',
             [email],
@@ -71,7 +117,24 @@ module.exports = (db) => {
                             }
                         }
 
-                        if (!match) return res.json({ success: false, error: 'Invalid email or password' });
+                        if (!match) {
+                            // failed attempt: increment and possibly set lock
+                            const prev = readLoginTimer(req);
+                            const failed = (prev.failedAttempts || 0) + 1;
+                            let lockUntil = prev.lockUntil || 0;
+                            if (failed % 3 === 0) {
+                                const groupIndex = Math.floor(failed / 3);
+                                let delay = 30 * Math.pow(2, Math.max(0, groupIndex - 1));
+                                if (delay > 480) delay = 480;
+                                lockUntil = Date.now() + delay * 1000;
+                            }
+                            writeLoginTimer(res, { failedAttempts: failed, lockUntil });
+                            const now2 = Date.now();
+                            if (lockUntil && lockUntil > now2) {
+                                return res.status(429).json({ success: false, error: 'Too many login attempts', retryAfter: Math.ceil((lockUntil - now2) / 1000) });
+                            }
+                            return res.json({ success: false, error: 'Invalid email or password' });
+                        }
 
                         const token = jwt.sign(
                             { id: user.studentAccount_ID, email: user.email, name: user.name },
@@ -83,6 +146,8 @@ module.exports = (db) => {
                             ? 30 * 24 * 60 * 60 * 1000 // 30 days
                             : 1 * 60 * 60 * 1000; // 1 hour (match jwt expiry)
 
+                        // successful login -> clear login timer cookie
+                        clearLoginTimer(res);
                         res.cookie('tigerToken', token, {
                             httpOnly: true,
                             secure: false,
@@ -95,6 +160,21 @@ module.exports = (db) => {
                         return res.status(500).json({ error: 'Authentication error' });
                     }
                 } else {
+                    // increment failed attempts when account not found
+                    const prev = readLoginTimer(req);
+                    const failed = (prev.failedAttempts || 0) + 1;
+                    let lockUntil = prev.lockUntil || 0;
+                    if (failed % 3 === 0) {
+                        const groupIndex = Math.floor(failed / 3);
+                        let delay = 30 * Math.pow(2, Math.max(0, groupIndex - 1));
+                        if (delay > 480) delay = 480;
+                        lockUntil = Date.now() + delay * 1000;
+                    }
+                    writeLoginTimer(res, { failedAttempts: failed, lockUntil });
+                    const now3 = Date.now();
+                    if (lockUntil && lockUntil > now3) {
+                        return res.status(429).json({ success: false, error: 'Too many login attempts', retryAfter: Math.ceil((lockUntil - now3) / 1000) });
+                    }
                     res.json({ success: false, error: 'Invalid email or password' });
                 }
             }
@@ -396,6 +476,13 @@ module.exports = (db) => {
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required'});
         }
+        // Throttle per-device using HttpOnly `logintimer` cookie for staff login as well
+        const timer = readLoginTimer(req);
+        const now = Date.now();
+        if (timer.lockUntil && Number(timer.lockUntil) > now) {
+            const retrySecs = Math.ceil((Number(timer.lockUntil) - now) / 1000);
+            return res.status(429).json({ success: false, error: 'Too many login attempts', retryAfter: retrySecs });
+        }
         db.query(
             'SELECT sa.*, sr.role FROM tbl_staffaccounts sa  LEFT JOIN tbl_staffroles sr ON sa.staffRole_ID = sr.staffRole_ID WHERE sa.email = ?',
             [email],
@@ -452,7 +539,24 @@ module.exports = (db) => {
                                 console.error('[staff-login] migration check error', e);
                             }
                         }
-                        if (!match) return res.json({ success: false, error: 'Invalid email or password' });
+                        if (!match) {
+                            // failed attempt: increment and possibly set lock
+                            const prev = readLoginTimer(req);
+                            const failed = (prev.failedAttempts || 0) + 1;
+                            let lockUntil = prev.lockUntil || 0;
+                            if (failed % 3 === 0) {
+                                const groupIndex = Math.floor(failed / 3);
+                                let delay = 30 * Math.pow(2, Math.max(0, groupIndex - 1));
+                                if (delay > 480) delay = 480;
+                                lockUntil = Date.now() + delay * 1000;
+                            }
+                            writeLoginTimer(res, { failedAttempts: failed, lockUntil });
+                            const now2 = Date.now();
+                            if (lockUntil && lockUntil > now2) {
+                                return res.status(429).json({ success: false, error: 'Too many login attempts', retryAfter: Math.ceil((lockUntil - now2) / 1000) });
+                            }
+                            return res.json({ success: false, error: 'Invalid email or password' });
+                        }
 
                         // Log staff login (non-blocking)
                         try {
@@ -470,6 +574,8 @@ module.exports = (db) => {
                         };
                         const token = jwt.sign(tokenPayload, secret, { expiresIn: '8h' });
                         const cookieMaxAge = 8 * 60 * 60 * 1000; // 8 hours
+                        // successful staff login -> clear login timer cookie
+                        clearLoginTimer(res);
                         res.cookie('tigerStaffToken', token, {
                             httpOnly: true,
                             secure: false,
@@ -482,6 +588,21 @@ module.exports = (db) => {
                         return res.status(500).json({ error: 'Authentication error' });
                     }
                 } else {
+                    // increment failed attempts when staff account not found
+                    const prev = readLoginTimer(req);
+                    const failed = (prev.failedAttempts || 0) + 1;
+                    let lockUntil = prev.lockUntil || 0;
+                    if (failed % 3 === 0) {
+                        const groupIndex = Math.floor(failed / 3);
+                        let delay = 30 * Math.pow(2, Math.max(0, groupIndex - 1));
+                        if (delay > 480) delay = 480;
+                        lockUntil = Date.now() + delay * 1000;
+                    }
+                    writeLoginTimer(res, { failedAttempts: failed, lockUntil });
+                    const now3 = Date.now();
+                    if (lockUntil && lockUntil > now3) {
+                        return res.status(429).json({ success: false, error: 'Too many login attempts', retryAfter: Math.ceil((lockUntil - now3) / 1000) });
+                    }
                     res.json({ success: false, error: 'Invalid email or password '});
                 }
             }

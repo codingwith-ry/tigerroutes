@@ -90,7 +90,6 @@ const AssessmentPage = () => {
         const normalizedProfile = (profileData && (profileData.userData || profileData.data)) ? (profileData.userData || profileData.data) : profileData;
         // Debug: log the normalized profile so we can inspect what fields the component sees
         // eslint-disable-next-line no-console
-        console.debug('AssessmentWelcome: normalizedProfile ->', normalizedProfile);
         setUserData(normalizedProfile);
 
         // Check if there's a pending assessment
@@ -99,7 +98,6 @@ const AssessmentPage = () => {
           if (pendingData && pendingData.data) {
             // Debug: log the pending payload
             // eslint-disable-next-line no-console
-            console.debug('AssessmentWelcome: pendingData ->', pendingData);
             setPendingAssessment(pendingData.data);
             // Store the pending assessment ID in localStorage using known possible fields
             const pendingId = pendingData.data.pendingAssessment_ID || pendingData.data.pendingAssessmentId || pendingData.pendingAssessment_ID || pendingData.assessment_ID || '';

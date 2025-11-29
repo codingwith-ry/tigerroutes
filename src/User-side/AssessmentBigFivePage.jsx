@@ -15,6 +15,7 @@ const AssessmentBigFivePage = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [scores, setScores] = useState({
     "Extraversion": 0,
     "Agreeableness": 0,
@@ -146,7 +147,11 @@ const AssessmentBigFivePage = () => {
       [currentQuestionIndex]: value
     };
     setAnswers(newAnswers);
-    setHasUnsavedChanges(true);
+    if(localStorage.getItem("bigFiveAnswers") !== JSON.stringify(newAnswers)){
+        setHasUnsavedChanges(true);
+      } else {
+        setHasUnsavedChanges(false);
+      }
     
     // Recalculate scores with new answer
     const newScores = calculateScores(newAnswers);
@@ -181,12 +186,11 @@ const AssessmentBigFivePage = () => {
    */
   const handleSaveProgress = async () => {
     try {
-      // Get required data from auth context
       const assessmentId = localStorage.getItem("currentAssessmentId");
       const studentAccountId = user?.studentAccount_ID;
 
       if (!studentAccountId) {
-        Swal.fire({
+        await Swal.fire({
           title: "Error",
           text: "Student account information not found. Please log in again.",
           icon: "error",
@@ -199,13 +203,9 @@ const AssessmentBigFivePage = () => {
         return;
       }
 
-      // Load RIASEC data from localStorage
       const riasecAnswers = localStorage.getItem("riasecAnswers");
       const riasecProgress = localStorage.getItem("riasecProgress");
 
-      console.log("Big Five answers to save:", answers);
-      console.log("Big Five progress to save:", Object.keys(answers).length);
-      // Prepare data to send to API
       const progressData = {
         studentAccount_ID: parseInt(studentAccountId),
         assessmentID: assessmentId,
@@ -215,56 +215,40 @@ const AssessmentBigFivePage = () => {
         bigfive_progress: answers ? Object.keys(answers).length : 0,
       };
 
-      // Call API to save progress
-      fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
+      setIsSavingProgress(true);
+
+      const res = await fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
         method: "POST",
-        credentials: 'include',
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(progressData),
-      })
-        .then(response => {
-          // Parse response body as JSON
-          return response.json().then(result => {
-            // Attach status for error handling outside json()
-            return { ok: response.ok, status: response.status, body: result };
-          });
-        })
-        .then(({ ok, body }) => {
-          if (!ok) {
-            throw new Error(body.message || "Failed to save progress");
-          }
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.message || "Failed to save progress");
 
-          setHasUnsavedChanges(false);
-          localStorage.removeItem("bigfive_temp_answers");
-          localStorage.removeItem("bigfive_temp_progress");
+      setHasUnsavedChanges(false);
 
-          Swal.fire({
-            title: "Success!",
-            text: body.message,
-            icon: "success",
-            timer: 2000,
-            showConfirmButton: false,
-          }).then(() => {
-            navigate("/assessment"); // Change to your desired route
-          });
-        })
-        .catch(error => {
-          console.error("Error saving progress:", error);
-          Swal.fire({
-            title: "Error",
-            text: error.message || "There was an error saving your progress. Please try again.",
-            icon: "error",
-            confirmButtonText: "OK",
-            customClass: {
-              confirmButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600",
-            },
-            buttonsStyling: false,
-          });
-        });
+      await Swal.fire({
+        title: "Success!",
+        text: body.message,
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error) {
-      console.error("Error preparing save data:", error);
+      console.error("Error saving progress:", error);
+      await Swal.fire({
+        title: "Error",
+        text: error.message || "There was an error saving your progress. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+        customClass: {
+          confirmButton: "bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600",
+        },
+        buttonsStyling: false,
+      });
+    } finally {
+      setIsSavingProgress(false);
     }
   };
 
@@ -290,7 +274,7 @@ const AssessmentBigFivePage = () => {
           cancelButton: "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400",
         },
         buttonsStyling: false,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
           // Save progress and then navigate
           handleSaveProgress().then(() => {
@@ -303,7 +287,6 @@ const AssessmentBigFivePage = () => {
           localStorage.removeItem("bigfive_temp_progress");
           navigate("/assessment"); // Change to your desired route
         }
-        // If cancelled, do nothing (stay on page)
       });
     } else {
       // No unsaved changes, navigate directly
@@ -633,12 +616,25 @@ const AssessmentBigFivePage = () => {
             Cancel
           </button>
           <button
-            className="text-sm font-medium bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors ml-2"
-            onClick={handleSaveProgress}
-            disabled={Object.keys(answers).length === 0}
-          >
-            Save Progress
-          </button>
+              className={`text-sm font-medium text-white px-6 py-2 rounded-full transition-colors ml-2 ${
+                 isSavingProgress || Object.keys(answers).length === 0 || !hasUnsavedChanges
+                   ? "bg-gray-400 cursor-not-allowed"
+                   : "bg-green-500 hover:bg-green-700"
+              }`}
+              onClick={handleSaveProgress}
+              disabled={isSavingProgress || Object.keys(answers).length === 0 || !hasUnsavedChanges}
+              aria-busy={isSavingProgress}
+            >
+
+              {isSavingProgress ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block" />
+                  Saving...
+                </span>
+              ) : (
+                "Save Progress"
+              )}
+            </button>
         </div>
       </div>
       <Footer />

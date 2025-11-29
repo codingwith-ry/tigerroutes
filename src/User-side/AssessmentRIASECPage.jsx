@@ -138,7 +138,12 @@ const AssessmentRIASECPage = () => {
         [currentQuestionIndex]: value,
       };
       setAnswers(newAnswers);
-      setHasUnsavedChanges(true);
+
+      if(localStorage.getItem("riasecAnswers") !== JSON.stringify(newAnswers)){
+        setHasUnsavedChanges(true);
+      } else {
+        setHasUnsavedChanges(false);
+      }
 
       // Recalculate scores with new answer
       const newScores = calculateScores(newAnswers);
@@ -214,8 +219,9 @@ const AssessmentRIASECPage = () => {
       if (!res.ok) throw new Error(body.message || "Failed to save progress");
 
       setHasUnsavedChanges(false);
-      localStorage.removeItem("riasec_temp_answers");
-      localStorage.removeItem("riasec_temp_progress");
+
+      localStorage.setItem("riasecAnswers", JSON.stringify(answers));
+      localStorage.setItem("riasecProgress", Object.keys(answers).length.toString());
 
       await Swal.fire({
         title: "Success!",
@@ -224,8 +230,6 @@ const AssessmentRIASECPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
-
-      navigate("/assessment");
     } catch (error) {
       console.error("Error saving progress:", error);
       await Swal.fire({
@@ -269,7 +273,9 @@ const AssessmentRIASECPage = () => {
       }).then((result) => {
         if (result.isConfirmed) {
           // Save progress
-          handleSaveProgress();
+          handleSaveProgress().then(() => {
+            navigate("/assessment"); // Change to your desired route
+          });
         } else if (result.isDenied) {
           // Leave without saving
           setHasUnsavedChanges(false);
@@ -277,7 +283,6 @@ const AssessmentRIASECPage = () => {
           localStorage.removeItem("riasec_progress");
           navigate("/assessment"); // Change to your desired route
         }
-        // If cancelled, do nothing (stay on page)
       });
     } else {
       // No unsaved changes, navigate directly
@@ -323,7 +328,9 @@ const AssessmentRIASECPage = () => {
       buttonsStyling: false,
     }).then((result) => {
       if (result.isConfirmed) {
-        handleBigFiveTest();
+        handleSaveProgress().then(() => {
+          handleBigFiveTest();
+        });
       }
     });
   };
@@ -490,12 +497,12 @@ const AssessmentRIASECPage = () => {
             </button>
             <button
               className={`text-sm font-medium text-white px-6 py-2 rounded-full transition-colors ml-2 ${
-                 isSavingProgress || Object.keys(answers).length === 0
+                 isSavingProgress || Object.keys(answers).length === 0 || !hasUnsavedChanges
                    ? "bg-gray-400 cursor-not-allowed"
                    : "bg-green-500 hover:bg-green-700"
               }`}
               onClick={handleSaveProgress}
-              disabled={isSavingProgress || Object.keys(answers).length === 0}
+              disabled={isSavingProgress || Object.keys(answers).length === 0 || !hasUnsavedChanges}
               aria-busy={isSavingProgress}
             >
 

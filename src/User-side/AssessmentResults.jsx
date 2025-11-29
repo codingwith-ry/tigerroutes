@@ -44,6 +44,9 @@ const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
         onClose();
     };
 
+    // Check if form is valid (both rating and feedback are provided)
+    const isFormValid = rating > 0 && feedback.trim().length > 0;
+
     if (!isOpen) return null;
 
     return (
@@ -85,9 +88,13 @@ const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
                         ref={textareaRef}
                         value={feedback}
                         onChange={(e) => setFeedback(e.target.value)}
-                        placeholder="Share your thoughts about the assessment..."
+                        placeholder="Provide your feedback, for counselors to assess your satisfaction."
                         className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-300 focus:border-transparent min-h-[100px] resize-none"
+                        required
                     />
+                    {feedback.trim().length === 0 && (
+                        <p className="text-red-500 text-sm mt-1">Please provide feedback before submitting</p>
+                    )}
                 </div>
 
                 <div className="flex justify-end gap-3">
@@ -101,9 +108,9 @@ const RatingModal = ({ isOpen, onClose, onSubmit, assessmentId }) => {
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={!rating}
+                        disabled={!isFormValid}
                         className={`px-6 py-2 rounded-lg font-medium ${
-                            rating
+                            isFormValid
                             ? 'bg-yellow-400 hover:bg-yellow-500 text-white'
                             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
@@ -395,6 +402,22 @@ const AssessmentResults = () => {
 
     const { assessmentProfile, riasec, bigFive, programRecommendations } = assessmentData;
 
+    const sortedTrackAligned = (programRecommendations?.track_aligned || [])
+     .slice()
+     .sort((a, b) => {
+       const aScore = parseFloat(a?.recommendation?.alignmentScore) || 0;
+       const bScore = parseFloat(b?.recommendation?.alignmentScore) || 0;
+       return bScore - aScore; // descending
+     });
+
+   const sortedCrossTrack = (programRecommendations?.cross_track || [])
+     .slice()
+     .sort((a, b) => {
+       const aScore = parseFloat(a?.recommendation?.alignmentScore) || 0;
+       const bScore = parseFloat(b?.recommendation?.alignmentScore) || 0;
+       return bScore - aScore;
+    });
+
     return (
         <div className="min-h-screen w-full bg-[#FFFCED] flex flex-col">
             <UserNavbar />
@@ -603,12 +626,12 @@ const AssessmentResults = () => {
                         <>
                             <h4 className="text-lg font-semibold mb-3">Track-Aligned Programs</h4>
                             <div className="grid md:grid-cols-2 gap-6 mb-8">
-                                {programRecommendations.track_aligned.map((program, idx) => (
+                                {sortedTrackAligned.map((program, idx) => (
                                     <ProgramCard 
                                         key={program.recommendation.recommendation_ID || idx}
                                         program={program}
                                         index={idx}
-                                        type="track_aligned"
+                                        type="track_aligned"l
                                     />
                                 ))}
                             </div>
@@ -620,7 +643,7 @@ const AssessmentResults = () => {
                         <>
                             <h4 className="text-lg font-semibold mb-3">Cross-Track Programs</h4>
                             <div className="grid md:grid-cols-2 gap-6">
-                                {programRecommendations.cross_track.map((program, idx) => (
+                                {sortedCrossTrack.map((program, idx) => (
                                     <ProgramCard 
                                         key={program.recommendation.recommendation_ID || idx}
                                         program={program}

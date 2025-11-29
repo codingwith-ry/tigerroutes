@@ -90,7 +90,6 @@ const AssessmentPage = () => {
         const normalizedProfile = (profileData && (profileData.userData || profileData.data)) ? (profileData.userData || profileData.data) : profileData;
         // Debug: log the normalized profile so we can inspect what fields the component sees
         // eslint-disable-next-line no-console
-        console.debug('AssessmentWelcome: normalizedProfile ->', normalizedProfile);
         setUserData(normalizedProfile);
 
         // Check if there's a pending assessment
@@ -99,7 +98,6 @@ const AssessmentPage = () => {
           if (pendingData && pendingData.data) {
             // Debug: log the pending payload
             // eslint-disable-next-line no-console
-            console.debug('AssessmentWelcome: pendingData ->', pendingData);
             setPendingAssessment(pendingData.data);
             // Store the pending assessment ID in localStorage using known possible fields
             const pendingId = pendingData.data.pendingAssessment_ID || pendingData.data.pendingAssessmentId || pendingData.pendingAssessment_ID || pendingData.assessment_ID || '';
@@ -137,10 +135,11 @@ const AssessmentPage = () => {
     if (!pendingAssessment) return;
 
     window.scrollTo(0, 0);
+    console.log('Continuing pending assessment:', pendingAssessment);
     localStorage.setItem('currentAssessmentId', pendingAssessment.pendingAssessment_ID);
     localStorage.setItem('riasecAnswers', JSON.stringify(pendingAssessment.riasec_responses || []));
     localStorage.setItem('bigFiveAnswers', JSON.stringify(pendingAssessment.bigfive_responses || []));
-    localStorage.setItem('riasecProgress', pendingAssessment.riasec_progress || 0);
+    localStorage.setItem('riasecProgress', pendingAssessment.riasec_progress|| 0);
     localStorage.setItem('bigFiveProgress', pendingAssessment.bigfive_progress || 0);
     
     // Determine which assessment to continue based on progress

@@ -147,7 +147,7 @@ const ProgramCard = ({ program, isTrackAligned }) => (
     <div className="flex-1 space-y-3">
       <div>
         <p className="text-xs text-gray-700">
-          {program.programDetails?.programDescription}
+          {program.programDetails?.shortDesc}
         </p>
       </div>
       

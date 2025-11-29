@@ -972,7 +972,6 @@ module.exports = (db) => {
         });
     });
 
-
     // GET all counselor notes for an assessment
     router.get('/assessment/:id/notes', (req, res) => {
         try {

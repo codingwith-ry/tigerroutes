@@ -151,10 +151,8 @@ const AssessmentRIASECPage = () => {
 
     // Auto-advance to next question if not at the end
       if (currentQuestionIndex < questions.length - 1) {
-        setTimeout(() => {
           setCurrentQuestionIndex((prev) => prev + 1);
-      });
-    }
+      }
   };
 
   /**
@@ -394,32 +392,34 @@ const AssessmentRIASECPage = () => {
         {/* Main Assessment Card */}
         <div className="bg-white rounded-lg shadow border border-black w-full max-w-3xl p-6">
           {/* Progress Steps Indicator */}
-          <div className="flex justify-between items-center text-sm mb-6">
-            <div className="flex items-center space-x-4">
-              <div className={`flex items-center space-x-1 ${getStepClass("RIASEC")}`}>
-                <BookOpen size={16} color={getIconColor("RIASEC")} />
-                <span className="font-medium">RIASEC</span>
-              </div>
+          <div className="flex items-center text-sm mb-6">
+            {/* Left: steps (wraps on small screens) */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className={`flex items-center space-x-2 ${getStepClass("RIASEC")}`}>
+                  <BookOpen className={`${getIconColor("RIASEC")} w-4 h-4`} />
+                  <span className="font-medium text-xs sm:text-sm truncate min-w-0">RIASEC</span>
+                </div>
 
-              <span className="text-gray-400">{">"}</span>
+                <span className="text-gray-400 sm:inline font-xs">{'>'}</span>
 
-              <div className={`flex items-center space-x-1 ${getStepClass("Big Five")}`}>
-                <Brain size={16} color={getIconColor("Big Five")} />
-                <span className="font-medium">Big Five</span>
-              </div>
+                <div className={`flex items-center space-x-2 ${getStepClass("Big Five")}`}>
+                  <Brain className={`${activeStep === "Big Five" ? "text-[#FB9724]" : "text-gray-400"} w-4 h-4`} />
+                  <span className="font-medium text-xs sm:text-sm truncate min-w-0">Big Five</span>
+                </div>
+                <span className="text-gray-400 sm:inline font-xs">{'>'}</span>
 
-              <span className="text-gray-400">{">"}</span>
-
-              <div className={`flex items-center space-x-1 ${getStepClass("Results")}`}>
-                <FileText size={16} color={getIconColor("Results")} />
-                <span className="font-medium">Results</span>
+                <div className={`flex items-center space-x-2 ${getStepClass("Results")}`}>
+                  <FileText className={`${activeStep === "Results" ? "text-[#FB9724]" : "text-gray-400"} w-4 h-4`} />
+                  <span className="font-medium text-xs sm:text-sm truncate min-w-0">Results</span>
+                </div>
               </div>
             </div>
 
-            {/* Question Counter */}
-            <span className="font-medium text-gray-700">
-              {currentQuestionIndex + 1} of {questions.length}
-            </span>
+            {/* Right-most: question counter (does not wrap) */}
+            <div className="ml-4 flex-shrink-0 text-sm sm:text-base text-gray-700">
+               {currentQuestionIndex + 1} of {questions.length}
+            </div>
           </div>
 
           {/* Question Display */}

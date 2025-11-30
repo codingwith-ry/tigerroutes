@@ -103,7 +103,7 @@ const AdminLogin = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-screen w-full font-sfpro bg-[#fffbe9] text-gray-900">
-     <div className="hidden lg:flex w-1/2 items-center justify-center px-6 py-12 relative bg-cover bg-center" style={{ backgroundImage: "url('/images/VectorBg.png')" }}>
+     <div className="hidden lg:flex w-1/2 items-center justify-center px-6 py-12 relative bg-cover bg-center" style={{ backgroundImage: "url('/images/VectorBg.webp')" }}>
         <div className="max-w-md text-white w-full font-sfpro">
           <h1 className="text-4xl md:text-5xl font-black mb-3 font-sfpro">
             Welcome back!
@@ -121,9 +121,12 @@ const AdminLogin = () => {
         <div className="w-full max-w-md space-y-9 font-sfpro">
           <div className="flex justify-center">
             <img
-              src="/images/02_TigerRoutes_Logo.png"
+              src="/images/02_TigerRoutes_Logo.webp"
               alt="TigerRoutes Logo"
-              className="w-32 sm:w-40"
+              className="w-32 sm:w-40 cursor-pointer"
+              onClick={() => {
+              navigate("/");
+            }}
             />
           </div>
           <div className="text-center space-y-1 font-sfpro">

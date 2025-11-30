@@ -145,7 +145,7 @@ const UserNavbar = () => {
     >
       <div className="flex justify-between items-center px-6 py-4">
         <img
-          src="/images/04_TigerRoutes_Logo.png"
+          src="/images/04_TigerRoutes_Logo.webp"
           alt="TigerRoutes Logo"
           className="h-8"
         />

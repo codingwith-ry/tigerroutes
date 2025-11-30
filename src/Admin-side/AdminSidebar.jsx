@@ -146,7 +146,7 @@ const AdminSidebar = () => {
       {/* Topbar for Mobile */}
       <div className="md:hidden flex justify-between items-center p-5 bg-[#fdfcf8] border-b">
         <img
-          src="/images/02_TigerRoutes_Logo.png"
+          src="/images/02_TigerRoutes_Logo.webp"
           alt="TigerRoutes Logo"
           className="h-10 object-contain"
         />
@@ -164,7 +164,7 @@ const AdminSidebar = () => {
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b">
           <img
-            src="/images/02_TigerRoutes_Logo.png"
+            src="/images/02_TigerRoutes_Logo.webp"
             alt="TigerRoutes Logo"
             className="h-12 object-contain"
           />

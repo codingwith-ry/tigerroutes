@@ -113,7 +113,7 @@ const ResetPasswordPage = () => {
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
       {/* Logo top-left */}
       <img
-        src="/images/04_TigerRoutes_Logo.png"
+        src="/images/04_TigerRoutes_Logo.webp"
         alt="TigerRoutes Logo"
         className="absolute top-5 left-6 h-8 cursor-pointer"
         onClick={() => navigate("/")}
@@ -123,7 +123,7 @@ const ResetPasswordPage = () => {
         {/* Heading and Icon */}
         <div className="text-center text-sm mt-1">
           <img
-            src="/3D Elements/Reset.png"
+            src="/3D Elements/Reset.webp"
             alt="Reset Icon"
             className="mx-auto w-60 h-60 mb-1"
           />

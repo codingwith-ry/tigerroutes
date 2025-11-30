@@ -12,7 +12,7 @@ const ProfilePage = ({ assessmentData }) => {
         <div className="grid grid-cols-2 gap-2">
             <div className="justify-self-start">
                 <img 
-                    src="/images/TIGER ROUTES.png" 
+                    src="/images/02_TigerRoutes_Logo.webp" 
                     alt="TigerRoutes Logo" 
                     className="h-12" 
                 />

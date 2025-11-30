@@ -246,7 +246,7 @@ const handleInputChange = (e) => {
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
       <img
-        src="/images/04_TigerRoutes_Logo.png"
+        src="/images/04_TigerRoutes_Logo.webp"
         alt="TigerRoutes Logo"
         className="absolute top-5 left-6 h-8 cursor-pointer"
         onClick={handleBackToHome}

@@ -282,14 +282,15 @@ module.exports = (db) => {
       // Build where clauses to apply to assessments (alias 'a') and assessment profiles (ap.gradeLevel)
       const whereClauses = [];
       const whereParams = [];
+      // NOTE: the derived table alias used below is `a_res`, not `a`.
       if (startDate && endDate) {
-        whereClauses.push(`DATE(a.date) BETWEEN ? AND ?`);
+        whereClauses.push(`DATE(a_res.date) BETWEEN ? AND ?`);
         whereParams.push(startDate, endDate);
       } else if (startDate) {
-        whereClauses.push(`DATE(a.date) >= ?`);
+        whereClauses.push(`DATE(a_res.date) >= ?`);
         whereParams.push(startDate);
       } else if (endDate) {
-        whereClauses.push(`DATE(a.date) <= ?`);
+        whereClauses.push(`DATE(a_res.date) <= ?`);
         whereParams.push(endDate);
       }
       if (grade) {

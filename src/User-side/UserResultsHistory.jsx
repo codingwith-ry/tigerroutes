@@ -89,7 +89,7 @@ const UserResultsHistory = () => {
               return;
           }
 
-          const response = await fetch(`http://localhost:5000/api/assessment/history?studentID=${studentAccount_ID}`, {
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/history?studentID=${studentAccount_ID}`, {
             credentials: 'include'
           });
           const data = await response.json();

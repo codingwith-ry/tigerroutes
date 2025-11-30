@@ -16,7 +16,6 @@ const UserNavbar = () => {
   const mobileProfileRef = useRef(null); // Ref for mobile dropdown
   const { user, setUser, loading: loadingUser, refreshUser, justLoggedOut, setJustLoggedOut } = useAuth();
 
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -76,14 +75,67 @@ const UserNavbar = () => {
       });
       setTimeout(() => navigate('/'), 3000);
     }
-
   }, [user, loadingUser]);
 
-if (loadingUser) {
-  return <div>Loading...</div>;
-}
+  if (loadingUser) {
+    return <div>Loading...</div>;
+  }
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = () => {
+    Swal.fire({
+      icon: "warning",
+      title: "Logout",
+      text: "Are you sure you want to log out?",
+      showCancelButton: true,
+      confirmButtonText: "Log Out",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      customClass: {
+        popup: "rounded-xl",
+        confirmButton:
+          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2",
+        cancelButton:
+          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Clear cookies and in-memory user
+        fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
+          method: 'POST',
+          credentials: 'include'
+        }).finally(() => {
+          localStorage.clear();
+          // do not write to sessionStorage anymore; clear in-memory user
+          setUser(null);
+          // mark in context that we just logged out so other components can suppress warnings
+          setJustLoggedOut(true);
+          // navigate to landing and mark as coming from logout to suppress "not logged in" modal
+          navigate("/", { state: { fromLogout: true } });
+          Swal.fire({
+            icon: "success",
+            title: "Logged Out",
+            text: "You have been successfully logged out.",
+            confirmButtonText: "OK",
+            customClass: {
+              popup: "rounded-xl",
+              confirmButton:
+                "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
+            },
+            buttonsStyling: false,
+          });
+        })
+      }
+    });
+  };
+
+  const getUserInitials = () => {
+    return user?.name
+      ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase()
+      : 'U';
+  };
 
   return (
     <nav
@@ -119,8 +171,7 @@ if (loadingUser) {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
               <div className="w-9 h-9 rounded-full bg-gray-300 font-bold flex items-center justify-center">
-                {user?.name
-                ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase(): 'xD'}
+                {getUserInitials()}
               </div>
               <span className="text-sm font-bold">{user?.name || "User"}</span>
               <FiChevronDown className="text-gray-600" />
@@ -136,53 +187,7 @@ if (loadingUser) {
                 </button>
                 <button
                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                  onClick={() => {
-                    Swal.fire({
-                      icon: "warning",
-                      title: "Logout",
-                      text: "Are you sure you want to log out?",
-                      showCancelButton: true,
-                      confirmButtonText: "Log Out",
-                      cancelButtonText: "Cancel",
-                      reverseButtons: true,
-                      customClass: {
-                        popup: "rounded-xl",
-                        confirmButton:
-                          "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 ml-2", // margin-right
-                        cancelButton:
-                          "bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2", // margin-left
-                      },
-                      buttonsStyling: false,
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                        // Clear cookies and in-memory user
-                        fetch('http://localhost:5000/api/logout', {
-                          method: 'POST',
-                          credentials: 'include'
-                        }).finally(() => {
-                          localStorage.clear();
-                          // do not write to sessionStorage anymore; clear in-memory user
-                          setUser(null);
-                          // mark in context that we just logged out so other components can suppress warnings
-                          setJustLoggedOut(true);
-                          // navigate to landing and mark as coming from logout to suppress "not logged in" modal
-                          navigate("/", { state: { fromLogout: true } });
-                          Swal.fire({
-                            icon: "success",
-                            title: "Logged Out",
-                            text: "You have been successfully logged out.",
-                            confirmButtonText: "OK",
-                            customClass: {
-                              popup: "rounded-xl",
-                              confirmButton:
-                                "bg-yellow-400 text-white px-4 py-2 rounded-md hover:bg-yellow-500 w-32",
-                            },
-                            buttonsStyling: false,
-                          });
-                        })
-                      }
-                    });
-                  }}
+                  onClick={handleLogout}
                 >
                   Logout
                 </button>
@@ -219,15 +224,14 @@ if (loadingUser) {
               </button>
             ))}
 
-            {/* Mobile Profile Dropdown */}
+            {/* Mobile Profile Dropdown - Now Synced with Desktop */}
             <div className="relative mt-2" ref={mobileProfileRef}>
               <button
                 className="flex items-center gap-2 px-6 py-3 w-full rounded-full hover:bg-gray-100 transition"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
               >
                 <div className="w-9 h-9 rounded-full bg-gray-300 font-bold flex items-center justify-center">
-                  {user?.name
-                ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase(): 'xD'}
+                  {getUserInitials()}
                 </div>
                 <span className="text-sm font-bold">{user?.name || "User"}</span>
                 <FiChevronDown className="text-gray-600" />
@@ -240,6 +244,7 @@ if (loadingUser) {
                     onClick={() => {
                       navigate("/profile");
                       setIsMenuOpen(false);
+                      setIsProfileOpen(false);
                     }}
                   >
                     Profile
@@ -247,17 +252,9 @@ if (loadingUser) {
                   <button
                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                     onClick={() => {
-                      navigate("/settings");
+                      handleLogout();
                       setIsMenuOpen(false);
-                    }}
-                  >
-                    Settings
-                  </button>
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                    onClick={() => {
-                      console.log("Logged out");
-                      setIsMenuOpen(false);
+                      setIsProfileOpen(false);
                     }}
                   >
                     Logout

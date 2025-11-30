@@ -208,7 +208,7 @@ const AssessmentRIASECPage = () => {
 
       setIsSavingProgress(true);
 
-      const res = await fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/post-PendingAssessment`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

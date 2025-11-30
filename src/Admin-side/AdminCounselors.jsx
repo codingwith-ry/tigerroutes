@@ -31,7 +31,7 @@ const AdminCounselors = () => {
 
   const fetchCounselors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/admin/counselors', { credentials: 'include' });
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/counselors`, { credentials: 'include' });
       const result = await response.json();
       if (result.success) {
         setCounselors(result.data.map(c => ({

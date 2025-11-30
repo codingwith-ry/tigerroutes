@@ -111,7 +111,7 @@ const handleInputChange = (e) => {
     }
 
     try{
-      const res = await fetch ('http://localhost:5000/api/register', {
+      const res = await fetch (`${process.env.REACT_APP_API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
@@ -174,7 +174,7 @@ const handleInputChange = (e) => {
         const { email, name } = userInfo;
 
         // Send to backend to register/login
-        const server = await fetch("http://localhost:5000/api/google-auth", {
+        const server = await fetch(`${process.env.REACT_APP_API_URL}/api/google-auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, name }),

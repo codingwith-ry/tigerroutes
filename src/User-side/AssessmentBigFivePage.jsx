@@ -217,7 +217,7 @@ const AssessmentBigFivePage = () => {
 
       setIsSavingProgress(true);
 
-      const res = await fetch("http://localhost:5000/api/assessment/post-PendingAssessment", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/post-PendingAssessment`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -383,7 +383,7 @@ const AssessmentBigFivePage = () => {
       return;
     }
 
-    fetch('http://localhost:5000/api/assessment/complete/', {
+    fetch(`${process.env.REACT_APP_API_URL}/api/assessment/complete/`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -410,7 +410,7 @@ const AssessmentBigFivePage = () => {
       }
       
       
-      fetch('http://localhost:5000/api/assessment/delete-PendingAssessment/', {
+      fetch(`${process.env.REACT_APP_API_URL}/api/assessment/delete-PendingAssessment/`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

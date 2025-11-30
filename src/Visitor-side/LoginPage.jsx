@@ -80,7 +80,7 @@ const handleForgotPassword = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -152,7 +152,7 @@ const handleForgotPassword = () => {
       //Send to backend for registration/login
       (async () => {
         try {
-          const res = await fetch('http://localhost:5000/api/google-auth', {
+          const res = await fetch(`${process.env.REACT_APP_API_URL}/api/google-auth`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -208,7 +208,7 @@ const handleForgotPassword = () => {
         const { email, name } = userInfo;
 
         // Send to your backend
-        const server = await fetch("http://localhost:5000/api/google-auth", {
+        const server = await fetch(`${process.env.REACT_APP_API_URL}/api/google-auth`, {
           method: "POST",
           credentials: 'include',
           headers: { "Content-Type": "application/json" },

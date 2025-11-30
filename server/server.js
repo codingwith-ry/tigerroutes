@@ -1,6 +1,12 @@
 // Server Address: http://localhost:5000
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+// Load environment variables from .env file based on NODE_ENV
+const env = (process.env.NODE_ENV || 'development').trim();
+const envPath = path.resolve(__dirname, `../.env.${env}`);
+require('dotenv').config({ path: envPath });
+console.log(`Loaded environment variables from ${envPath}`);
+
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
@@ -128,7 +134,7 @@ app.post("/api/chatbot", async (req, res) => {
     const command = new InvokeAgentCommand({
       agentId: process.env.AGENT_ID,
       agentAliasId: process.env.AGENT_ALIAS_ID,
-      sessionId: "my-session-1",
+      sessionId: "newSession",
       inputText: userMessage,
     });
 

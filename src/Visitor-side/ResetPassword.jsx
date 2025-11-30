@@ -64,7 +64,7 @@ const ResetPasswordPage = () => {
 
     // Submit new password and wait for server confirmation before showing success
     try {
-      const res = await fetch("http://localhost:5000/api/reset-password", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

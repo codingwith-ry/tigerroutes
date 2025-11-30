@@ -60,7 +60,7 @@ const ProfilePage = () => {
     }, [authLoading]);
 
     function fetchStrands() {
-        return fetch('http://localhost:5000/api/strands', { credentials: 'include' })
+        return fetch(`${process.env.REACT_APP_API_URL}/api/strands`, { credentials: 'include' })
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch strands');
                 return res.json();
@@ -78,7 +78,7 @@ const ProfilePage = () => {
             throw new Error('User not authenticated');
         }
 
-        return fetch(`http://localhost:5000/api/student-profile/${localUser.studentAccount_ID}`, { credentials: 'include' })
+        return fetch(`${process.env.REACT_APP_API_URL}/api/student-profile/${localUser.studentAccount_ID}`, { credentials: 'include' })
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch user data');
                 return res.json();
@@ -214,7 +214,7 @@ const ProfilePage = () => {
         };
 
         setIsSaving(true);
-        fetch(`http://localhost:5000/api/student-profile/${user.studentAccount_ID}`, {
+        fetch(`${process.env.REACT_APP_API_URL}/api/student-profile/${user.studentAccount_ID}`, {
             method: 'PUT',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },

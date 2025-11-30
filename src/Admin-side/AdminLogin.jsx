@@ -22,7 +22,7 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resp = await fetch('http://localhost:5000/api/staff-login', {
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/api/staff-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // include credentials so the browser accepts the Set-Cookie for the server session
@@ -178,7 +178,7 @@ const AdminLogin = () => {
 
                 if (email) {
                   try {
-                    const res = await fetch('http://localhost:5000/api/staff-forgot-password', {
+                    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/staff-forgot-password`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ email })

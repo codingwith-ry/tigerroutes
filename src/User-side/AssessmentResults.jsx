@@ -248,7 +248,7 @@ const AssessmentResults = () => {
             confirmButtonColor: '#FACC15',
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch('http://localhost:5000/api/assessment/submitRating', {
+                fetch(`${process.env.REACT_APP_API_URL}/api/assessment/submitRating`, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -316,7 +316,7 @@ const AssessmentResults = () => {
     const fetchAssessmentDetails = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:5000/api/assessment/assessmentDetails?assessmentID=${assessmentId}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/assessmentDetails?assessmentID=${assessmentId}`, {
                 credentials: 'include'
             });
             const data = await response.json();

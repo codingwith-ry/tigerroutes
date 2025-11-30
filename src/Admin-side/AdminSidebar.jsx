@@ -99,7 +99,7 @@ const AdminSidebar = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         // Call server to destroy session and clear HttpOnly cookie, then clear client storage
-        fetch('http://localhost:5000/api/logout', {
+        fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
           method: 'POST',
           credentials: 'include'
         }).then(() => {

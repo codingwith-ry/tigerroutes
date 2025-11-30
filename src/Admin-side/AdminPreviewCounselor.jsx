@@ -25,7 +25,7 @@ const CounselorPreview = () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`http://localhost:5000/api/admin/counselor/${encodeURIComponent(id)}`, { credentials: 'include' });
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/counselor/${encodeURIComponent(id)}`, { credentials: 'include' });
         if (!res.ok) {
           if (res.status === 404) {
             setError('Counselor not found');
@@ -80,7 +80,7 @@ const CounselorPreview = () => {
     let mounted = true;
     async function loadComments() {
       try {
-        const res = await fetch(`http://localhost:5000/api/admin/counselor/${encodeURIComponent(counselorId)}/notes`, { credentials: 'include' });
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/counselor/${encodeURIComponent(counselorId)}/notes`, { credentials: 'include' });
         const body = await res.json();
         if (!mounted) return;
         if (body && body.success) {

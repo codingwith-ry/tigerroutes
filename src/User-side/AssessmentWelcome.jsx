@@ -78,8 +78,8 @@ const AssessmentPage = () => {
 
       // Fetch user profile and pending assessment in parallel (no-cache to avoid 304 cached responses)
       const [profileResponse, pendingResponse] = await Promise.all([
-        fetch(`http://localhost:5000/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include', cache: 'no-store' }),
-        fetch(`http://localhost:5000/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include', cache: 'no-store' })
+        fetch(`${process.env.REACT_APP_API_URL}/api/assessment/profile?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include', cache: 'no-store' }),
+        fetch(`${process.env.REACT_APP_API_URL}/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`, { credentials: 'include', cache: 'no-store' })
       ]);
 
       if (!profileResponse.ok) {
@@ -190,7 +190,7 @@ const AssessmentPage = () => {
     if (result.isConfirmed) {
       try {
         const response = await fetch( 
-          `http://localhost:5000/api/assessment/delete-PendingAssessment/`,
+          `${process.env.REACT_APP_API_URL}/api/assessment/delete-PendingAssessment/`,
           {
             method: 'DELETE',
             credentials: 'include',

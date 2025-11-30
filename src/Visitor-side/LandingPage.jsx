@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "./Navbar";
 import HeroSection from "./HeroSection";
@@ -24,6 +25,10 @@ const ScrollAnimationWrapper = ({ children }) => {
 };
 
 const LandingPage = () => {
+  useEffect(() => {
+    document.title = "TigerRoutes - Career Navigator for UST-SHS Students";
+  }, []);
+
   return (
     <div className="w-full min-h-screen bg-[#fefce9] font-sans">
       <ScrollAnimationWrapper>

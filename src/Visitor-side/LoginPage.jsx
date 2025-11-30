@@ -7,6 +7,11 @@ import { useEffect } from "react";
 import { useAuth } from "../utils/AuthContext";
 
 const LoginPage = () => {
+  
+  useEffect(() => {
+    document.title = "Login | TigerRoutes";
+  }, []);
+
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({

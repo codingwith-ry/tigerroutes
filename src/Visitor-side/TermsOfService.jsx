@@ -103,6 +103,7 @@ const sections = [
 const TermsOfService = () => {
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
+    document.title = "Terms of Service | TigerRoutes";
     return () => {
       document.documentElement.style.scrollBehavior = "auto";
     };

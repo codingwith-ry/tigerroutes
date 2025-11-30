@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -6,6 +6,10 @@ import Swal from "sweetalert2";
 const ForgotPassPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    document.title = "Forgot Password | TigerRoutes";
+  }, []);
 
   const handleBackToHome = () => {
     navigate("/");

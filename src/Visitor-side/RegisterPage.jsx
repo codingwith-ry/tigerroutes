@@ -8,6 +8,10 @@ import { useEffect } from "react";
 
 
 const RegisterPage = () => {
+  useEffect(() => {
+    document.title = "Register | TigerRoutes";
+  }, []);
+
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordLengthError, setPasswordLengthError] = useState('');

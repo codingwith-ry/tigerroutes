@@ -10,19 +10,12 @@ const Error404Page = () => {
 
   return (
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
-      {/* Logo top-left */}
-      <img
-        src="/images/TIGER ROUTES.png"
-        alt="TigerRoutes Logo"
-        className="absolute top-5 left-6 h-8 cursor-pointer"
-        onClick={() => navigate("/")}
-      />
 
       <div className="w-full max-w-sm space-y-6">
         {/* Icon and Heading */}
         <div className="text-center text-sm mt-1">
           <img
-            src="/3D Elements/Error.png"
+            src="/3D Elements/Error.webp"
             alt="Error 404"
             className="mx-auto w-60 h-60 mb-1"
           />

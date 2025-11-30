@@ -53,7 +53,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-[80vh] h-screen max-h-[1200px] bg-cover bg-center" style={{ backgroundImage: "url('/images/UST.jpg')" }}>
+    <div className="relative min-h-[80vh] h-screen max-h-[1200px] bg-cover bg-center" style={{ backgroundImage: "url('/images/UST.webp')" }}>
       <div
         className="absolute inset-0 z-0"
         style={{

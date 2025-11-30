@@ -6,22 +6,22 @@ import "swiper/css/navigation";
 
 const testimonials = [
 	{
-		name: "Nicole Dela Cruz",
-		role: "BS Psychology, UST",
-		image: "/avatars/nicole.png",
-		text: "TigerRoutes gave me clarity during my college apps. I didn’t even know Psychology was a perfect fit until I saw my results!",
+		name: "Anjelico Mari Saturnino",
+		role: "BS Information Technology, UST",
+		image: "../avatars/jco.webp",
+		text: "TigerRoutes helped me discover my passion for Network Security. The career suggestions were spot on!",
 	},
 	{
-		name: "Mark Reyes",
-		role: "BS Computer Science, UST",
-		image: "/avatars/mark.png",
+		name: "Francis Gohan Ragasa",
+		role: "BS Information Technology, UST",
+		image: "../avatars/francis.webp",
 		text: "I always thought I’d take Engineering, but this platform opened my eyes to Computer Science—and I love it. Big W.",
 	},
 	{
-		name: "Jessa Tan",
-		role: "BSBA Marketing Management, UST",
-		image: "/avatars/jessa.png",
-		text: "It really helped me understand what I’m good at, and the career paths made it way less scary to decide.",
+		name: "Chelsea Glorioso",
+		role: "BA Communication Arts, UST",
+		image: "../avatars/chelsea.webp",
+		text: "The personality test was so accurate! It felt like TigerRoutes really understood me and my strengths.",
 	},
 ];
 

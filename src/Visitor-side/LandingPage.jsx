@@ -6,7 +6,6 @@ import HeroSection from "./HeroSection";
 import About from "./About";
 import FeaturesSection from "./FeaturesSection";
 import Testimonials from "./Testimonials";
-import FloatingChatButton from "./FloatingChatButton";
 import CTA from "./CTA";
 import Footer from "./Footer";
 import PropTypes from 'prop-types';
@@ -49,10 +48,6 @@ const LandingPage = () => {
 
       <ScrollAnimationWrapper>
         <Testimonials />
-      </ScrollAnimationWrapper>
-
-      <ScrollAnimationWrapper>
-        <FloatingChatButton />
       </ScrollAnimationWrapper>
 
       <ScrollAnimationWrapper>

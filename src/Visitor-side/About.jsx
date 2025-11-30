@@ -9,27 +9,30 @@ const About = () => {
             About <span className="text-[#4278c5]">TigerRoutes</span>
           </h2>
           <p className="text-base sm:text-lg text-[#333] leading-relaxed mb-4">
-            <strong>TigerRoutes</strong> is your personalized college decision companion built specifically for Thomasian Senior High School students. Combining AI-powered assessments with real academic and career data, it helps you discover the best-fit UST programs based on your personality, interests, and strengths.
-          </p>
-          <p className="text-base sm:text-lg text-[#333] leading-relaxed mb-6">
-            Whether you&rsquo;re still undecided or just want more clarity, TigerRoutes gives you confidence and direction. Our goal is simple: to help you take the next step toward a fulfilling and informed college journey—no guesswork, just data-backed insights.
-          </p>
-          <ul className="space-y-3 text-base text-[#1e1e1e]">
-            <li className="flex items-start gap-2">
-              <span className="text-[#5fafbe] font-bold">✔</span> Backed by RIASEC and Big Five assessments
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#5fafbe] font-bold">✔</span> Customized for UST SHS students
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#5fafbe] font-bold">✔</span> Rule-based AI + psychometrics = smart career matching
-            </li>
-          </ul>
+  <strong>TigerRoutes</strong> is your personalized college decision companion built specifically for Thomasian Senior High School students. Using structured assessments and research-backed evaluation methods, it helps you discover UST programs that match your personality, interests, and strengths.
+</p>
+
+<p className="text-base sm:text-lg text-[#333] leading-relaxed mb-6">
+  Whether you’re still exploring options or aiming for more clarity, TigerRoutes gives you confidence and direction. Our goal is simple: empower you to make informed, meaningful choices about your college path—no guesswork, just results grounded in real data.
+</p>
+
+<ul className="space-y-3 text-base text-[#1e1e1e]">
+  <li className="flex items-start gap-2">
+    <span className="text-[#5fafbe] font-bold">✔</span> Built on RIASEC and Big Five psychometric frameworks
+  </li>
+  <li className="flex items-start gap-2">
+    <span className="text-[#5fafbe] font-bold">✔</span> Designed exclusively for UST SHS students
+  </li>
+  <li className="flex items-start gap-2">
+    <span className="text-[#5fafbe] font-bold">✔</span> Rule-based scoring system for fair and consistent matching
+  </li>
+</ul>
+
         </div>
 
         <div className="w-full lg:w-1/2">
           <img
-            src="/3D Elements/Tiger-Exploring.png"
+            src="/3D Elements/Tiger-Exploring.webp"
             alt="TigerRoutes Illustration"
             className="w-full max-w-md mx-auto"
           />

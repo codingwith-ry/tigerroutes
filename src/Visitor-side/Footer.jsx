@@ -12,7 +12,7 @@ const Footer = () => {
           {/* Left: Logo + Text */}
           <div className="text-left md:text-center md:mx-auto">
             <img 
-              src="/images/TigerRoutes_B&W.png"
+              src="/images/TigerRoutes_B&W.webp"
               alt="TigerRoutes Logo"
               className="h-16 mx-auto md:mx-0"
             />

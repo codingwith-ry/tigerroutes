@@ -2,28 +2,28 @@ import React from "react";
 
 const features = [
   {
-    title: "Take Comprehensive Assessment",
+    title: "Take the Comprehensive Assessment",
     description:
-      "Navigate your future with confidence. TigerRoutes uses advanced AI to analyze your personality, interests, and academic strengths, providing personalized college program recommendations tailored specifically for UST students.",
-    icon: "/3D Elements/Assessments.png",
+      "Start your journey with a guided assessment designed to measure your interests, personality traits, academic strengths, and SHS track alignment. Every question is crafted to help you understand yourself better and make clearer academic decisions.",
+    icon: "/3D Elements/Assessments.webp",
   },
   {
-    title: "AI-Powered Analysis",
+    title: "Structured Scoring & Evaluation",
     description:
-      "Our AI model processes your responses using our proprietary algorithm that weighs RIASEC (40%), Big Five (30%), academics (20%), and track (10%).",
-    icon: "/3D Elements/AI.png",
+      "TigerRoutes uses a refined, rule-based scoring framework built around RIASEC, the Big Five, your academic performance, and your SHS track. Each factor contributes a specific percentage, ensuring recommendations are consistent, fair, and grounded in research-based criteria.",
+    icon: "/3D Elements/AI.webp",
   },
   {
-    title: "Get Personalized Recommendations",
+    title: "Personalized Program Recommendations",
     description:
-      "Receive your top 10 UST program recommendations - 5 aligned with your current track and 5 cross-track options that might surprise you with perfect matches.",
-    icon: "/3D Elements/Recommendations.png",
+      "After completing the assessment, you'll receive a curated list of the top UST programs that match your profile. This includes both track-aligned options and cross-track opportunities—giving you a wider perspective on where your strengths could thrive.",
+    icon: "/3D Elements/Recommendations.webp",
   },
   {
-    title: "Explore Your Future",
+    title: "Explore Your Path Ahead",
     description:
-      "Dive deep into career pathways, job prospects, required certifications, and get guidance from UST counselors. Export your results and start your journey!",
-    icon: "/3D Elements/Explore.png",
+      "Learn more about potential careers, required skills, industry outlook, and available pathways for each recommended program. You can also get guidance through our built-in chatbot for FAQs, support, and next steps. Export your results and move closer to your future.",
+    icon: "/3D Elements/Explore.webp",
   },
 ];
 

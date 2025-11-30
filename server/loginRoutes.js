@@ -15,6 +15,19 @@ module.exports = (db) => {
     const client = new OAuth2Client();
     const resetCodes = {};
 
+    // Helper: allow only university emails (ust.edu.ph and subdomains)
+    function isAllowedUstEmail(email) {
+        try {
+            if (!email || typeof email !== 'string') return false;
+            const parts = email.split('@');
+            if (parts.length !== 2) return false;
+            const domain = parts[1].toLowerCase();
+            return domain === 'ust.edu.ph' || domain.endsWith('.ust.edu.ph');
+        } catch (e) {
+            return false;
+        }
+    }
+
         // Helper: login timer cookie name and helpers
         const LOGIN_TIMER_COOKIE = 'logintimer';
 
@@ -59,6 +72,11 @@ module.exports = (db) => {
         const { name, email, password } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({error: 'Please fill in all fields'});
+        }
+
+        // Enforce allowed email domain
+        if (!isAllowedUstEmail(email)) {
+            return res.status(400).json({ error: 'Registration is restricted to UST email addresses (ust.edu.ph)'});
         }
 
         try {
@@ -372,6 +390,11 @@ module.exports = (db) => {
 
         if (!email || !name) {
             return res.status(400).json({ error: 'Missing email or name' });
+        }
+
+        // Enforce allowed email domain for Google-auth signups
+        if (!isAllowedUstEmail(email)) {
+            return res.status(403).json({ error: 'Only UST email addresses are allowed to register' });
         }
 
         db.query(

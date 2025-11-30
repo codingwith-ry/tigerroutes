@@ -44,7 +44,18 @@ const handleInputChange = (e) => {
 
   if (name === 'email') {
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    setEmailError(emailRegex.test(value) ? '' : 'Please enter a valid email address.');
+    if (!emailRegex.test(value)) {
+      setEmailError('Please enter a valid email address.');
+    } else {
+      // enforce ust.edu.ph domain (allow subdomains)
+      const parts = value.split('@');
+      const domain = parts[1] ? parts[1].toLowerCase() : '';
+      if (domain === 'ust.edu.ph' || domain.endsWith('.ust.edu.ph')) {
+        setEmailError('');
+      } else {
+        setEmailError('Registration is restricted to UST email addresses (ust.edu.ph)');
+      }
+    }
   }
 
   if (name === 'password' || name === 'confirmPassword') {
@@ -115,6 +126,12 @@ const handleInputChange = (e) => {
     }
 
     try{
+      // Prevent submission if email domain invalid
+      if (emailError) {
+        Swal.fire({ icon: 'error', title: 'Invalid Email', text: emailError });
+        return;
+      }
+
       const res = await fetch (`${process.env.REACT_APP_API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
@@ -177,6 +194,13 @@ const handleInputChange = (e) => {
 
         const { email, name } = userInfo;
 
+        // enforce ust.edu.ph domain on client side to avoid unnecessary backend calls
+        const uDomain = email && email.split('@')[1] ? email.split('@')[1].toLowerCase() : '';
+        if (!(uDomain === 'ust.edu.ph' || uDomain.endsWith('.ust.edu.ph'))) {
+          Swal.fire({ icon: 'error', title: 'Invalid Email Domain', text: 'Only UST email addresses are allowed to register.' });
+          return;
+        }
+
         // Send to backend to register/login
         const server = await fetch(`${process.env.REACT_APP_API_URL}/api/google-auth`, {
           method: "POST",
@@ -213,6 +237,7 @@ const handleInputChange = (e) => {
     },
   });
 
+  // Before requesting token, ensure client is initialized and will fetch a UST email
   client.requestAccessToken();
 };
 

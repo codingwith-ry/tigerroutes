@@ -23,8 +23,15 @@ const UserHomepage = () => {
   useEffect(() => {
     document.title = 'TigerRoutes | Home';
     // Wait until auth has resolved
-    if (!authLoading) {
+    if (!authLoading && user) {
       fetchAnalytics();
+    } else {
+      // if auth resolved but no user, ensure we leave loading state and clear analytics
+      if (!authLoading && !user) {
+        setLoading(false);
+        setAnalytics(null);
+        setError(null);
+      }
     }
     
   }, [authLoading, user]);

@@ -357,12 +357,9 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               </div>
             </div>
           </div>
-
-          {/* Program mismatch cases removed */}
-
-          
+          {/* Students without completed assessments */}
             <div className="mt-6 bg-white rounded-2xl shadow p-4 sm:p-6">
-              <h2 className="text-lg font-semibold mb-4">Students without completed assessments / pending only</h2>
+              <h2 className="text-lg font-semibold mb-4">Students Pending Assessment Completion</h2>
 
               <div className="flex items-center gap-3 mb-4">
                 <input

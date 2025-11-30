@@ -68,7 +68,7 @@ const HeroSection = () => {
           <span className="text-yellow-400">Perfect Career Path</span>
         </h1>
         <p className="mt-4 max-w-xs xs:max-w-md sm:max-w-xl md:max-w-2xl font-sfpro text-base xs:text-lg md:text-xl">
-          Navigate your future with confidence. TigerRoutes uses advanced AI to analyze your
+          Navigate your future with confidence. TigerRoutes uses a refined scoring engine to analyze your
           personality, interests, and academic strengths, providing personalized college
           program recommendations tailored specifically for UST students.
         </p>
@@ -82,12 +82,12 @@ const HeroSection = () => {
         {/* Stat Highlights */}
         <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-8 sm:gap-12 mt-10 sm:mt-12 text-lg sm:text-xl font-medium font-sfpro w-full items-center">
           <div className="text-center min-w-[120px]">
-            <NumberCounter end={50} suffix="+" />
+            <NumberCounter end={40} suffix="+" />
             <p className="text-base sm:text-lg md:text-xl">UST PROGRAMS</p>
           </div>
           <div className="text-center min-w-[120px]">
-            <p className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">AI</p>
-            <p className="text-base sm:text-lg md:text-xl">POWERED MATCHING</p>
+            <p className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">SCORE</p>
+            <p className="text-base sm:text-lg md:text-xl">Driven-Matching</p>
           </div>
           <div className="text-center min-w-[120px]">
             <NumberCounter end={100} suffix="%" />

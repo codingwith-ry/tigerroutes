@@ -190,11 +190,76 @@ module.exports = (db) => {
             const mailOptions = {
                 from: process.env.SMTP_FROM || 'tigerroutes.contact@gmail.com',
                 to: student.email,
-                subject: 'Reminder: Please complete your TigerRoutes assessment',
+                subject: '🎓 Complete Your TigerRoutes Assessment – Find Your Perfect UST Program!',
+                attachments: [{
+                    filename: 'TigerRoutes_Icon.png',
+                    path: require('path').join(__dirname, '../public/images/TigerRoutes_Icon.png'),
+                    cid: 'tigericon'
+                }],
                 html: `
-                    <p>Hi ${student.name || 'Student'},</p>
-                    <p>This is a friendly reminder to complete your TigerRoutes assessment. Your responses help generate program recommendations tailored for you.</p>
-                    <p>Thanks,<br/>TigerRoutes Team</p>
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FFFCED; }
+                            .header { background: linear-gradient(135deg, #FB9724 0%, #FBBF24 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0; }
+                            .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+                            .content { background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                            .btn { display: inline-block; padding: 12px 30px; background-color: #FB9724; color: white !important; text-decoration: none; border-radius: 25px; font-weight: bold; margin: 20px 0; transition: background-color 0.3s; }
+                            .btn:hover { background-color: #FBBF24; }
+                            .benefits { background-color: #FFF9F3; padding: 15px; border-left: 4px solid #FB9724; margin: 20px 0; }
+                            .benefits ul { margin: 10px 0; padding-left: 20px; }
+                            .benefits li { margin: 8px 0; }
+                            .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                            .highlight { color: #FB9724; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1><img src="cid:tigericon" alt="Tiger Icon" style="height: 24px; vertical-align: middle; margin-right: 2px;" /> TigerRoutes Assessment Reminder</h1>
+                            </div>
+                            <div class="content">
+                                <p>Hi <strong>${student.name || 'Thomasian'}</strong>,</p>
+                                
+                                <p>We noticed you haven't completed your <span class="highlight">TigerRoutes Career Assessment</span> yet. This personalized assessment is designed to help you discover the perfect UST program that aligns with your interests, personality, and academic strengths.</p>
+                                
+                                <div class="benefits">
+                                    <h3 style="margin-top: 0; color: #FB9724;">✨ Why Complete Your Assessment?</h3>
+                                    <ul>
+                                        <li><strong>Personalized Recommendations:</strong> Get program matches based on your unique profile</li>
+                                        <li><strong>Score-Driven Insights:</strong> Our scoring engine analyzes 40+ UST programs to find your best fit</li>
+                                        <li><strong>Career Clarity:</strong> Understand how your interests align with different career paths</li>
+                                        <li><strong>Make Informed Decisions:</strong> Receive data-backed guidance for your college journey</li>
+                                    </ul>
+                                </div>
+                                
+                                <p><strong>Time Required:</strong> Just 15-20 minutes to complete both RIASEC and Big Five assessments</p>
+                                
+                                <div style="text-align: center;">
+                                    <a href="${process.env.REACT_APP_BASE_URL || 'http://localhost:3000'}" class="btn">
+                                        Complete Your Assessment Now
+                                    </a>
+                                </div>
+                                
+                                <p style="margin-top: 30px;">Your journey to finding the right program starts with understanding yourself better. Take this important step today!</p>
+                                
+                                <p style="margin-top: 30px;">If you have any questions or need assistance, feel free to reach out to your guidance counselor or contact us at <a href="mailto:tigerroutes.contact@gmail.com" style="color: #FB9724;">tigerroutes.contact@gmail.com</a>.</p>
+                                
+                                <p style="margin-top: 30px;">Best regards,<br/>
+                                <strong>The TigerRoutes Team</strong><br/>
+                                <em>Navigate Your Perfect Career Path</em> 🎓</p>
+                            </div>
+                            <div class="footer">
+                                <p>© ${new Date().getFullYear()} TigerRoutes - University of Santo Tomas Career Assessment System</p>
+                                <p style="font-size: 11px; color: #999;">This is an automated reminder. Please do not reply to this email.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
                 `
             };
 

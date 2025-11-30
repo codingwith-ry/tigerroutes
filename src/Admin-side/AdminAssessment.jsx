@@ -18,7 +18,9 @@ const AdminAssessment = () => {
   const [stats, setStats] = useState({
     totalStudents: 0,
     completedAssessments: 0,
+    completedStudents: 0,
     overallAlignment: 0,
+    pendingAssessments: 0,
   });
 
   useEffect(() => {
@@ -35,7 +37,10 @@ const AdminAssessment = () => {
         setStats(prev => ({
           ...prev,
           totalStudents: data.data.totalStudents || 0,
+          // total number of assessment records
           completedAssessments: data.data.completedAssessments || 0,
+          // number of distinct students with >=1 assessment (used for completion rate)
+          completedStudents: data.data.completedStudents || 0,
           overallAlignment: data.data.overallAlignment || 0
         }));
         // Ensure totalAssessments uses the DB count from dashboard-stats
@@ -48,8 +53,12 @@ const AdminAssessment = () => {
           const totalsJson = await totalsRes.json();
           if (totalsJson && totalsJson.success && totalsJson.data) {
             setTotalAssessments(totalsJson.data.total || 0);
-            // update completed count if desired
-            setStats(prev => ({ ...prev, completedAssessments: totalsJson.data.completed || prev.completedAssessments }));
+            // update completedAssessments and pendingAssessments based on totals endpoint
+            setStats(prev => ({ 
+              ...prev, 
+              completedAssessments: totalsJson.data.completed || prev.completedAssessments,
+              pendingAssessments: totalsJson.data.pending || prev.pendingAssessments
+            }));
           }
         } catch (e) {
           // ignore failure and fall back to dashboard-stats value
@@ -260,22 +269,26 @@ const AdminAssessment = () => {
           color="#2563eb"
         />
         <StatCard
-          title="Total Assessments"
-          value={totalAssessments}
-          subtitle="Total recorded assessments"
-          subtitleColor="text-gray-600"
-          progress={totalAssessments}
-          max={totalAssessments > 0 ? totalAssessments : 1}
+          title="Pending Assessments"
+          value={stats.pendingAssessments}
+          subtitle="Awaiting completion"
+          subtitleColor="text-orange-600"
+          // progress visualization: pending / total (completed+pending)
+          progress={stats.pendingAssessments}
+          max={totalAssessments || 1}
           icon={<LayoutGrid className="w-6 h-6 text-gray-500" />}
           color="#6b7280"
         />
         <StatCard
           title="Completed Assessments"
+          // display total assessment rows as the main number
           value={stats.completedAssessments}
-          subtitle={`${((stats.completedAssessments / (totalAssessments || 1)) * 100).toFixed(1)}% completion rate`}
+          // completion rate is based on students with >=1 assessment vs total students
+          subtitle={`${((stats.completedStudents / (stats.totalStudents || 1)) * 100).toFixed(1)}% of Students Assessed`}
           subtitleColor="text-green-600"
-          progress={stats.completedAssessments}
-          max={totalAssessments || 1}
+          // show progress as proportion of students who have at least one assessment
+          progress={stats.completedStudents}
+          max={stats.totalStudents || 1}
           icon={<FileCheck className="w-6 h-6 text-green-600" />}
           color="#16a34a"
         />

@@ -16,8 +16,10 @@ module.exports = (db) => {
         //Count total students
         const studentsQuery = 'SELECT COUNT(*) as totalStudents FROM tbl_studentaccounts';
 
-        //Count completed assessments
-        const assessmentsQuery = 'SELECT COUNT(*) as completedAssessments FROM tbl_studentassessments';
+        // Count total assessments (rows) and number of distinct students who have >=1 assessment
+        // - totalAssessments: total rows in tbl_studentassessments (shown as the main "Completed Assessments" number)
+        // - completedStudents: number of unique studentAccount_ID values (used to compute completion rate)
+        const assessmentsQuery = `SELECT COUNT(*) AS totalAssessments, COUNT(DISTINCT studentAccount_ID) AS completedStudents FROM tbl_studentassessments`;
 
                 //Count overall alignment (average of per-assessment averages using only track-aligned recommendations)
                 // This matches the assessments listing which averages only recommendations where track_aligned = 'Y'
@@ -57,15 +59,18 @@ module.exports = (db) => {
 
                         const totalCounselors = (counselorsResult && counselorsResult[0] && Number(counselorsResult[0].totalCounselors)) || 0;
 
-                        res.json({
-                            success: true,
-                            data: {
-                                totalStudents: studentsResult[0].totalStudents,
-                                completedAssessments: assessmentsResult[0].completedAssessments,
-                                overallAlignment: alignmentResult[0].overallAlignment || 0,
-                                totalCounselors: totalCounselors
-                            }
-                        });
+                                res.json({
+                                    success: true,
+                                    data: {
+                                        totalStudents: studentsResult[0].totalStudents,
+                                        // total number of assessment records
+                                        completedAssessments: assessmentsResult[0].totalAssessments || 0,
+                                        // number of students with at least one assessment (for completion rate)
+                                        completedStudents: assessmentsResult[0].completedStudents || 0,
+                                        overallAlignment: alignmentResult[0].overallAlignment || 0,
+                                        totalCounselors: totalCounselors
+                                    }
+                                });
                     });
                 });
             });

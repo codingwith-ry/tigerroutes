@@ -64,7 +64,9 @@ module.exports = (db) => {
         function clearLoginTimer(res) {
             try {
                 res.clearCookie(LOGIN_TIMER_COOKIE, { path: '/' });
-            } catch (e) {}
+            } catch (e) {
+                // ignore cookie clear errors (e.g., headers already sent or missing cookies)
+            }
         }
 
     // Register endpoint - hash password before saving

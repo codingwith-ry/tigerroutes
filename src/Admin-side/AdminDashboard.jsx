@@ -17,6 +17,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalStudents: 0,
     completedAssessments: 0,
+    completedStudents: 0,
     pendingAssessments: 0,
     overallAlignment: 0,
     totalCounselors: 0,
@@ -40,7 +41,10 @@ const AdminDashboard = () => {
         setStats(prevStats => ({
           ...prevStats,
           totalStudents: data.data.totalStudents,
+          // main displayed number: total assessment records
           completedAssessments: data.data.completedAssessments,
+          // number of students with >=1 assessment (used for % completion)
+          completedStudents: data.data.completedStudents || 0,
           overallAlignment: data.data.overallAlignment,
           totalCounselors: data.data.totalCounselors || 0
         }))
@@ -245,11 +249,14 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
             />
             <StatCard
               title="Completed Assessments"
+              // main number: total assessment rows
               value={stats.completedAssessments}
-              subtitle={`${((stats.completedAssessments / stats.totalStudents) * 100).toFixed(1)}% completion rate`}
+              // completion rate is based on distinct students with >=1 assessment
+              subtitle={`${((stats.completedStudents / (stats.totalStudents || 1)) * 100).toFixed(1)}% of Students Assessed`}
               subtitleColor="text-green-600"
-              progress={stats.completedAssessments}
-              max={stats.totalStudents}
+              // progress visual shows students-with-assessments / total students
+              progress={stats.completedStudents}
+              max={stats.totalStudents || 1}
               icon={<FileCheck className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600" />}
               color="#16a34a"
             />

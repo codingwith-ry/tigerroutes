@@ -149,14 +149,14 @@ module.exports = (db) => {
                     s.name,
                     s.email,
                     pa.pendingAssessment_ID,
-                    (
-                        SELECT sl.date
-                        FROM tbl_stafflogs sl
-                        WHERE sl.action LIKE 'Reminder sent to student %'
-                            AND sl.action LIKE CONCAT('%', s.email, '%')
-                        ORDER BY sl.date DESC
-                        LIMIT 1
-                    ) AS lastReminderDate
+                        (
+                            SELECT CONCAT(DATE_FORMAT(CONVERT_TZ(sl.date, @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%s'), 'Z')
+                            FROM tbl_stafflogs sl
+                            WHERE sl.action LIKE 'Reminder sent to student %'
+                                AND sl.action LIKE CONCAT('%', s.email, '%')
+                            ORDER BY sl.date DESC
+                            LIMIT 1
+                        ) AS lastReminderDate
                 FROM tbl_studentaccounts s
                 LEFT JOIN tbl_pendingassessments pa ON pa.studentAccount_ID = s.studentAccount_ID
                 WHERE NOT EXISTS (
@@ -171,7 +171,10 @@ module.exports = (db) => {
                 studentAccount_ID: r.studentAccount_ID,
                 name: r.name,
                 email: r.email,
-                lastReminderDate: r.lastReminderDate,
+                // Ensure lastReminderDate is serialized as an explicit UTC ISO string so clients
+                // interpret it as UTC. MySQL may return Date objects or naive strings depending
+                // on driver/config, so normalize here.
+                lastReminderDate: r.lastReminderDate ? new Date(r.lastReminderDate).toISOString() : null,
                 pendingAssessment_ID: r.pendingAssessment_ID || null
             }));
             res.json({ success: true, data });

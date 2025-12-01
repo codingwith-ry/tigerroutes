@@ -234,12 +234,13 @@ module.exports = (db) => {
                     sp.consultationDetails,
                     sp.about,
                     s.strandName as strand,
-                    (
-                      SELECT DATE_FORMAT(MAX(sl.date), '%Y-%m-%d %H:%i:%s')
-                      FROM tbl_stafflogs sl
-                      WHERE sl.staffAccount_ID = sa.staffAccount_ID
-                        AND sl.action LIKE 'Staff login:%'
-                    ) AS lastLogin
+                        (
+                            -- Return last login as UTC ISO string so clients can parse reliably
+                            SELECT CONCAT(DATE_FORMAT(CONVERT_TZ(MAX(sl.date), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%s'), 'Z')
+                            FROM tbl_stafflogs sl
+                            WHERE sl.staffAccount_ID = sa.staffAccount_ID
+                                AND sl.action LIKE 'Staff login:%'
+                        ) AS lastLogin
                 FROM tbl_staffaccounts sa
                 LEFT JOIN tbl_staffroles sr ON sa.staffRole_ID = sr.staffRole_ID
                 LEFT JOIN tbl_staffprofiles sp ON sa.staffProfile_ID = sp.staffProfile_ID

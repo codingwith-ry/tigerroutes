@@ -66,6 +66,7 @@ const AdminDashboard = () => {
 
   const [strandScores, setStrandScores] = useState([]);
 
+
   async function fetchStrandScores() {
     try {
       const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -118,6 +119,11 @@ const AdminDashboard = () => {
   const [remindedDateRange, setRemindedDateRange] = useState({ startDate: '', endDate: '' });
   const pageSize = 10;
 
+  // Helper: parse various date representations into a Date treated as UTC
+  const parseAsUTCDate = (value) => {
+    try { return new Date(value); } catch (e) { return null; }
+  };
+
   async function fetchTopPrograms() {
     try {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/top-programs`, { credentials: 'include' });
@@ -155,14 +161,14 @@ const AdminDashboard = () => {
     const { startDate, endDate } = remindedDateRange || {};
     if ((startDate && startDate.trim()) || (endDate && endDate.trim())) {
       if (!s.lastReminderDate) return false;
-      const reminded = new Date(s.lastReminderDate);
+      const remindedDateObj = parseAsUTCDate(s.lastReminderDate);
+      if (!remindedDateObj) return false;
+      const remindedDateStr = remindedDateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
       if (startDate && startDate.trim()) {
-        const sd = new Date(startDate + 'T00:00:00');
-        if (reminded < sd) return false;
+        if (remindedDateStr < startDate) return false;
       }
       if (endDate && endDate.trim()) {
-        const ed = new Date(endDate + 'T23:59:59');
-        if (reminded > ed) return false;
+        if (remindedDateStr > endDate) return false;
       }
     }
 
@@ -438,7 +444,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                             <td className="px-6 py-4 font-medium text-gray-900">{s.name}</td>
                             <td className="px-6 py-4 text-gray-600">{s.email}</td>
                             <td className="px-6 py-4">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
-                            <td className="px-6 py-4 text-gray-600">{s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</td>
+                            <td className="px-6 py-4 text-gray-600">{(() => { const d = parseAsUTCDate(s.lastReminderDate); return d ? d.toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : '—'; })()}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <button
@@ -493,7 +499,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <div className="font-medium text-gray-900">{s.name}</div>
                         <div className="text-sm text-gray-600">{s.email}</div>
                         <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
-                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</div>
+                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? parseAsUTCDate(s.lastReminderDate).toLocaleDateString('en-PH') : '—'}</div>
                         <div className="mt-2">
                           <button onClick={async () => {
                             const confirm = await Swal.fire({

@@ -222,7 +222,7 @@ const CounselorPreview = () => {
                         {note.studentAccountId ? `STU-${String(note.studentAccountId).padStart(4, '0')} | Assessment-${note.studentAssessment_ID}` : `Assessment-${note.studentAssessment_ID}`}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-400">{note.date ? new Date(note.date).toLocaleString() : ''}</span>
+                    <span className="text-xs text-gray-400">{note.date ? new Date(String(note.date).endsWith('Z') ? note.date : `${note.date}Z`).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : ''}</span>
                   </div>
                   <p className="text-gray-700 text-sm text-justify max-w-[1000px] leading-relaxed">
                     {note.counselorNotes}

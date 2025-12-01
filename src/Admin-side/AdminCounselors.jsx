@@ -33,12 +33,13 @@ const AdminCounselors = () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/counselors`, { credentials: 'include' });
       const result = await response.json();
-      if (result.success) {
+        if (result.success) {
         setCounselors(result.data.map(c => ({
           staffAccount_ID: c.staffAccount_ID,
           name: c.name,
           strand: c.strand || 'N/A',
-          lastLogin: c.lastLogin, 
+          // Format lastLogin (ISO/UTC) into Philippines time for display
+          lastLogin: c.lastLogin ? (new Date(c.lastLogin).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })) : '—',
           status: c.status === 1 ? 'Active' : 'Inactive',
           email: c.email,
           about: c.about,

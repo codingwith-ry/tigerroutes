@@ -580,7 +580,7 @@ const AdminStudentProfile = () => {
                               <div className="flex items-center space-x-2">
                                 <span className="font-semibold text-gray-900 text-sm">{student.name}</span>
                                 <span className="text-xs text-gray-500">
-                                  {new Date(studentFeedback.date).toLocaleDateString()}
+                                  {new Date(String(studentFeedback.date).endsWith('Z') ? studentFeedback.date : `${studentFeedback.date}Z`).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-1 text-yellow-500">

@@ -33,6 +33,31 @@ const ActivityLogs = () => {
 		}
 	};
 
+	// Helper: parse various DB timestamp formats as UTC Date
+	// Note: treat strings without timezone as UTC by appending 'Z'.
+	const parseAsUTCDate = (value) => {
+		if (!value) return null;
+		if (value instanceof Date) return value;
+		if (typeof value === 'number') return new Date(value);
+		if (typeof value === 'string') {
+			const v = value.trim();
+			// If already has explicit timezone (Z or +HH:MM), parse directly
+			if (v.endsWith('Z') || v.includes('+')) return new Date(v);
+			// If it has a 'T' but no timezone, assume it's UTC and append 'Z'
+			if (v.includes('T')) return new Date(v + 'Z');
+			// Format like 'YYYY-MM-DD HH:MM:SS' -> convert to 'YYYY-MM-DDTHH:MM:SSZ'
+			return new Date(v.replace(' ', 'T') + 'Z');
+		}
+		try { return new Date(value); } catch (e) { return null; }
+	};
+
+	// Format a DB date value into Philippines local time string
+	const formatToPhilippines = (value) => {
+		const d = parseAsUTCDate(value);
+		if (!d || isNaN(d.getTime())) return '';
+		return d.toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+	};
+
 	useEffect(() => { 
 		document.title = "Admin Dashboard | Activity Logs";
 		fetchLogs(1); }, [limit, staffFilter, dateFilter]);
@@ -99,7 +124,7 @@ const ActivityLogs = () => {
 														<td className="px-6 py-4 font-medium text-gray-900">{r.staffLogs_ID}</td>
 														<td className="px-6 py-4">{r.staffName || `#${r.staffAccount_ID}`}</td>
 														<td className="px-6 py-4">{r.action}</td>
-														<td className="px-6 py-4 text-gray-600">{r.date ? new Date(r.date).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : ''}</td>
+														<td className="px-6 py-4 text-gray-600">{r.date ? (new Date(r.date).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })) : ''}</td>
 													</tr>
 												))
 											)}
@@ -124,7 +149,7 @@ const ActivityLogs = () => {
 												</div>
 												<div className="space-y-2">
 													<div className="text-xs text-gray-600">{r.action}</div>
-													<div className="text-xs text-gray-600">{r.date ? new Date(r.date).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : ''}</div>
+													<div className="text-xs text-gray-600">{r.date ? formatToPhilippines(r.date) : ''}</div>
 												</div>
 											</div>
 										))

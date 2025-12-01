@@ -40,18 +40,18 @@ module.exports = (db) => {
       }
 
       if (date) {
-        // exact date
-        where.push('DATE(sl.date) = ?');
+        // exact date (compare in Philippines time)
+        where.push("DATE(CONVERT_TZ(sl.date, '+00:00', 'Asia/Manila')) = ?");
         params.push(date);
       } else if (dateFrom || dateTo) {
         if (dateFrom && dateTo) {
-          where.push('DATE(sl.date) BETWEEN ? AND ?');
+          where.push("DATE(CONVERT_TZ(sl.date, '+00:00', 'Asia/Manila')) BETWEEN ? AND ?");
           params.push(dateFrom, dateTo);
         } else if (dateFrom) {
-          where.push('DATE(sl.date) >= ?');
+          where.push("DATE(CONVERT_TZ(sl.date, '+00:00', 'Asia/Manila')) >= ?");
           params.push(dateFrom);
         } else if (dateTo) {
-          where.push('DATE(sl.date) <= ?');
+          where.push("DATE(CONVERT_TZ(sl.date, '+00:00', 'Asia/Manila')) <= ?");
           params.push(dateTo);
         }
       }
@@ -69,7 +69,10 @@ module.exports = (db) => {
           sl.staffAccount_ID,
           COALESCE(sa.name, NULL) AS staffName,
           sl.action,
-          sl.date
+          CONCAT(
+            DATE_FORMAT(CONVERT_TZ(sl.date, @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%s'),
+            'Z'
+          ) AS date
         FROM tbl_stafflogs sl
         LEFT JOIN tbl_staffaccounts sa ON sl.staffAccount_ID = sa.staffAccount_ID
       `;

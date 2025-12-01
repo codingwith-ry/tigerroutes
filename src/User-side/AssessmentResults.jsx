@@ -910,14 +910,28 @@ const ProgramCard = ({ program, index, type }) => {
     return (
         <div className="border p-4 rounded-lg shadow-sm flex flex-col mb-4">
             <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold text-lg flex items-center">
-                    <span className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 text-[11px] sm:text-xs ${
-                        type === 'track_aligned' ? 'bg-green-500' : 'bg-blue-500'
-                    } text-white font-bold rounded-full mr-2 sm:mr-3 flex-shrink-0 leading-none`}>
-                         {index + 1}
-                     </span>
-                     {programDetails?.programName || 'Unknown Program'}
-                 </h4>
+                <a 
+                    href={programDetails?.programUSTlink || '#'} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="font-semibold text-lg flex items-center group"
+                >
+                    <span 
+                        className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 text-[11px] sm:text-xs ${
+                            type === 'track_aligned' ? 'bg-green-500' : 'bg-blue-500'
+                        } text-white font-bold rounded-full mr-2 sm:mr-3 flex-shrink-0 leading-none`}
+                    >
+                        {index + 1}
+                    </span>
+                    <span 
+                        className="relative text-gray-800 group-hover:text-blue-500 transition-colors duration-300"
+                    >
+                        {programDetails?.programName || 'Unknown Program'}
+                        <span 
+                            className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-500 transition-all duration-300 group-hover:w-full"
+                        />
+                    </span>
+                </a>
                  <span className={`font-bold ${
                      alignmentScore >= 80 ? 'text-green-600' : 
                      alignmentScore >= 60 ? 'text-yellow-600' : 'text-red-600'
@@ -929,9 +943,14 @@ const ProgramCard = ({ program, index, type }) => {
             {/* College Information */}
             {collegeDetails?.collegeName && (
                 <div className="mb-3 flex flex-wrap gap-2">
-                    <span className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
-                         {collegeDetails.collegeName}
-                     </span>
+                    <a 
+                        href={collegeDetails?.collegeUSTlink} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap transition-all duration-300 transform hover:bg-gray-200 hover:scale-105 hover:shadow-md"
+                    >
+                        {collegeDetails.collegeName}
+                    </a>
                      {type === 'track_aligned' && (
                         <span className="bg-green-100 text-green-800 font-medium px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm whitespace-nowrap">
                              Track Aligned

@@ -423,7 +423,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               <h2 className="text-lg font-semibold mb-4">Students Pending Assessment Completion</h2>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-                <div className="flex items-center w-full sm:max-w-xl gap-3">
+                <div className="flex items-center gap-3 w-full sm:max-w-xl">
                   <input
                     type="text"
                     placeholder="Search by name..."
@@ -434,25 +434,34 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                   <div className="hidden sm:block text-xs text-gray-500">Showing {filteredStudents.length} result(s)</div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-3 sm:mt-0">
-                  <label className="text-gray-600 text-sm whitespace-nowrap">Reminded From:</label>
-                  <input
-                    type="date"
-                    value={remindedDateRange.startDate}
-                    onChange={(e) => { setRemindedDateRange(d => ({ ...d, startDate: e.target.value })); setPage(0); }}
-                    className="px-3 py-2 border rounded-lg bg-white"
-                  />
-                  <label className="text-gray-600 text-sm whitespace-nowrap">To:</label>
-                  <input
-                    type="date"
-                    value={remindedDateRange.endDate}
-                    onChange={(e) => { setRemindedDateRange(d => ({ ...d, endDate: e.target.value })); setPage(0); }}
-                    className="px-3 py-2 border rounded-lg bg-white"
-                  />
+                {/* date range: stack on mobile, inline on sm+ */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-3 sm:mt-0 w-full sm:w-auto">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <label className="hidden sm:inline text-gray-600 text-sm whitespace-nowrap">Reminded From:</label>
+                    <input
+                      type="date"
+                      value={remindedDateRange.startDate}
+                      onChange={(e) => { setRemindedDateRange(d => ({ ...d, startDate: e.target.value })); setPage(0); }}
+                      className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+                      aria-label="Reminded from date"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <label className="hidden sm:inline text-gray-600 text-sm whitespace-nowrap">To:</label>
+                    <input
+                      type="date"
+                      value={remindedDateRange.endDate}
+                      onChange={(e) => { setRemindedDateRange(d => ({ ...d, endDate: e.target.value })); setPage(0); }}
+                      className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+                      aria-label="Reminded to date"
+                    />
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => { setRemindedDateRange({ startDate: '', endDate: '' }); setPage(0); }}
-                    className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
+                    className="ml-0 sm:ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500 w-full sm:w-auto"
                   >
                     Clear
                   </button>

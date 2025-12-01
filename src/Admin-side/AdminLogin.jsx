@@ -43,6 +43,7 @@ const AdminLogin = () => {
           allowOutsideClick: false,
           showConfirmButton: true,
           confirmButtonText: 'Close',
+          confirmButtonColor: '#F6BE1E',
           showCloseButton: true,
           willOpen: () => {
             timerInterval = setInterval(() => {
@@ -72,24 +73,35 @@ const AdminLogin = () => {
           const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
           const meRes = await fetch(`${base}/api/staff/me`, { credentials: 'include' });
           if (meRes.ok) {
-            // We do not persist the full staff profile to client-side storage for security.
-            // Let components fetch the authoritative profile via /api/staff/me when they mount.
             navigate('/admin/dashboard');
           } else {
-            // session not available yet - warn but continue to dashboard where fetchStaffProfile will fallback
-            Swal.fire('Notice', 'Logged in but session not yet available. Some admin data may be delayed.', 'info');
-            navigate('/admin/dashboard');
+            Swal.fire({
+              icon: 'info',
+              title: 'Notice',
+              text: 'Logged in but session not yet available. Some admin data may be delayed.',
+              confirmButtonColor: '#F6BE1E'
+            }).then(() => navigate('/admin/dashboard'));
           }
         } catch (err) {
           console.error('Error fetching /api/staff/me after login', err);
-          // Proceed to dashboard; components will fall back to legacy sessionStorage if needed
           navigate('/admin/dashboard');
         }
       } else {
-        alert(data.error || 'Invalid email or password');
+        Swal.fire({
+          icon: 'error',
+          title: 'Login failed',
+          text: data.error || 'Invalid email or password',
+          confirmButtonColor: '#F6BE1E'
+        });
       }
     } catch (err) {
-      alert('Login failed, Please try again.');
+      console.error('Login error', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Request failed',
+        text: 'Login failed. Please try again later.',
+        confirmButtonColor: '#F6BE1E'
+      });
     }
   };
 

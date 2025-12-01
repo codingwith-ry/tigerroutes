@@ -6,16 +6,22 @@ import "swiper/css/navigation";
 
 const testimonials = [
 	{
+		name: "Francis Gohan Ragasa",
+		role: "BS Information Technology, UST",
+		image: "../avatars/francis.webp",
+		text: "I always thought I’d take Engineering, but this platform opened my eyes to Information Technology—and I love it. Big W.",
+	},
+	{
+		name: "Chloe Celestine Palomera",
+		role: "BA Behavioral Science, UST",
+		image: "../avatars/chloe.webp",
+		text: "I was so confused about what to study, but TigerRoutes made it easy. The personality test and career suggestions were spot on!",
+	},
+	{
 		name: "Anjelico Mari Saturnino",
 		role: "BS Information Technology, UST",
 		image: "../avatars/jco.webp",
 		text: "TigerRoutes helped me discover my passion for Network Security. The career suggestions were spot on!",
-	},
-	{
-		name: "Francis Gohan Ragasa",
-		role: "BS Information Technology, UST",
-		image: "../avatars/francis.webp",
-		text: "I always thought I’d take Engineering, but this platform opened my eyes to Computer Science—and I love it. Big W.",
 	},
 	{
 		name: "Chelsea Glorioso",

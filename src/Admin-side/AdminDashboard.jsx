@@ -22,7 +22,8 @@ const AdminDashboard = () => {
     overallAlignment: 0,
     totalCounselors: 0,
   });
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error] = useState(null);
 
   useEffect(() => {
     document.title = "Admin Dashboard | Overview";
@@ -244,6 +245,39 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
   </div>
 );
 
+  if (loading) {
+        return (
+            <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                <AdminSidebar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Preparing for dashboard overview...</p>
+                    </div>
+                </div>
+            </div>
+        );
+  }
+
+    if (error) {
+        return (
+            <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                <AdminSidebar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-red-500">
+                        <p className="text-lg font-semibold">Error loading Dashboard Page</p>
+                        <p className="mt-2">{error}</p>
+                        <button 
+                            onClick={() => { window.location.reload(); }}
+                            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
@@ -379,16 +413,16 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
             <div className="mt-6 bg-white rounded-2xl shadow p-4 sm:p-6">
               <h2 className="text-lg font-semibold mb-4">Students Pending Assessment Completion</h2>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-4">
-                <div className="flex items-center w-full sm:w-auto gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+                <div className="flex items-center w-full sm:max-w-xl gap-3">
                   <input
                     type="text"
                     placeholder="Search by name..."
                     value={searchTerm}
                     onChange={e => { setSearchTerm(e.target.value); setPage(0); }}
-                    className="px-3 py-2 border rounded-md w-full max-w-xl"
+                    className="px-3 py-2 border rounded-md w-full"
                   />
-                  {/* <div className="text-xs text-gray-500 hidden sm:block">Showing {filteredStudents.length} result(s)</div> */}
+                  <div className="hidden sm:block text-xs text-gray-500">Showing {filteredStudents.length} result(s)</div>
                 </div>
 
                 <div className="flex items-center gap-2 mt-3 sm:mt-0">
@@ -414,6 +448,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                     Clear
                   </button>
                 </div>
+
                 <div className="text-xs text-gray-500 sm:hidden mt-2">Showing {filteredStudents.length} result(s)</div>
               </div>
 

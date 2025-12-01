@@ -89,6 +89,7 @@ const AdminAssessment = () => {
   const [assessments, setAssessments] = useState([]);
   const [totalAssessments, setTotalAssessments] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error] = useState(null);
 
   // Filters (ActivityLogs-style)
   const [filterText, setFilterText] = useState("");
@@ -715,6 +716,39 @@ const AdminAssessment = () => {
     );
   };
 
+  if (loading) {
+          return (
+              <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                  <AdminSidebar />
+                  <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                          <p className="mt-4 text-gray-600">Preparing for assessments analytics...</p>
+                      </div>
+                  </div>
+              </div>
+          );
+    }
+  
+      if (error) {
+          return (
+              <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                  <AdminSidebar />
+                  <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center text-red-500">
+                          <p className="text-lg font-semibold">Error loading Dashboard Page</p>
+                          <p className="mt-2">{error}</p>
+                          <button 
+                              onClick={() => { window.location.reload(); }}
+                              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                          >
+                              Retry
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          );
+      }
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">

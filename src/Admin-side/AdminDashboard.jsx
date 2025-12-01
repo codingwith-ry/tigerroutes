@@ -379,6 +379,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                       <th className="px-3 py-2">Student Name</th>
                       <th className="px-3 py-2">Email</th>
                       <th className="px-3 py-2">Pending Assessment</th>
+                      <th className="px-3 py-2">Date Reminded</th>
                       <th className="px-3 py-2">Action</th>
                     </tr>
                   </thead>
@@ -390,6 +391,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <td className="px-3 py-3 font-medium text-gray-900">{s.name}</td>
                         <td className="px-3 py-3 text-gray-600">{s.email}</td>
                         <td className="px-3 py-3">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
+                        <td className="px-3 py-3 text-gray-600">{s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</td>
                         <td className="px-3 py-3">
                           <button
                             onClick={async () => {

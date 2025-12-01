@@ -143,15 +143,27 @@ module.exports = (db) => {
 
     // Get students who have no completed assessments (may have pending assessments)
     router.get('/unassessed-students', (req, res) => {
-        const sql = `
-        SELECT s.studentAccount_ID, s.name, s.email, pa.pendingAssessment_ID
-        FROM tbl_studentaccounts s
-        LEFT JOIN tbl_pendingassessments pa ON pa.studentAccount_ID = s.studentAccount_ID
-        WHERE NOT EXISTS (
-            SELECT 1 FROM tbl_studentassessments sa WHERE sa.studentAccount_ID = s.studentAccount_ID
-        )
-        ORDER BY s.name;
-        `;
+                const sql = `
+                SELECT
+                    s.studentAccount_ID,
+                    s.name,
+                    s.email,
+                    pa.pendingAssessment_ID,
+                    (
+                        SELECT sl.date
+                        FROM tbl_stafflogs sl
+                        WHERE sl.action LIKE 'Reminder sent to student %'
+                            AND sl.action LIKE CONCAT('%', s.email, '%')
+                        ORDER BY sl.date DESC
+                        LIMIT 1
+                    ) AS lastReminderDate
+                FROM tbl_studentaccounts s
+                LEFT JOIN tbl_pendingassessments pa ON pa.studentAccount_ID = s.studentAccount_ID
+                WHERE NOT EXISTS (
+                        SELECT 1 FROM tbl_studentassessments sa WHERE sa.studentAccount_ID = s.studentAccount_ID
+                )
+                ORDER BY s.name;
+                `;
 
         db.query(sql, (err, rows) => {
             if (err) return res.status(500).json({ success: false, error: err.message });
@@ -159,6 +171,7 @@ module.exports = (db) => {
                 studentAccount_ID: r.studentAccount_ID,
                 name: r.name,
                 email: r.email,
+                lastReminderDate: r.lastReminderDate,
                 pendingAssessment_ID: r.pendingAssessment_ID || null
             }));
             res.json({ success: true, data });
@@ -264,6 +277,15 @@ module.exports = (db) => {
             };
 
             await transporter.sendMail(mailOptions);
+            // Log staff action: who sent the reminder and to which student
+            try {
+                const staffId = req.user && req.user.id ? req.user.id : null;
+                const actionText = `Reminder sent to student ${student.email} (ID:${studentAccount_ID})`;
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffId, actionText]);
+            } catch (logErr) {
+                console.warn('[remind-student] failed to insert staff log', logErr && logErr.message ? logErr.message : logErr);
+            }
+
             return res.json({ success: true, message: 'Reminder sent' });
         } catch (err) {
             console.error('[remind-student] error:', err && err.stack ? err.stack : err);

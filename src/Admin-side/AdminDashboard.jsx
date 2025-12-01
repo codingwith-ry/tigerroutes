@@ -534,20 +534,34 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
 
               {/* Pagination controls */}
               {filteredStudents.length > 0 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-gray-600">Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, filteredStudents.length)} of {filteredStudents.length}</div>
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-600">
+                  <div className="mb-2 sm:mb-0">
+                    Showing {filteredStudents.length === 0 ? 0 : currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, filteredStudents.length)} of {filteredStudents.length} entries
+                  </div>
+                  <div className="flex space-x-1">
                     <button
-                      onClick={() => setPage(p => Math.max(0, p - 1))}
+                      onClick={() => setPage(p => Math.max(p - 1, 0))}
                       disabled={currentPage === 0}
-                      className={`px-3 py-1 rounded-md border ${currentPage === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
-                    >Prev</button>
-                    <div className="text-sm text-gray-700">Page {currentPage + 1} / {totalPages}</div>
+                      className="px-3 py-1 border rounded disabled:opacity-50"
+                    >
+                      &lt;
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setPage(i)}
+                        className={`px-3 py-1 border rounded ${currentPage === i ? "bg-yellow-200 font-bold" : ""}`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
                     <button
-                      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                      disabled={currentPage >= totalPages - 1}
-                      className={`px-3 py-1 rounded-md border ${currentPage >= totalPages - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
-                    >Next</button>
+                      onClick={() => setPage(p => Math.min(p + 1, totalPages - 1))}
+                      disabled={currentPage === totalPages - 1}
+                      className="px-3 py-1 border rounded disabled:opacity-50"
+                    >
+                      &gt;
+                    </button>
                   </div>
                 </div>
               )}

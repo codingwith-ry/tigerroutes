@@ -115,6 +115,7 @@ const AdminDashboard = () => {
   const [unassessedStudents, setUnassessedStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
+  const [remindedDateRange, setRemindedDateRange] = useState({ startDate: '', endDate: '' });
   const pageSize = 10;
 
   async function fetchTopPrograms() {
@@ -147,8 +148,25 @@ const AdminDashboard = () => {
 
   // client-side search + pagination
   const filteredStudents = (unassessedStudents || []).filter(s => {
-    if (!searchTerm) return true;
-    return (s.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // name search
+    if (searchTerm && !(s.name || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
+
+    // date reminded filter: if either start or end provided, require lastReminderDate to be present and within range
+    const { startDate, endDate } = remindedDateRange || {};
+    if ((startDate && startDate.trim()) || (endDate && endDate.trim())) {
+      if (!s.lastReminderDate) return false;
+      const reminded = new Date(s.lastReminderDate);
+      if (startDate && startDate.trim()) {
+        const sd = new Date(startDate + 'T00:00:00');
+        if (reminded < sd) return false;
+      }
+      if (endDate && endDate.trim()) {
+        const ed = new Date(endDate + 'T23:59:59');
+        if (reminded > ed) return false;
+      }
+    }
+
+    return true;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
@@ -361,77 +379,157 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
             <div className="mt-6 bg-white rounded-2xl shadow p-4 sm:p-6">
               <h2 className="text-lg font-semibold mb-4">Students Pending Assessment Completion</h2>
 
-              <div className="flex items-center gap-3 mb-4">
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchTerm}
-                  onChange={e => { setSearchTerm(e.target.value); setPage(0); }}
-                  className="px-3 py-2 border rounded-md w-full max-w-sm"
-                />
-                <div className="text-xs text-gray-500">Showing {filteredStudents.length} result(s)</div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-4">
+                <div className="flex items-center w-full sm:w-auto gap-3">
+                  <input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={e => { setSearchTerm(e.target.value); setPage(0); }}
+                    className="px-3 py-2 border rounded-md w-full max-w-xl"
+                  />
+                  {/* <div className="text-xs text-gray-500 hidden sm:block">Showing {filteredStudents.length} result(s)</div> */}
+                </div>
+
+                <div className="flex items-center gap-2 mt-3 sm:mt-0">
+                  <label className="text-gray-600 text-sm whitespace-nowrap">Reminded From:</label>
+                  <input
+                    type="date"
+                    value={remindedDateRange.startDate}
+                    onChange={(e) => { setRemindedDateRange(d => ({ ...d, startDate: e.target.value })); setPage(0); }}
+                    className="px-3 py-2 border rounded-lg bg-white"
+                  />
+                  <label className="text-gray-600 text-sm whitespace-nowrap">To:</label>
+                  <input
+                    type="date"
+                    value={remindedDateRange.endDate}
+                    onChange={(e) => { setRemindedDateRange(d => ({ ...d, endDate: e.target.value })); setPage(0); }}
+                    className="px-3 py-2 border rounded-lg bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setRemindedDateRange({ startDate: '', endDate: '' }); setPage(0); }}
+                    className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500 sm:hidden mt-2">Showing {filteredStudents.length} result(s)</div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead>
-                    <tr className="text-xs text-gray-500">
-                      <th className="px-3 py-2">Student Name</th>
-                      <th className="px-3 py-2">Email</th>
-                      <th className="px-3 py-2">Pending Assessment</th>
-                      <th className="px-3 py-2">Date Reminded</th>
-                      <th className="px-3 py-2">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredStudents.length === 0 ? (
-                      <tr><td colSpan={4} className="px-3 py-4 text-sm text-gray-500">No students found</td></tr>
-                    ) : currentPageItems.map(s => (
-                      <tr key={s.studentAccount_ID} className="border-t">
-                        <td className="px-3 py-3 font-medium text-gray-900">{s.name}</td>
-                        <td className="px-3 py-3 text-gray-600">{s.email}</td>
-                        <td className="px-3 py-3">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
-                        <td className="px-3 py-3 text-gray-600">{s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</td>
-                        <td className="px-3 py-3">
-                          <button
-                            onClick={async () => {
-                              const confirm = await Swal.fire({
-                                title: 'Send reminder?',
-                                text: `Send reminder email to ${s.name}?`,
-                                icon: 'question',
-                                showCancelButton: true,
-                                confirmButtonText: 'Send',
-                                cancelButtonText: 'Cancel'
-                              });
-                              if (!confirm.isConfirmed) return;
-                              try {
-                                const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                                const resp = await fetch(`${base}/api/admin/remind-student`, {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  credentials: 'include',
-                                  body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
-                                });
-                                const body = await resp.json();
-                                if (resp.ok && body.success) {
-                                  Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
-                                } else {
-                                  Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
-                                }
-                              } catch (err) {
-                                console.error('Error sending reminder:', err);
-                                Swal.fire('Error', 'Failed to send reminder.', 'error');
-                              }
-                            }}
-                            className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500"
-                          >
-                            Remind
-                          </button>
-                        </td>
+              <div className="bg-white rounded-xl shadow border border-gray-200 mt-4">
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="min-w-full text-sm text-left">
+                    <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                      <tr>
+                        <th className="px-6 py-3">Student Name</th>
+                        <th className="px-6 py-3">Email</th>
+                        <th className="px-6 py-3">Pending Assessment</th>
+                        <th className="px-6 py-3">Date Reminded</th>
+                        <th className="px-6 py-3">Action</th>
                       </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filteredStudents.length === 0 ? (
+                        <tr><td colSpan={5} className="text-center py-4 text-gray-500">No students found.</td></tr>
+                      ) : (
+                        currentPageItems.map((s) => (
+                          <tr key={s.studentAccount_ID} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 font-medium text-gray-900">{s.name}</td>
+                            <td className="px-6 py-4 text-gray-600">{s.email}</td>
+                            <td className="px-6 py-4">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
+                            <td className="px-6 py-4 text-gray-600">{s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={async () => {
+                                    const confirm = await Swal.fire({
+                                      title: 'Send reminder?',
+                                      text: `Send reminder email to ${s.name}?`,
+                                      icon: 'question',
+                                      showCancelButton: true,
+                                      confirmButtonText: 'Send',
+                                      cancelButtonText: 'Cancel'
+                                    });
+                                    if (!confirm.isConfirmed) return;
+                                    try {
+                                      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                                      const resp = await fetch(`${base}/api/admin/remind-student`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
+                                      });
+                                      const body = await resp.json();
+                                      if (resp.ok && body.success) {
+                                        Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
+                                        // Refresh list to show updated reminder date
+                                        fetchUnassessedStudents();
+                                      } else {
+                                        Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
+                                      }
+                                    } catch (err) {
+                                      console.error('Error sending reminder:', err);
+                                      Swal.fire('Error', 'Failed to send reminder.', 'error');
+                                    }
+                                  }}
+                                  className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500"
+                                >
+                                  Remind
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile fallback: simple list */}
+                <div className="sm:hidden">
+                  <div className="space-y-3 p-2">
+                    {currentPageItems.map((s) => (
+                      <div key={s.studentAccount_ID} className="border rounded-md p-3">
+                        <div className="font-medium text-gray-900">{s.name}</div>
+                        <div className="text-sm text-gray-600">{s.email}</div>
+                        <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
+                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</div>
+                        <div className="mt-2">
+                          <button onClick={async () => {
+                            const confirm = await Swal.fire({
+                              title: 'Send reminder?',
+                              text: `Send reminder email to ${s.name}?`,
+                              icon: 'question',
+                              showCancelButton: true,
+                              confirmButtonText: 'Send',
+                              cancelButtonText: 'Cancel'
+                            });
+                            if (!confirm.isConfirmed) return;
+                            try {
+                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                              const resp = await fetch(`${base}/api/admin/remind-student`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
+                              });
+                              const body = await resp.json();
+                              if (resp.ok && body.success) {
+                                Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
+                                fetchUnassessedStudents();
+                              } else {
+                                Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
+                              }
+                            } catch (err) {
+                              console.error('Error sending reminder:', err);
+                              Swal.fire('Error', 'Failed to send reminder.', 'error');
+                            }
+                          }} className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500">Remind</button>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
 
               {/* Pagination controls */}

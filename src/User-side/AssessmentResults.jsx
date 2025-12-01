@@ -163,7 +163,7 @@ const TopTraitsSection = ({ riasec, bigFive }) => {
 
     return (
         <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-6 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-2xl shadow border border-blue-100 p-6">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
                         <BsBriefcase className="w-5 h-5 text-white" />
@@ -193,7 +193,7 @@ const TopTraitsSection = ({ riasec, bigFive }) => {
                     ))}
                 </ul>
             </div>
-            <div className="bg-white rounded-2xl shadow-lg border border-purple-100 p-6 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-2xl shadow border border-purple-100 p-6">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
                         <BsPerson className="w-5 h-5 text-white" />
@@ -642,7 +642,7 @@ const AssessmentResults = () => {
                     {programRecommendations?.cross_track && programRecommendations.cross_track.length > 0 && (
                         <>
                             <h4 className="text-lg font-semibold mb-3">Cross-Track Programs</h4>
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
                                 {sortedCrossTrack.map((program, idx) => (
                                     <ProgramCard 
                                         key={program.recommendation.recommendation_ID || idx}
@@ -911,39 +911,39 @@ const ProgramCard = ({ program, index, type }) => {
         <div className="border p-4 rounded-lg shadow-sm flex flex-col mb-4">
             <div className="flex justify-between items-center mb-2">
                 <h4 className="font-semibold text-lg flex items-center">
-                    <span className={`flex items-center justify-center w-6 h-6 ${
+                    <span className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 text-[11px] sm:text-xs ${
                         type === 'track_aligned' ? 'bg-green-500' : 'bg-blue-500'
-                    } text-white font-bold rounded-full mr-3`}>
-                        {index + 1}
-                    </span>
-                    {programDetails?.programName || 'Unknown Program'}
-                </h4>
-                <span className={`font-bold ${
-                    alignmentScore >= 80 ? 'text-green-600' : 
-                    alignmentScore >= 60 ? 'text-yellow-600' : 'text-red-600'
-                }`}>
-                    {alignmentScore}% match
-                </span>
-            </div>
+                    } text-white font-bold rounded-full mr-2 sm:mr-3 flex-shrink-0 leading-none`}>
+                         {index + 1}
+                     </span>
+                     {programDetails?.programName || 'Unknown Program'}
+                 </h4>
+                 <span className={`font-bold ${
+                     alignmentScore >= 80 ? 'text-green-600' : 
+                     alignmentScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                 }`}>
+                     {alignmentScore}% match
+                 </span>
+             </div>
 
             {/* College Information */}
             {collegeDetails?.collegeName && (
-                <div className="mb-3">
-                    <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full me-3">
-                        {collegeDetails.collegeName}
-                    </span>
-                    {type === 'track_aligned' && (
-                        <span className="bg-green-100 text-green-800 font-medium px-3 py-1 rounded-full text-sm">
-                            Track Aligned
-                        </span>
-                    )}
-                    {type === 'cross_track' && (
-                        <span className="bg-blue-100 text-blue-800 font-medium px-3 py-1 rounded-full text-sm">
-                            Cross Track
-                        </span>
-                    )}
-                </div>
-            )}
+                <div className="mb-3 flex flex-wrap gap-2">
+                    <span className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
+                         {collegeDetails.collegeName}
+                     </span>
+                     {type === 'track_aligned' && (
+                        <span className="bg-green-100 text-green-800 font-medium px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm whitespace-nowrap">
+                             Track Aligned
+                         </span>
+                     )}
+                     {type === 'cross_track' && (
+                        <span className="bg-blue-100 text-blue-800 font-medium px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm whitespace-nowrap">
+                             Cross Track
+                         </span>
+                     )}
+                 </div>
+             )}
 
             {/* Program Description */}
             {programDetails?.programDescription && (
@@ -1042,4 +1042,3 @@ ProgramCard.propTypes = {
 
 export default AssessmentResults;
 
-            

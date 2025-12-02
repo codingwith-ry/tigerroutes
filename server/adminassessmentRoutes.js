@@ -165,6 +165,18 @@ module.exports = (db) => {
             return res.status(400).json({ success: false, message: 'assessment id, staffAccount_ID and counselorNotes are required' });
           }
 
+          // Enforce single counselor note per assessment at the DB level
+          // so multiple staff sessions can't race to create multiple notes.
+          try {
+            const [existing] = await db.promise().query('SELECT counselorNote_ID FROM tbl_counselornotes WHERE studentAssessment_ID = ? LIMIT 1', [assessmentId]);
+            if (existing && existing.length > 0) {
+              return res.status(409).json({ success: false, message: 'A counselor note already exists for this assessment' });
+            }
+          } catch (chkErr) {
+            console.warn('Failed to check existing counselor note:', chkErr);
+            // allow operation to proceed or fail on insert; do not block on check errors
+          }
+
           const insertSql = `INSERT INTO tbl_counselornotes (studentAssessment_ID, staffAccount_ID, counselorNotes, date) VALUES (?, ?, ?, NOW())`;
           const [result] = await db.promise().query(insertSql, [assessmentId, staffAccount_ID, counselorNotes]);
 

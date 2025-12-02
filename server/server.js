@@ -186,13 +186,14 @@ app.use('/api/admin', adminassessmentRoutes);
 const adminlogsRoutes = require('./adminlogs.js')(db);
 app.use('/api/admin', adminlogsRoutes);
 
+//importing all assessment routes
+const assessmentRoutes = require('./assessmentRoutes.js')(db);
+app.use('/api', assessmentRoutes);
+
 //importing all profile routes
 const profileRoutes = require('./profileRoutes.js')(db);
 app.use('/api', profileRoutes);
 
-//importing all assessment routes
-const assessmentRoutes = require('./assessmentRoutes.js')(db);
-app.use('/api', assessmentRoutes);
 
 // If this file is the entrypoint, start listening. Otherwise export `app` for tests.
 if (require.main === module) {

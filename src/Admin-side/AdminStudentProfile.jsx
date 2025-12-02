@@ -30,7 +30,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadDetails() {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
         const payload = await res.json();
         if (cancelled) return;
         if (!payload || !payload.success) {
@@ -126,16 +126,14 @@ const AdminStudentProfile = () => {
 
   const [newNote, setNewNote] = useState('');
 
-  // Local cached staff profile (fetched when sessionStorage only contains id)
-  const [staffUserProfile, setStaffUserProfile] = useState(() => {
-    try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; }
-  });
+  // Local cached staff profile (fetched from server via JWT cookie)
+  const [staffUserProfile, setStaffUserProfile] = useState(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       const p = await fetchStaffProfile();
-      if (mounted && p) setStaffUserProfile(p);
+      if (mounted) setStaffUserProfile(p || null);
     })();
     return () => { mounted = false; };
   }, []);
@@ -148,7 +146,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadNotes() {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
         const body = await res.json();
         if (cancelled) return;
         if (body && body.success) {
@@ -185,7 +183,11 @@ const AdminStudentProfile = () => {
     }
 
     // determine current staff user from sessionStorage
-  const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+  let staffUser = staffUserProfile;
+  if (!staffUser) {
+    staffUser = await fetchStaffProfile();
+    if (staffUser) setStaffUserProfile(staffUser);
+  }
   const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
     if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
@@ -210,7 +212,7 @@ const AdminStudentProfile = () => {
       if (body && body.success) {
         // reload notes
         setNewNote('');
-        const refresh = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
+        const refresh = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/${encodeURIComponent(assessmentId)}/notes`, { credentials: 'include' });
         const refreshed = await refresh.json();
         if (refreshed && refreshed.success) {
           const notes = (refreshed.data || []).map(n => ({
@@ -239,7 +241,11 @@ const AdminStudentProfile = () => {
   const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
   if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
 
-  const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+  let staffUser = staffUserProfile;
+  if (!staffUser) {
+    staffUser = await fetchStaffProfile();
+    if (staffUser) setStaffUserProfile(staffUser);
+  }
   const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
   if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
@@ -292,7 +298,11 @@ const AdminStudentProfile = () => {
   const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
   if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
 
-  const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
+  let staffUser = staffUserProfile;
+  if (!staffUser) {
+    staffUser = await fetchStaffProfile();
+    if (staffUser) setStaffUserProfile(staffUser);
+  }
   const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
   if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
 
@@ -621,8 +631,8 @@ const AdminStudentProfile = () => {
                                       ) : null}
                                       {/* show Edit/Delete buttons only for the owner */}
                                         {(() => {
-                                        const staffUser = staffUserProfile || (() => { try { return JSON.parse(sessionStorage.getItem('staffUser') || 'null'); } catch { return null; } })();
-                                        const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+                                        const staffUser = staffUserProfile;
+                                        const staffAccount_ID = staffUser ? (staffUser.staffAccount_ID || staffUser.staffAccountId || staffUser.staffAccountID || staffUser.id) : null;
                                         if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
                                           return (
                                             <>

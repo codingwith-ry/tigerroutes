@@ -4,6 +4,18 @@ const jwt = require('jsonwebtoken');
 // Rejects when cookie missing, token invalid, or the decoded token does not contain an allowed staff role.
 module.exports = function requireJwt(req, res, next) {
   try {
+    // If a previous middleware (verifyJwtCookie) has already decoded a staff token,
+    // trust that `req.user` instead of re-verifying the cookie. This avoids cases
+    // where cookie parsing/ordering causes duplicate verification failures.
+    if (req.user && req.user.isStaffToken) {
+      const roleId = req.user.staffRole_ID || req.user.staffRoleId || null;
+      if (!roleId) return res.status(403).json({ success: false, error: 'Forbidden: staff role required' });
+      const allowed = (process.env.ALLOWED_STAFF_ROLES || '1,2').split(',').map((v) => Number(v.trim())).filter(Boolean);
+      if (!allowed.includes(Number(roleId))) return res.status(403).json({ success: false, error: 'Forbidden: insufficient role' });
+      return next();
+    }
+
+    // Fallback: directly verify the tigerStaffToken cookie if req.user was not set
     const token = req.cookies && req.cookies.tigerStaffToken;
     if (!token) {
       return res.status(401).json({ success: false, error: 'Authentication required (tigerStaffToken)' });
@@ -17,14 +29,11 @@ module.exports = function requireJwt(req, res, next) {
       return res.status(401).json({ success: false, error: 'Invalid or expired staff authentication token' });
     }
 
-    // Require staffRole_ID in the token
     const roleId = decoded.staffRole_ID || decoded.staffRoleId || null;
     if (!roleId) {
       return res.status(403).json({ success: false, error: 'Forbidden: staff role required' });
     }
 
-    // Allowed roles can be configured via env var (comma-separated).
-    // Default permits both counselors (1) and supervisors (2) so admin UI works for both.
     const allowed = (process.env.ALLOWED_STAFF_ROLES || '1,2').split(',').map((v) => Number(v.trim())).filter(Boolean);
     if (!allowed.includes(Number(roleId))) {
       return res.status(403).json({ success: false, error: 'Forbidden: insufficient role' });

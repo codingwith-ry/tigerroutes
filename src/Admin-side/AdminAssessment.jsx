@@ -89,6 +89,7 @@ const AdminAssessment = () => {
   const [assessments, setAssessments] = useState([]);
   const [totalAssessments, setTotalAssessments] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error] = useState(null);
 
   // Filters (ActivityLogs-style)
   const [filterText, setFilterText] = useState("");
@@ -281,7 +282,7 @@ const AdminAssessment = () => {
         />
         <StatCard
           title="Completed Assessments"
-          // display total assessment rows as the main number
+          // display total assessment records as the main number
           value={stats.completedAssessments}
           // completion rate is based on students with >=1 assessment vs total students
           subtitle={`${((stats.completedStudents / (stats.totalStudents || 1)) * 100).toFixed(1)}% of Students Assessed`}
@@ -315,40 +316,49 @@ const AdminAssessment = () => {
             onChange={(e) => { setFilterText(e.target.value); setCurrentPage(1); }}
             className="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:outline-none mb-3 sm:mb-0"
           />
-          <div className="flex items-center space-x-2">
-            <label className="text-gray-600 text-sm whitespace-nowrap">From:</label>
-            <input
-              type="date"
-              value={dateRangeFilter.startDate}
-              onChange={(e) => { setDateRangeFilter({...dateRangeFilter, startDate: e.target.value}); setCurrentPage(1); }}
-              className="px-3 py-2 border rounded-lg bg-white"
-            />
-            <label className="text-gray-600 text-sm whitespace-nowrap">To:</label>
-            <input
-              type="date"
-              value={dateRangeFilter.endDate}
-              onChange={(e) => { setDateRangeFilter({...dateRangeFilter, endDate: e.target.value}); setCurrentPage(1); }}
-              className="px-3 py-2 border rounded-lg bg-white"
-            />
-            <label className="text-gray-600 text-sm whitespace-nowrap">Grade:</label>
-            <select
-              value={gradeFilter}
-              onChange={(e) => { setGradeFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-2 border rounded-lg bg-white"
-            >
-              <option value="">All Grades</option>
-              <option value="11">Grade 11</option>
-              <option value="12">Grade 12</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => { setDateRangeFilter({ startDate: '', endDate: '' }); setGradeFilter(''); setCurrentPage(1); }}
-              className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
-            >
-              Clear
-            </button>
+          <div className="w-full sm:w-auto mt-3 sm:mt-0">
+            <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:gap-2">
+              <label htmlFor="assess-from" className="sr-only sm:inline text-gray-600 text-sm whitespace-nowrap">From:</label>
+              <input
+                id="assess-from"
+                type="date"
+                value={dateRangeFilter.startDate}
+                onChange={(e) => { setDateRangeFilter({...dateRangeFilter, startDate: e.target.value}); setCurrentPage(1); }}
+                className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+              />
+
+              <label htmlFor="assess-to" className="sr-only sm:inline text-gray-600 text-sm whitespace-nowrap">To:</label>
+              <input
+                id="assess-to"
+                type="date"
+                value={dateRangeFilter.endDate}
+                onChange={(e) => { setDateRangeFilter({...dateRangeFilter, endDate: e.target.value}); setCurrentPage(1); }}
+                className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+              />
+
+              <label htmlFor="assess-grade" className="sr-only sm:inline text-gray-600 text-sm whitespace-nowrap">Grade:</label>
+              <select
+                id="assess-grade"
+                value={gradeFilter}
+                onChange={(e) => { setGradeFilter(e.target.value); setCurrentPage(1); }}
+                className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+              >
+                <option value="">All Grades</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={() => { setDateRangeFilter({ startDate: '', endDate: '' }); setGradeFilter(''); setCurrentPage(1); }}
+                className="px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500 w-full sm:w-auto"
+                aria-label="Clear filters"
+              >
+                Clear
+              </button>
+            </div>
           </div>
-        </div>
+         </div>
 
   <div className="bg-white rounded-xl shadow border border-gray-200 mt-4">
           {/* Desktop Table */}
@@ -535,38 +545,47 @@ const AdminAssessment = () => {
         {/* Title and date-range aligned on one row (right-aligned on sm+) */}
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-xl font-bold text-gray-800">Strand Analytics Overview</h2>
-          <div className="flex items-center gap-2 justify-start sm:justify-end">
-            <label className="text-gray-600 text-sm whitespace-nowrap">From:</label>
-            <input
-              type="date"
-              value={strandDateRangeFilter.startDate}
-              onChange={(e) => { setStrandDateRangeFilter({ ...strandDateRangeFilter, startDate: e.target.value }); }}
-              className="px-3 py-2 border rounded-lg bg-white"
-            />
-            <label className="text-gray-600 text-sm whitespace-nowrap">To:</label>
-            <input
-              type="date"
-              value={strandDateRangeFilter.endDate}
-              onChange={(e) => { setStrandDateRangeFilter({ ...strandDateRangeFilter, endDate: e.target.value }); }}
-              className="px-3 py-2 border rounded-lg bg-white"
-            />
-            <label className="text-gray-600 text-sm whitespace-nowrap">Grade:</label>
-            <select
-              value={strandGradeFilter}
-              onChange={(e) => setStrandGradeFilter(e.target.value)}
-              className="px-3 py-2 border rounded-lg bg-white"
-            >
-              <option value="">All Grades</option>
-              <option value="11">Grade 11</option>
-              <option value="12">Grade 12</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => setStrandDateRangeFilter({ startDate: '', endDate: '' })}
-              className="ml-2 px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500"
-            >
-              Clear
-            </button>
+
+          <div className="w-full sm:w-auto mt-3 sm:mt-0">
+            <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:gap-2">
+              <label htmlFor="strand-from" className="sr-only sm:inline text-gray-600 text-sm whitespace-nowrap">From:</label>
+              <input
+                id="strand-from"
+                type="date"
+                value={strandDateRangeFilter.startDate}
+                onChange={(e) => { setStrandDateRangeFilter({ ...strandDateRangeFilter, startDate: e.target.value }); }}
+                className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+              />
+
+              <label htmlFor="strand-to" className="sr-only sm:inline text-gray-600 text-sm whitespace-nowrap">To:</label>
+              <input
+                id="strand-to"
+                type="date"
+                value={strandDateRangeFilter.endDate}
+                onChange={(e) => { setStrandDateRangeFilter({ ...strandDateRangeFilter, endDate: e.target.value }); }}
+                className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+              />
+
+              <label htmlFor="strand-grade" className="sr-only sm:inline text-gray-600 text-sm whitespace-nowrap">Grade:</label>
+              <select
+                id="strand-grade"
+                value={strandGradeFilter}
+                onChange={(e) => setStrandGradeFilter(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white w-full sm:w-auto"
+              >
+                <option value="">All Grades</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={() => setStrandDateRangeFilter({ startDate: '', endDate: '' })}
+                className="px-3 py-2 border rounded-md bg-yellow-400 text-white text-sm hover:bg-yellow-500 w-full sm:w-auto"
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </div>
 
@@ -715,6 +734,39 @@ const AdminAssessment = () => {
     );
   };
 
+  if (loading) {
+          return (
+              <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                  <AdminSidebar />
+                  <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                          <p className="mt-4 text-gray-600">Preparing for assessments analytics...</p>
+                      </div>
+                  </div>
+              </div>
+          );
+    }
+  
+      if (error) {
+          return (
+              <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                  <AdminSidebar />
+                  <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center text-red-500">
+                          <p className="text-lg font-semibold">Error loading assessments analytics</p>
+                          <p className="mt-2">{error}</p>
+                          <button 
+                              onClick={() => { window.location.reload(); }}
+                              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                          >
+                              Retry
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          );
+      }
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">

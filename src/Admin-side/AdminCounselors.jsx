@@ -17,12 +17,16 @@ const AdminCounselors = () => {
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+
   const [counselors, setCounselors] = useState([
   //   { name: "Dr. John Cruz", strand: "STEM", lastLogin: "2025-09-16 08:10", status: "Active" },
   //   { name: "Dr. Lily Cruz", strand: "ABM", lastLogin: "2025-09-16 06:45", status: "Active" },
   // { name: "Ms. Carla Rivera", strand: "HUMSS", lastLogin: "2025-09-15 19:20", status: "Active" },
   //   { name: "Dr. John Doe", strand: "TVL", lastLogin: "2025-09-18 08:20", status: "Inactive" },
   ]);
+
+  const [loading] = useState(false);
+  const [error] = useState(null);
 
   useEffect(() => {
     document.title = "Admin Dashboard | Manage Counselors";
@@ -78,6 +82,40 @@ const AdminCounselors = () => {
   const totalPages = Math.ceil(filteredCounselors.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentCounselors = filteredCounselors.slice(startIndex, startIndex + itemsPerPage);
+
+  if (loading) {
+            return (
+                <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                    <AdminSidebar />
+                    <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Preparing for manage counselors...</p>
+                        </div>
+                    </div>
+                </div>
+            );
+      }
+    
+        if (error) {
+            return (
+                <div className="min-h-screen w-full bg-[#FFFCED] flex">
+                    <AdminSidebar />
+                    <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center text-red-500">
+                            <p className="text-lg font-semibold">Error loading manage counselors</p>
+                            <p className="mt-2">{error}</p>
+                            <button 
+                                onClick={() => { window.location.reload(); }}
+                                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">

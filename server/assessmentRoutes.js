@@ -380,7 +380,8 @@ module.exports = (db) => {
                                 const fetchProgramWithCollege = `
                                     SELECT 
                                         p.*, 
-                                        c.collegeName 
+                                        c.collegeName,
+                                        c.collegeUSTlink
                                     FROM tbl_programs p 
                                     LEFT JOIN tbl_colleges c ON p.collegeID = c.collegeID 
                                     WHERE p.program_ID = ?`;
@@ -408,7 +409,7 @@ module.exports = (db) => {
                                     resolve({
                                         recommendation: JSON.parse(JSON.stringify(reco)),
                                         programDetails: programDetails,
-                                        collegeDetails: collegeName ? { collegeName } : null
+                                        collegeDetails: collegeName ? { collegeName, collegeUSTlink: resultData.collegeUSTlink } : null
                                     });
                                 });
                             });
@@ -480,7 +481,7 @@ module.exports = (db) => {
 
             db.query(fetchAssessmentHistory, [studentID], (err, results) => {
                 if (err) {
-                    return res.json({ success: false, message: err.message });
+                    return res.status(500).json({ success: false, message: err.message });
                 }
 
                 // Format the data for frontend

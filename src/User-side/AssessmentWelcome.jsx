@@ -582,26 +582,26 @@ const AssessmentPage = () => {
                   and interest assessment designed to unlock your potential.
                 </p>
 
-                <div className="mb-6 sm:mb-10 overflow-x-auto">
-                  <div className="flex justify-center items-center text-xs sm:text-sm min-w-max px-4">
-                    <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 text-purple-700">
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        <UserCircle2 size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                <div className="mb-6 sm:mb-10">
+                  <div className="flex justify-center items-center px-2 sm:px-4">
+                    <div className="flex items-center text-[10px] xs:text-xs sm:text-sm gap-1 xs:gap-2 sm:gap-4 lg:gap-6 text-purple-700 flex-wrap justify-center">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <UserCircle2 className="w-3 h-3 xs:w-4 xs:h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" />
                         <span className="font-medium whitespace-nowrap">Overview</span>
                       </div>
-                      <span className="text-gray-400">{">"}</span>
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        <BookOpen size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                      <span className="text-gray-400 xs:block">{">"}</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <BookOpen className="w-3 h-3 xs:w-4 xs:h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" />
                         <span className="font-medium whitespace-nowrap">RIASEC</span>
                       </div>
-                      <span className="text-gray-400">{">"}</span>
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        <Brain size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                      <span className="text-gray-400 xs:block">{">"}</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Brain className="w-3 h-3 xs:w-4 xs:h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" />
                         <span className="font-medium whitespace-nowrap">Big Five</span>
                       </div>
-                      <span className="text-gray-400">{">"}</span>
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        <FileText size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                      <span className="text-gray-400 xs:block">{">"}</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FileText className="w-3 h-3 xs:w-4 xs:h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" />
                         <span className="font-medium whitespace-nowrap">Results</span>
                       </div>
                     </div>

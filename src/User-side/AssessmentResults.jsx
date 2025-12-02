@@ -896,6 +896,9 @@ const AssessmentResults = () => {
                                         </div>
                                     </div>
                                     </p>
+                                    <span className="text-xs text-gray-500 mt-2 block">
+                                        Please schedule an appointment with your counselor for any further questions or clarifications.
+                                    </span>
                                 </div>
                                 </div>
                             </div>

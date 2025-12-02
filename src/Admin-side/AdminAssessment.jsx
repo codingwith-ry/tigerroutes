@@ -70,23 +70,6 @@ const AdminAssessment = () => {
     } finally {
       setLoading(false);
     }
-    /*
-    try {
-      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats', { credentials: 'include' });
-      const data = await response.json();
-
-      if (data.success) {
-        setStats(prevStats => ({
-          ...prevStats,
-          totalStudents: data.data.totalStudents,
-          completedAssessments: data.data.completedAssessments,
-          overallAlignment: data.data.overallAlignment
-        }))
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-    }
-    */
   }
 
   const [assessments, setAssessments] = useState([]);
@@ -176,8 +159,8 @@ const AdminAssessment = () => {
     if (activeTab !== 'strandAnalytics') return;
     let cancelled = false;
     async function load() {
-      setLoading(true);
       try {
+        setLoading(true);
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
         const params = new URLSearchParams();
         if (strandDateRangeFilter.startDate) params.set('startDate', strandDateRangeFilter.startDate);

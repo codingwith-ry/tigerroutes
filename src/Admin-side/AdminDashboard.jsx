@@ -56,22 +56,22 @@ const AdminDashboard = () => {
     }
   }
 
-  const formatDatePH = (dateStr) => {
-      if (!dateStr) return '—';
-      try {
-        return new Date(dateStr).toLocaleString('en-PH', {
-          timeZone: 'Asia/Manila',
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
-        });
-      } catch (err) {
-        return new Date(dateStr).toLocaleString();
-      }
-  };
+  // const formatDatePH = (dateStr) => {
+  //     if (!dateStr) return '—';
+  //     try {
+  //       return new Date(dateStr).toLocaleString('en-PH', {
+  //         timeZone: 'Asia/Manila',
+  //         year: 'numeric',
+  //         month: 'short',
+  //         day: 'numeric',
+  //         hour: '2-digit',
+  //         minute: '2-digit',
+  //         hour12: false
+  //       });
+  //     } catch (err) {
+  //       return new Date(dateStr).toLocaleString();
+  //     }
+  // };
 
   const [strandScores, setStrandScores] = useState([]);
 
@@ -453,7 +453,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                             <td className="px-6 py-4 font-medium text-gray-900">{s.name}</td>
                             <td className="px-6 py-4 text-gray-600">{s.email}</td>
                             <td className="px-6 py-4">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
-                            <td className="px-6 py-4 text-gray-600">{(() => { const d = parseAsUTCDate(s.lastReminderDate); return d ? d.toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : '—'; })()}</td>
+                            <td className="px-6 py-4 text-gray-600">{s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <button

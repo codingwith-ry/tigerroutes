@@ -43,7 +43,7 @@ const AdminCounselors = () => {
           name: c.name,
           strand: c.strand || 'N/A',
           // Format lastLogin (ISO/UTC) into Philippines time for display
-          lastLogin: c.lastLogin ? (new Date(c.lastLogin).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })) : '—',
+          lastLogin: c.lastLogin ? c.lastLogin ? (() => { const d = parseAsUTCDate(c.lastLogin); return d ? `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}` : '—'; })() : '—' : '—',
           status: c.status === 1 ? 'Active' : 'Inactive',
           email: c.email,
           about: c.about,
@@ -58,6 +58,10 @@ const AdminCounselors = () => {
 
   const navigate = useNavigate();
   const itemsPerPage = 10;
+
+  const parseAsUTCDate = (value) => {
+    try { return new Date(value); } catch (e) { return null; }
+  };
 
   // Generate email from name
   const formatEmail = (name) => {

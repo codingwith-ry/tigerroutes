@@ -208,8 +208,8 @@ module.exports = (db) => {
                 to: student.email,
                 subject: '🎓 Complete Your TigerRoutes Assessment – Find Your Perfect UST Program!',
                 attachments: [{
-                    filename: 'TigerRoutes_Icon.png',
-                    path: require('path').join(__dirname, '../public/images/TigerRoutes_Icon.png'),
+                    filename: 'TigerRoutes_Icon.webp',
+                    path: require('path').join(__dirname, '../public/images/TigerRoutes_Icon.webp'),
                     cid: 'tigericon'
                 }],
                 html: `

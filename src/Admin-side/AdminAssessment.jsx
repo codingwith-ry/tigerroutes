@@ -30,6 +30,7 @@ const AdminAssessment = () => {
 
   async function fetchDashboardStats(){
     try {
+      setLoading(true);
       const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const res = await fetch(`${base}/api/admin/dashboard-stats`, { credentials: 'include' });
       const data = await res.json();
@@ -66,6 +67,8 @@ const AdminAssessment = () => {
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
+    } finally {
+      setLoading(false);
     }
     /*
     try {
@@ -90,6 +93,7 @@ const AdminAssessment = () => {
   const [totalAssessments, setTotalAssessments] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Filters (ActivityLogs-style)
   const [filterText, setFilterText] = useState("");
@@ -172,6 +176,7 @@ const AdminAssessment = () => {
     if (activeTab !== 'strandAnalytics') return;
     let cancelled = false;
     async function load() {
+      setLoading(true);
       try {
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
         const params = new URLSearchParams();
@@ -186,6 +191,8 @@ const AdminAssessment = () => {
         }
       } catch (err) {
         console.error('Error fetching strand analytics:', err);
+      } finally {
+        setLoading(false);
       }
     }
     load();
@@ -445,11 +452,14 @@ const AdminAssessment = () => {
                         <button
                           className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
                           onClick={() => {
-                            try {
-                              sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
-                              if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
-                            } catch (e) { console.warn('sessionStorage unavailable', e); }
-                            navigate(`/admin/assessment/${student.assessmentId}`)
+                            setPreviewLoading(true);
+                            setTimeout(() => {
+                              try {
+                                sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
+                                if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
+                              } catch (e) { console.warn('sessionStorage unavailable', e); }
+                              navigate(`/admin/assessment/${student.assessmentId}`);
+                            }, 1000);
                           }}
                         >
                           <Eye className="w-4 h-4 mr-1" />
@@ -508,11 +518,14 @@ const AdminAssessment = () => {
                       <button
                         className="font-medium hover:text-blue-800"
                         onClick={() => {
-                          try {
-                            sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
-                            if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
-                          } catch (e) { console.warn('sessionStorage unavailable', e); }
-                          navigate(`/admin/assessment/${student.assessmentId}`)
+                          setPreviewLoading(true);
+                          setTimeout(() => {
+                            try {
+                              sessionStorage.setItem('selectedAssessmentId', String(student.assessmentId));
+                              if (student.studentAccountId) sessionStorage.setItem('selectedStudentAccountId', String(student.studentAccountId));
+                            } catch (e) { console.warn('sessionStorage unavailable', e); }
+                            navigate(`/admin/assessment/${student.assessmentId}`);
+                          }, 1000);
                         }}
                       >
                         Preview
@@ -768,6 +781,20 @@ const AdminAssessment = () => {
                   </div>
               </div>
           );
+    }
+
+    if (previewLoading) {
+      return (
+        <div className="min-h-screen w-full bg-[#FFFCED] flex">
+          <AdminSidebar />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Preparing for student assessment analytics...</p>
+            </div>
+          </div>
+        </div>
+      );
     }
   
       if (error) {

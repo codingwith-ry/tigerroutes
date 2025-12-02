@@ -127,6 +127,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [remindedDateRange, setRemindedDateRange] = useState({ startDate: '', endDate: '' });
+  const [remindingStudents, setRemindingStudents] = useState(new Set());
   const pageSize = 10;
 
   // Helper: parse various date representations into a Date treated as UTC
@@ -161,6 +162,47 @@ const AdminDashboard = () => {
       console.error('Error fetching unassessed students:', e);
     }
   }
+
+  const handleRemind = async (studentAccount_ID, studentName) => {
+    const confirm = await Swal.fire({
+      title: 'Send reminder?',
+      text: `Send reminder email to ${studentName}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Send',
+      cancelButtonText: 'Cancel'
+    });
+    if (!confirm.isConfirmed) return;
+
+    setRemindingStudents(prev => new Set(prev).add(studentAccount_ID));
+
+    try {
+      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const resp = await fetch(`${base}/api/admin/remind-student`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ studentAccount_ID })
+      });
+      const body = await resp.json();
+      if (resp.ok && body.success) {
+        Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
+        // Refresh list to show updated reminder date
+        fetchUnassessedStudents();
+      } else {
+        Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
+      }
+    } catch (err) {
+      console.error('Error sending reminder:', err);
+      Swal.fire('Error', 'Failed to send reminder.', 'error');
+    } finally {
+      setRemindingStudents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(studentAccount_ID);
+        return newSet;
+      });
+    }
+  };
 
   // client-side search + pagination
   const filteredStudents = (unassessedStudents || []).filter(s => {
@@ -501,39 +543,13 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={async () => {
-                                    const confirm = await Swal.fire({
-                                      title: 'Send reminder?',
-                                      text: `Send reminder email to ${s.name}?`,
-                                      icon: 'question',
-                                      showCancelButton: true,
-                                      confirmButtonText: 'Send',
-                                      cancelButtonText: 'Cancel'
-                                    });
-                                    if (!confirm.isConfirmed) return;
-                                    try {
-                                      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                                      const resp = await fetch(`${base}/api/admin/remind-student`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
-                                      });
-                                      const body = await resp.json();
-                                      if (resp.ok && body.success) {
-                                        Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
-                                        // Refresh list to show updated reminder date
-                                        fetchUnassessedStudents();
-                                      } else {
-                                        Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
-                                      }
-                                    } catch (err) {
-                                      console.error('Error sending reminder:', err);
-                                      Swal.fire('Error', 'Failed to send reminder.', 'error');
-                                    }
-                                  }}
-                                  className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500"
+                                  onClick={() => handleRemind(s.studentAccount_ID, s.name)}
+                                  disabled={remindingStudents.has(s.studentAccount_ID)}
+                                  className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
+                                  {remindingStudents.has(s.studentAccount_ID) && (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  )}
                                   Remind
                                 </button>
                               </div>
@@ -554,36 +570,16 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
                         <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? (() => { const d = parseAsUTCDate(s.lastReminderDate); return d ? `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}` : '—'; })() : '—'}</div>
                         <div className="mt-2">
-                          <button onClick={async () => {
-                            const confirm = await Swal.fire({
-                              title: 'Send reminder?',
-                              text: `Send reminder email to ${s.name}?`,
-                              icon: 'question',
-                              showCancelButton: true,
-                              confirmButtonText: 'Send',
-                              cancelButtonText: 'Cancel'
-                            });
-                            if (!confirm.isConfirmed) return;
-                            try {
-                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                              const resp = await fetch(`${base}/api/admin/remind-student`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
-                              });
-                              const body = await resp.json();
-                              if (resp.ok && body.success) {
-                                Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
-                                fetchUnassessedStudents();
-                              } else {
-                                Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
-                              }
-                            } catch (err) {
-                              console.error('Error sending reminder:', err);
-                              Swal.fire('Error', 'Failed to send reminder.', 'error');
-                            }
-                          }} className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500">Remind</button>
+                          <button
+                            onClick={() => handleRemind(s.studentAccount_ID, s.name)}
+                            disabled={remindingStudents.has(s.studentAccount_ID)}
+                            className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {remindingStudents.has(s.studentAccount_ID) && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            )}
+                            Remind
+                          </button>
                         </div>
                       </div>
                     ))}

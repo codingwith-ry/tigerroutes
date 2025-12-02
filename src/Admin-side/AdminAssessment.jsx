@@ -201,6 +201,28 @@ const AdminAssessment = () => {
     });
   };
 
+  const getStrandColors = (strand) => {
+    let bgColor = "bg-gray-100";
+    let textColor = "text-gray-500";
+    if (strand === "STEM") { bgColor = "bg-yellow-100"; textColor = "text-yellow-500"; }
+    else if (strand === "ABM") { bgColor = "bg-green-100"; textColor = "text-green-500"; }
+    else if (strand === "HUMSS") { bgColor = "bg-blue-100"; textColor = "text-blue-500"; }
+    else if (strand.includes("Health-Allied")) { bgColor = "bg-red-100"; textColor = "text-red-500"; }
+    else if (strand.includes("Music, Arts, and Design")) { bgColor = "bg-purple-100"; textColor = "text-purple-500"; }
+    else if (strand.includes("Physical Education and Sports")) { bgColor = "bg-pink-100"; textColor = "text-pink-500"; }
+    return { bgColor, textColor };
+  };
+
+  const getStrandAcronym = (strand) => {
+    if (strand === "STEM") return "STEM";
+    if (strand === "ABM") return "ABM";
+    if (strand === "HUMSS") return "HUMSS";
+    if (strand.includes("Health-Allied")) return "HA";
+    if (strand.includes("Music, Arts, and Design")) return "MAD";
+    if (strand.includes("Physical Education and Sports")) return "PES";
+    return strand; // fallback
+  };
+
   const ProgressCircle = ({ value, max, color, children }) => {
     const radius = 32;
     const strokeWidth = 12;
@@ -390,8 +412,8 @@ const AdminAssessment = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600`}>
-                          {student.strand}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStrandColors(student.strand).bgColor} ${getStrandColors(student.strand).textColor}`}>
+                          {getStrandAcronym(student.strand)}
                         </span>
                       </td>
                       
@@ -455,8 +477,8 @@ const AdminAssessment = () => {
                       <div className="font-semibold text-gray-900">{student.assessmentId}</div>
                       <div className="text-xs text-gray-600">{`STU${student.studentAccountId || ''}-${student.studentName || '-'}`}</div>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600`}>
-                      {student.strand}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStrandColors(student.strand).bgColor} ${getStrandColors(student.strand).textColor}`}>
+                      {getStrandAcronym(student.strand)}
                     </span>
                   </div>
                   <div className="space-y-2">

@@ -610,9 +610,10 @@ const UserResultsHistory = () => {
                     {/* Action */}
                     <button
                       onClick={() => navigate(`/assessment/results/${assessment.assessmentId}`)}
-                      className="flex items-center gap-1 text-blue-600 hover:underline"
+                      className="flex items-center gap-1 text-blue-600 hover:underline md:text-blue-600 md:hover:underline md:flex md:items-center md:gap-1 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-all duration-300 md:bg-transparent md:shadow-none md:px-0 md:py-0"
                     >
-                      <FiEye /> View Details
+                      <FiEye className="md:text-blue-600" />
+                      <span className="hidden md:inline">View Details</span>
                     </button>
                   </div>
                 ))}

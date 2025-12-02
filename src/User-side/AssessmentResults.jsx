@@ -3,6 +3,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX, FiGift, FiInfo, FiAlertTriangle } from "react-icons/fi";
 import { BsBriefcase, BsPerson } from "react-icons/bs";
+import { FaUserTie, FaEnvelope } from "react-icons/fa";
 import { UserCircle2, SquarePen } from "lucide-react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
@@ -777,25 +778,128 @@ const AssessmentResults = () => {
                     <div className="bg-white rounded-xl shadow p-6">
                         <h3 className="font-semibold text-lg mb-3">Counselor&rsquo;s Response</h3>
                         {assessmentData.counselorNotes ? (
-                            <div className="bg-blue-50 p-5 rounded-lg">
-                                <div className="flex items-start gap-3">
-                                    <div className="flex-shrink-0">
-                                        <SquarePen className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-medium text-sm">{assessmentData.counselorNotes.counselorName}</p>
-                                            <p className="text-sm text-gray-400">{assessmentData.counselorNotes.counselorEmail}</p>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(assessmentData.counselorNotes.date).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-gray-700 bg-white p-4 rounded-lg border border-blue-100">
-                                            {assessmentData.counselorNotes.counselorNotes}
-                                        </p>
-                                    </div>
+                            <div className="div">
+                            <div className="flex-1">
+                                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-t-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                {/* Counselor Information */}
+                                <div className="flex flex-col">
+                                    <span className="text-md font-bold text-white flex items-center gap-3">
+                                        <FaUserTie className="text-md" />
+                                        {assessmentData.counselorNotes.counselorName || 'Counselor Name'}
+                                    </span>
+
+                                    <span className="text-sm text-white flex items-center gap-3">
+                                        <FaEnvelope className="text-md" />
+                                        {assessmentData.counselorNotes.email || 'Counselor Email'}
+                                    </span>
+                                </div>
+
+                                {/* Consultation Details Button */}
+                                <div className="flex sm:flex-col">
+                                    <button
+                                        onClick={() => {
+                                            const officeDetails = assessmentData.counselorNotes.officeDetails || 'No office details available.';
+                                            const consultationSchedule = assessmentData.counselorNotes.consultationDetails || ['No schedule available.'];
+
+                                            Swal.fire({
+                                                html: `
+                                                    <div class="text-left space-y-5 mt-5">
+                                                        <!-- Office Details Card -->
+                                                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow duration-300">
+                                                            <div class="flex items-start gap-3 mb-3">
+                                                                <div class="bg-blue-500 p-2 rounded-lg shadow-md">
+                                                                    <i class="fas fa-building text-white text-lg"></i>
+                                                                </div>
+                                                                <div class="flex-1">
+                                                                    <p class="font-bold text-blue-700 text-lg mb-2">Office Details</p>
+                                                                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                                                                        <p class="text-gray-700 leading-relaxed">${officeDetails}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Consultation Schedule Card -->
+                                                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-l-4 border-purple-500 shadow-sm hover:shadow-md transition-shadow duration-300">
+                                                            <div class="flex items-start gap-3 mb-3">
+                                                                <div class="bg-purple-500 p-2 rounded-lg shadow-md">
+                                                                    <i class="fas fa-calendar-alt text-white text-lg"></i>
+                                                                </div>
+                                                                <div class="flex-1">
+                                                                    <p class="font-bold text-purple-700 text-lg mb-3">Consultation Schedule</p>
+                                                                    <ul class="space-y-2">
+                                                                        <li class="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 border border-purple-100">
+                                                                            <div class="bg-purple-100 p-2 rounded-full">
+                                                                                <i class="fas fa-clock text-purple-600 text-sm"></i>
+                                                                            </div>
+                                                                            <span class="text-gray-700 font-medium">${consultationSchedule}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Info Banner -->
+                                                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200 flex items-start gap-3">
+                                                            <i class="fas fa-info-circle text-green-600 text-xl mt-0.5"></i>
+                                                            <p class="text-sm text-gray-700">
+                                                                <span class="font-semibold text-green-700">Note:</span> Please arrive 5 minutes early for your consultation appointment.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                `,
+                                                showCloseButton: true,
+                                                confirmButtonText: `
+                                                    <span class="flex items-center gap-2">
+                                                        <span class="font-semibold">Got it!</span>
+                                                    </span>
+                                                `,
+                                                confirmButtonColor: '#3b82f6',
+                                                width: '600px',
+                                                padding: '2rem',
+                                                customClass: {
+                                                    popup: 'rounded-2xl shadow-2xl border border-gray-100',
+                                                    title: 'text-gray-800',
+                                                    htmlContainer: 'text-gray-600',
+                                                    confirmButton: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200',
+                                                    closeButton: 'text-gray-400 hover:text-gray-600 transition-colors duration-200'
+                                                },
+                                                backdrop: `
+                                                    rgba(0,0,0,0.4)
+                                                    url("/images/nyan-cat.gif")
+                                                    left top
+                                                    no-repeat
+                                                `
+                                            });
+                                        }}
+                                        className="bg-white text-blue-600 font-medium px-4 py-2 rounded-lg shadow hover:bg-blue-100 transition-all duration-300"
+                                    >
+                                        Consultation Details
+                                    </button>
                                 </div>
                             </div>
+                                
+                                <div className="">
+                                    <p className="text-sm text-gray-700 bg-blue-50 p-4 rounded-b-lg border border-blue-200">
+                                    {assessmentData.counselorNotes.counselorNotes || 'No notes provided by the counselor.'}
+                                    <div className="space-y-2 mt-2">
+                                        <div className="flex items-center gap-2 text-gray-700">
+                                        <span className='text-xs'>On {new Date(assessmentData.counselorNotes.date).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        })}</span>
+                                        </div>
+                                    </div>
+                                    </p>
+                                </div>
+                                </div>
+                            </div>
+                            
                         ) : (
                             <div className="bg-gray-50 p-5 rounded-lg text-center">
                                 <div className="flex flex-col items-center gap-3">

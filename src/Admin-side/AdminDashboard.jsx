@@ -393,11 +393,11 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               title="Total Counselors"
               value={stats.totalCounselors}
               subtitle="Active counselors"
-              subtitleColor="text-indigo-600"
+              subtitleColor="text-red-500"
               progress={stats.totalCounselors}
               max={50}
-              icon={<Users className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-600" />}
-              color="#4f46e5"
+              icon={<Users className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-red-500" />}
+              color="#f44336"
             />
           </div>
 
@@ -411,12 +411,14 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               {(strandScores.length ? strandScores : []).map((s, i) => {
                 let barColor = "bg-gray-400";
                 let textColor = "text-gray-400";
-                if (s.name === "STEM") { barColor = "bg-blue-500"; textColor = "text-blue-500"; }
+                if (s.name === "STEM") { barColor = "bg-yellow-500"; textColor = "text-yellow-500"; }
                 else if (s.name === "ABM") { barColor = "bg-green-500"; textColor = "text-green-500"; }
-                else if (s.name === "HUMSS") { barColor = "bg-purple-500"; textColor = "text-purple-500"; }
+                else if (s.name === "HUMSS") { barColor = "bg-blue-500"; textColor = "text-blue-500"; }
                 // else if (s.name === "GAS") { barColor = "bg-orange-500"; textColor = "text-orange-500"; }
                 // else if (s.name === "TVL") { barColor = "bg-red-500"; textColor = "text-red-500"; }
-                else if (s.name.includes("Health")) { barColor = "bg-orange-500"; textColor = "text-orange-500"; }                
+                else if (s.name.includes("Health-Allied")) { barColor = "bg-red-500"; textColor = "text-red-500"; } 
+                else if (s.name.includes("Music, Arts, and Design")) { barColor = "bg-purple-500"; textColor = "text-purple-500"; }
+                else if (s.name.includes("Physical Education and Sports")) { barColor = "bg-pink-500"; textColor = "text-pink-500"; }       
 
                 return (
                   <div key={i} className="mb-6 last:mb-0">
@@ -447,19 +449,25 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                   >
                     <div>
                       <p className="font-medium text-gray-900 text-sm sm:text-base">{p.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">{p.recommendations} recommendations</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-base sm:text-lg font-semibold ${
+                      <p className="text-xs sm:text-sm text-gray-500"><span className={`font-semibold ${
                         p.score >= 85
                           ? "text-green-600"
                           : p.score >= 80
                           ? "text-green-500"
                           : "text-yellow-600"
+                      }`}>{p.score}%</span> avg. alignment</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-base sm:text-lg font-semibold ${
+                        p.recommendations >= 200
+                          ? "text-green-600"
+                          : p.recommendations >= 150
+                          ? "text-green-500"
+                          : "text-yellow-600"
                       }`}>
-                        {p.score}%
+                        {p.recommendations}
                       </p>
-                      <p className="text-xs sm:text-sm font-normal text-gray-500">avg. alignment</p>
+                      <p className="text-xs sm:text-sm font-normal text-gray-500">recommendations</p>
                     </div>
                   </div>
                 ))}

@@ -318,7 +318,7 @@ module.exports = (db) => {
                 const fetchProgramRecoDetails = 'SELECT * FROM tbl_recommendations WHERE studentAssessment_ID = ?';
 
                 // Fetch counselor notes if any
-                const fetchCounselorNotes = 'SELECT cn.counselorNotes, cn.date, s.name AS counselorName, s.email AS counselorEmail FROM tbl_counselornotes AS cn INNER JOIN tbl_staffaccounts AS s ON cn.staffAccount_ID = s.staffAccount_ID WHERE cn.studentAssessment_ID = ? LIMIT 1;';
+                const fetchCounselorNotes = 'SELECT cn.counselorNotes, cn.date, s.name AS counselorName, s.email, sp.officeDetails, sp.consultationDetails AS consultationDetails FROM tbl_counselornotes AS cn INNER JOIN tbl_staffaccounts AS s ON cn.staffAccount_ID = s.staffAccount_ID INNER JOIN tbl_staffprofiles as sp WHERE cn.studentAssessment_ID = ? LIMIT 1;';
 
                 // Execute all queries in parallel
                 Promise.all([

@@ -1238,9 +1238,9 @@
       "english_performance": { "weight": 0.40, "minimum": 82 }
     },
     "track_preferences": {
-      "HUMSS": 100,
-      "ABM": 90,
-      "STEM": 50,
+      "HUMSS": 80,
+      "ABM": 100,
+      "STEM": 60,
       "Health-Allied": 45,
       "Music, Arts, and Design": 75,
       "Physical Education and Sports": 55

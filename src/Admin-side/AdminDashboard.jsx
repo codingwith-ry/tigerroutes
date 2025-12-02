@@ -56,13 +56,22 @@ const AdminDashboard = () => {
     }
   }
 
-  // const strands = [
-  //   { name: "STEM", score: 85 },
-  //   { name: "ABM", score: 75 },
-  //   { name: "HUMSS", score: 65 },
-  //   { name: "GAS", score: 60 },
-  //   { name: "TVL", score: 55 },
-  // ];
+  const formatDatePH = (dateStr) => {
+      if (!dateStr) return '—';
+      try {
+        return new Date(dateStr).toLocaleString('en-PH', {
+          timeZone: 'Asia/Manila',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      } catch (err) {
+        return new Date(dateStr).toLocaleString();
+      }
+  };
 
   const [strandScores, setStrandScores] = useState([]);
 
@@ -499,7 +508,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <div className="font-medium text-gray-900">{s.name}</div>
                         <div className="text-sm text-gray-600">{s.email}</div>
                         <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
-                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? parseAsUTCDate(s.lastReminderDate).toLocaleDateString('en-PH') : '—'}</div>
+                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</div>
                         <div className="mt-2">
                           <button onClick={async () => {
                             const confirm = await Swal.fire({

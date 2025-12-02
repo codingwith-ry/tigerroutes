@@ -449,19 +449,25 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                   >
                     <div>
                       <p className="font-medium text-gray-900 text-sm sm:text-base">{p.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">{p.recommendations} recommendations</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-base sm:text-lg font-semibold ${
+                      <p className="text-xs sm:text-sm text-gray-500"><span className={`font-semibold ${
                         p.score >= 85
                           ? "text-green-600"
                           : p.score >= 80
                           ? "text-green-500"
                           : "text-yellow-600"
+                      }`}>{p.score}%</span> avg. alignment</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-base sm:text-lg font-semibold ${
+                        p.recommendations >= 200
+                          ? "text-green-600"
+                          : p.recommendations >= 150
+                          ? "text-green-500"
+                          : "text-yellow-600"
                       }`}>
-                        {p.score}%
+                        {p.recommendations}
                       </p>
-                      <p className="text-xs sm:text-sm font-normal text-gray-500">avg. alignment</p>
+                      <p className="text-xs sm:text-sm font-normal text-gray-500">recommendations</p>
                     </div>
                   </div>
                 ))}

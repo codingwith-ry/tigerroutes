@@ -135,6 +135,16 @@ const AdminDashboard = () => {
     try { return new Date(value); } catch (e) { return null; }
   };
 
+  // Helper: returns true if lastReminderDate is within the 24-hour cooldown window
+  const isRemindDisabledFor = (s) => {
+    if (!s || !s.lastReminderDate) return false;
+    const d = parseAsUTCDate(s.lastReminderDate);
+    if (!d || isNaN(d.getTime())) return false;
+    const diff = Date.now() - d.getTime();
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    return diff < ONE_DAY_MS;
+  };
+
   async function fetchTopPrograms() {
     try {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/top-programs`, { credentials: 'include' });
@@ -552,7 +562,8 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => handleRemind(s.studentAccount_ID, s.name)}
-                                  disabled={remindingStudents.has(s.studentAccount_ID)}
+                                  disabled={remindingStudents.has(s.studentAccount_ID) || isRemindDisabledFor(s)}
+                                  title={isRemindDisabledFor(s) ? 'Reminded within the last 24 hours' : undefined}
                                   className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                   {remindingStudents.has(s.studentAccount_ID) && (
@@ -580,7 +591,8 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <div className="mt-2">
                           <button
                             onClick={() => handleRemind(s.studentAccount_ID, s.name)}
-                            disabled={remindingStudents.has(s.studentAccount_ID)}
+                            disabled={remindingStudents.has(s.studentAccount_ID) || isRemindDisabledFor(s)}
+                            title={isRemindDisabledFor(s) ? 'Reminded within the last 24 hours' : undefined}
                             className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           >
                             {remindingStudents.has(s.studentAccount_ID) && (

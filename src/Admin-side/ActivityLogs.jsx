@@ -5,12 +5,21 @@ import AdminHeader from './AdminHeader';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [initialLoading, setInitialLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
-  const [staffFilter, setStaffFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+	const [staffFilter, setStaffFilter] = useState('');
+	const [dateFilter, setDateFilter] = useState('');
+	const [actionFilter, setActionFilter] = useState('');
+	const [typedStaffFilter, setTypedStaffFilter] = useState('');
+	const staffFilterDebounceRef = React.useRef(null);
+	React.useEffect(() => {
+		return () => {
+			if (staffFilterDebounceRef.current) clearTimeout(staffFilterDebounceRef.current);
+		};
+	}, []);
   const [error] = useState(null);
 
 	const fetchLogs = async (p = page) => {
@@ -19,8 +28,18 @@ const ActivityLogs = () => {
 			// Default to backend on localhost:5000 when env var is not set
 			const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 			const params = new URLSearchParams({ limit: String(limit), page: String(p) });
-			if (staffFilter) params.set('staff', staffFilter);
+			// server supports a general `q` parameter which searches both action and staff name.
+			// include `q` so action searches return results even if server doesn't handle `action` specifically.
+						const q = (staffFilter || actionFilter || '').trim();
+						if (q) {
+							// use the general `q` search which the server matches against action OR staff name
+							params.set('q', q);
+							// do not also set `staff` — sending both results in an AND that filters out action-only matches
+						} else if (staffFilter) {
+							params.set('staff', staffFilter);
+						}
 			if (dateFilter) params.set('date', dateFilter);
+			if (actionFilter) params.set('action', actionFilter);
 			const resp = await fetch(`${base}/api/admin/staff-logs?${params.toString()}`, { credentials: 'include' });
 			const payload = await resp.json();
 			if (payload && payload.success) {
@@ -31,6 +50,7 @@ const ActivityLogs = () => {
 			console.error('Failed to fetch logs', err);
 		} finally {
 			setLoading(false);
+			if (initialLoading) setInitialLoading(false);
 		}
 	};
 
@@ -61,12 +81,12 @@ const ActivityLogs = () => {
 
   useEffect(() => {
     document.title = "Admin Dashboard | Activity Logs";
-    fetchLogs(1);
-  }, [limit, staffFilter, dateFilter]);
+		fetchLogs(1);
+	}, [limit, staffFilter, dateFilter, actionFilter]);
 
   const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
 
-  if (loading) {
+	if (loading && initialLoading) {
     return (
       <div className="min-h-screen w-full bg-[#FFFCED] flex">
         <AdminSidebar />
@@ -112,13 +132,24 @@ const ActivityLogs = () => {
             <div className="bg-white p-4 mb-4 rounded-xl shadow border border-gray-200">
               <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
                 <div className="flex items-center gap-3 w-full">
-                  <input
-                    type="text"
-                    placeholder="Filter by staff name or id"
-                    value={staffFilter}
-                    onChange={(e) => { setStaffFilter(e.target.value); setPage(1); }}
-                    className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:outline-none"
-                  />
+									<input
+										type="text"
+										placeholder={"Filter by staff name/id or action"}
+										value={typedStaffFilter}
+										onChange={(e) => {
+											const v = e.target.value;
+											setTypedStaffFilter(v);
+											setPage(1);
+											if (staffFilterDebounceRef.current) clearTimeout(staffFilterDebounceRef.current);
+											staffFilterDebounceRef.current = setTimeout(() => {
+												const value = (v || '').trim();
+												// apply same search term to both staff and action columns
+												setStaffFilter(value);
+												setActionFilter(value);
+											}, 400);
+										}}
+										className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:outline-none"
+									/>
                   <input
                     type="date"
                     value={dateFilter}

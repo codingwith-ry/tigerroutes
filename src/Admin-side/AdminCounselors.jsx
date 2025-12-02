@@ -17,6 +17,30 @@ const AdminCounselors = () => {
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const getStrandColors = (strand) => {
+    let bgColor = "bg-gray-100";
+    let textColor = "text-gray-500";
+    if (strand === "STEM") { bgColor = "bg-yellow-100"; textColor = "text-yellow-500"; }
+    else if (strand === "ABM") { bgColor = "bg-green-100"; textColor = "text-green-500"; }
+    else if (strand === "HUMSS") { bgColor = "bg-blue-100"; textColor = "text-blue-500"; }
+    else if (strand === "TVL") { bgColor = "bg-orange-100"; textColor = "text-orange-500"; }
+    else if (strand.includes("Health-Allied")) { bgColor = "bg-red-100"; textColor = "text-red-500"; }
+    else if (strand.includes("Music, Arts, and Design")) { bgColor = "bg-purple-100"; textColor = "text-purple-500"; }
+    else if (strand.includes("Physical Education and Sports")) { bgColor = "bg-pink-100"; textColor = "text-pink-500"; }
+    return { bgColor, textColor };
+  };
+
+  const getStrandAcronym = (strand) => {
+    if (strand === "STEM") return "STEM";
+    if (strand === "ABM") return "ABM";
+    if (strand === "HUMSS") return "HUMSS";
+    if (strand === "TVL") return "TVL";
+    if (strand.includes("Health-Allied")) return "HA";
+    if (strand.includes("Music, Arts, and Design")) return "MAD";
+    if (strand.includes("Physical Education and Sports")) return "PES";
+    return strand; // fallback
+  };
+
 
   const [counselors, setCounselors] = useState([
   //   { name: "Dr. John Cruz", strand: "STEM", lastLogin: "2025-09-16 08:10", status: "Active" },
@@ -43,7 +67,7 @@ const AdminCounselors = () => {
           name: c.name,
           strand: c.strand || 'N/A',
           // Format lastLogin (ISO/UTC) into Philippines time for display
-          lastLogin: c.lastLogin ? (new Date(c.lastLogin).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })) : '—',
+          lastLogin: c.lastLogin ? c.lastLogin ? (() => { const d = parseAsUTCDate(c.lastLogin); return d ? `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}` : '—'; })() : '—' : '—',
           status: c.status === 1 ? 'Active' : 'Inactive',
           email: c.email,
           about: c.about,
@@ -58,6 +82,10 @@ const AdminCounselors = () => {
 
   const navigate = useNavigate();
   const itemsPerPage = 10;
+
+  const parseAsUTCDate = (value) => {
+    try { return new Date(value); } catch (e) { return null; }
+  };
 
   // Generate email from name
   const formatEmail = (name) => {
@@ -183,21 +211,9 @@ const AdminCounselors = () => {
                           </td>
                       <td className="px-6 py-4 text-center">
                         <span
-                          className="px-3 py-1 rounded-full text-xs font-medium inline-block min-w-[80px]"
-                          style={{
-                            backgroundColor:
-                              c.strand === "STEM" ? "#E5EEFF" :
-                              c.strand === "ABM" ? "#DAFFE4" :
-                              c.strand === "HUMSS" ? "#EDE0FF" :
-                              c.strand === "TVL" ? "#FFE49E" : "#F0F0F0",
-                            color:
-                              c.strand === "STEM" ? "#195FD3" :
-                              c.strand === "ABM" ? "#34A853" :
-                              c.strand === "HUMSS" ? "#9747FF" :
-                              c.strand === "TVL" ? "#FB9724" : "#000000",
-                          }}
+                          className={`px-3 py-1 rounded-full text-xs font-medium inline-block min-w-[80px] ${getStrandColors(c.strand).bgColor} ${getStrandColors(c.strand).textColor}`}
                         >
-                          {c.strand}
+                          {getStrandAcronym(c.strand)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center text-gray-500">{c.lastLogin}</td>

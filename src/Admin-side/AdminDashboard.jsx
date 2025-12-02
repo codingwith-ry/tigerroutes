@@ -127,6 +127,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [remindedDateRange, setRemindedDateRange] = useState({ startDate: '', endDate: '' });
+  const [remindingStudents, setRemindingStudents] = useState(new Set());
   const pageSize = 10;
 
   // Helper: parse various date representations into a Date treated as UTC
@@ -162,6 +163,47 @@ const AdminDashboard = () => {
     }
   }
 
+  const handleRemind = async (studentAccount_ID, studentName) => {
+    const confirm = await Swal.fire({
+      title: 'Send reminder?',
+      text: `Send reminder email to ${studentName}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Send',
+      cancelButtonText: 'Cancel'
+    });
+    if (!confirm.isConfirmed) return;
+
+    setRemindingStudents(prev => new Set(prev).add(studentAccount_ID));
+
+    try {
+      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const resp = await fetch(`${base}/api/admin/remind-student`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ studentAccount_ID })
+      });
+      const body = await resp.json();
+      if (resp.ok && body.success) {
+        Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
+        // Refresh list to show updated reminder date
+        fetchUnassessedStudents();
+      } else {
+        Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
+      }
+    } catch (err) {
+      console.error('Error sending reminder:', err);
+      Swal.fire('Error', 'Failed to send reminder.', 'error');
+    } finally {
+      setRemindingStudents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(studentAccount_ID);
+        return newSet;
+      });
+    }
+  };
+
   // client-side search + pagination
   const filteredStudents = (unassessedStudents || []).filter(s => {
     // name search
@@ -173,7 +215,7 @@ const AdminDashboard = () => {
       if (!s.lastReminderDate) return false;
       const remindedDateObj = parseAsUTCDate(s.lastReminderDate);
       if (!remindedDateObj) return false;
-      const remindedDateStr = remindedDateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+      const remindedDateStr = remindedDateObj.toLocaleString('en-CA', { timeZone: 'Asia/Manila' });
       if (startDate && startDate.trim()) {
         if (remindedDateStr < startDate) return false;
       }
@@ -351,11 +393,11 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               title="Total Counselors"
               value={stats.totalCounselors}
               subtitle="Active counselors"
-              subtitleColor="text-indigo-600"
+              subtitleColor="text-red-500"
               progress={stats.totalCounselors}
               max={50}
-              icon={<Users className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-600" />}
-              color="#4f46e5"
+              icon={<Users className="w-6 h-6 sm:w-5 sm:h-5 md:w-6 md:h-6 text-red-500" />}
+              color="#f44336"
             />
           </div>
 
@@ -369,12 +411,14 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
               {(strandScores.length ? strandScores : []).map((s, i) => {
                 let barColor = "bg-gray-400";
                 let textColor = "text-gray-400";
-                if (s.name === "STEM") { barColor = "bg-blue-500"; textColor = "text-blue-500"; }
+                if (s.name === "STEM") { barColor = "bg-yellow-500"; textColor = "text-yellow-500"; }
                 else if (s.name === "ABM") { barColor = "bg-green-500"; textColor = "text-green-500"; }
-                else if (s.name === "HUMSS") { barColor = "bg-purple-500"; textColor = "text-purple-500"; }
+                else if (s.name === "HUMSS") { barColor = "bg-blue-500"; textColor = "text-blue-500"; }
                 // else if (s.name === "GAS") { barColor = "bg-orange-500"; textColor = "text-orange-500"; }
                 // else if (s.name === "TVL") { barColor = "bg-red-500"; textColor = "text-red-500"; }
-                else if (s.name.includes("Health")) { barColor = "bg-orange-500"; textColor = "text-orange-500"; }                
+                else if (s.name.includes("Health-Allied")) { barColor = "bg-red-500"; textColor = "text-red-500"; } 
+                else if (s.name.includes("Music, Arts, and Design")) { barColor = "bg-purple-500"; textColor = "text-purple-500"; }
+                else if (s.name.includes("Physical Education and Sports")) { barColor = "bg-pink-500"; textColor = "text-pink-500"; }       
 
                 return (
                   <div key={i} className="mb-6 last:mb-0">
@@ -405,19 +449,25 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                   >
                     <div>
                       <p className="font-medium text-gray-900 text-sm sm:text-base">{p.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">{p.recommendations} recommendations</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-base sm:text-lg font-semibold ${
+                      <p className="text-xs sm:text-sm text-gray-500"><span className={`font-semibold ${
                         p.score >= 85
                           ? "text-green-600"
                           : p.score >= 80
                           ? "text-green-500"
                           : "text-yellow-600"
+                      }`}>{p.score}%</span> avg. alignment</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-base sm:text-lg font-semibold ${
+                        p.recommendations >= 200
+                          ? "text-green-600"
+                          : p.recommendations >= 150
+                          ? "text-green-500"
+                          : "text-yellow-600"
                       }`}>
-                        {p.score}%
+                        {p.recommendations}
                       </p>
-                      <p className="text-xs sm:text-sm font-normal text-gray-500">avg. alignment</p>
+                      <p className="text-xs sm:text-sm font-normal text-gray-500">recommendations</p>
                     </div>
                   </div>
                 ))}
@@ -497,43 +547,17 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                             <td className="px-6 py-4 font-medium text-gray-900">{s.name}</td>
                             <td className="px-6 py-4 text-gray-600">{s.email}</td>
                             <td className="px-6 py-4">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
-                            <td className="px-6 py-4 text-gray-600">{s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</td>
+                            <td className="px-6 py-4 text-gray-600">{(() => { const d = parseAsUTCDate(s.lastReminderDate); return d ? `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}` : '—'; })()}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={async () => {
-                                    const confirm = await Swal.fire({
-                                      title: 'Send reminder?',
-                                      text: `Send reminder email to ${s.name}?`,
-                                      icon: 'question',
-                                      showCancelButton: true,
-                                      confirmButtonText: 'Send',
-                                      cancelButtonText: 'Cancel'
-                                    });
-                                    if (!confirm.isConfirmed) return;
-                                    try {
-                                      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                                      const resp = await fetch(`${base}/api/admin/remind-student`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
-                                      });
-                                      const body = await resp.json();
-                                      if (resp.ok && body.success) {
-                                        Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
-                                        // Refresh list to show updated reminder date
-                                        fetchUnassessedStudents();
-                                      } else {
-                                        Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
-                                      }
-                                    } catch (err) {
-                                      console.error('Error sending reminder:', err);
-                                      Swal.fire('Error', 'Failed to send reminder.', 'error');
-                                    }
-                                  }}
-                                  className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500"
+                                  onClick={() => handleRemind(s.studentAccount_ID, s.name)}
+                                  disabled={remindingStudents.has(s.studentAccount_ID)}
+                                  className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
+                                  {remindingStudents.has(s.studentAccount_ID) && (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  )}
                                   Remind
                                 </button>
                               </div>
@@ -552,38 +576,18 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <div className="font-medium text-gray-900">{s.name}</div>
                         <div className="text-sm text-gray-600">{s.email}</div>
                         <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
-                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? new Date(s.lastReminderDate).toLocaleString() : '—'}</div>
+                        <div className="text-sm text-gray-600">Reminded: {s.lastReminderDate ? (() => { const d = parseAsUTCDate(s.lastReminderDate); return d ? `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}` : '—'; })() : '—'}</div>
                         <div className="mt-2">
-                          <button onClick={async () => {
-                            const confirm = await Swal.fire({
-                              title: 'Send reminder?',
-                              text: `Send reminder email to ${s.name}?`,
-                              icon: 'question',
-                              showCancelButton: true,
-                              confirmButtonText: 'Send',
-                              cancelButtonText: 'Cancel'
-                            });
-                            if (!confirm.isConfirmed) return;
-                            try {
-                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-                              const resp = await fetch(`${base}/api/admin/remind-student`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ studentAccount_ID: s.studentAccount_ID })
-                              });
-                              const body = await resp.json();
-                              if (resp.ok && body.success) {
-                                Swal.fire('Sent', 'Reminder email sent successfully.', 'success');
-                                fetchUnassessedStudents();
-                              } else {
-                                Swal.fire('Error', (body && body.message) || 'Failed to send reminder.', 'error');
-                              }
-                            } catch (err) {
-                              console.error('Error sending reminder:', err);
-                              Swal.fire('Error', 'Failed to send reminder.', 'error');
-                            }
-                          }} className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500">Remind</button>
+                          <button
+                            onClick={() => handleRemind(s.studentAccount_ID, s.name)}
+                            disabled={remindingStudents.has(s.studentAccount_ID)}
+                            className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {remindingStudents.has(s.studentAccount_ID) && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            )}
+                            Remind
+                          </button>
                         </div>
                       </div>
                     ))}

@@ -245,8 +245,8 @@ module.exports = (db) => {
       `,
             attachments: [
               {
-                filename: '04_TigerRoutes_Logo.png',
-                path: path.join(__dirname, '..', 'public', 'images', '02_TigerRoutes_Logo.png'),
+                filename: '04_TigerRoutes_Logo.webp',
+                path: path.join(__dirname, '..', 'public', 'images', '02_TigerRoutes_Logo.webp'),
                 cid: 'tiger_logo' // matches src="cid:tiger_logo"
               }
             ]

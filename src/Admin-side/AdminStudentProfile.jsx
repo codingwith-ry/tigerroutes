@@ -573,7 +573,7 @@ const AdminStudentProfile = () => {
               ) : (
                 // Counselor Notes - Twitter-like Thread
                 <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold mb-4">Counselor Notes</h3>
+                  <h3 className="text-lg font-semibold mb-4">Student Feedback</h3>
 
                   <div className="space-y-4">
                     {/* Student’s Feedback - Root Comment (if present) */}
@@ -609,6 +609,8 @@ const AdminStudentProfile = () => {
                     ) : (
                       <div className="text-sm text-gray-500">No student feedback recorded for this assessment.</div>
                     )}
+
+                    <h3 className="text-lg font-semibold mb-4">Counselor Notes</h3>
 
                     {/* Counselor Notes - Replies (always show existing notes) */}
                     {counselorNotes && counselorNotes.length > 0 ? (

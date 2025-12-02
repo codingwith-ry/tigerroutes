@@ -49,8 +49,9 @@ const AdminCounselors = () => {
   //   { name: "Dr. John Doe", strand: "TVL", lastLogin: "2025-09-18 08:20", status: "Inactive" },
   ]);
 
-  const [loading] = useState(false);
-  const [error] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     document.title = "Admin Dashboard | Manage Counselors";
@@ -74,9 +75,15 @@ const AdminCounselors = () => {
           officeLocation: c.officeDetails,
           consultationHours: c.consultationDetails
         })));
+        setLoading(false);
+      } else {
+        setError('Failed to load counselors');
+        setLoading(false);
       }
     }catch(error){
       console.error('Error fetching counselors:', error);
+      setError('Failed to load counselors');
+      setLoading(false);
     }
   };
 
@@ -123,6 +130,20 @@ const AdminCounselors = () => {
                     </div>
                 </div>
             );
+      }
+
+      if (previewLoading) {
+        return (
+          <div className="min-h-screen w-full bg-[#FFFCED] flex">
+            <AdminSidebar />
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Preparing for counselor preview...</p>
+              </div>
+            </div>
+          </div>
+        );
       }
     
         if (error) {
@@ -182,7 +203,7 @@ const AdminCounselors = () => {
                     <th className="w-1/6 px-6 py-4 text-center">STRAND</th>
                     <th className="w-1/6 px-6 py-4 text-center">LAST LOGIN</th>
                     <th className="w-1/6 px-6 py-4 text-center">STATUS</th>
-                    <th className="w-1/6 px-6 py-4 text-center">Password</th>
+                    <th className="w-1/6 px-6 py-4 text-center">PASSWORD</th>
                     <th className="w-1/6 px-6 py-4 text-center">ACTIONS</th>
                   </tr>
                 </thead>
@@ -194,14 +215,17 @@ const AdminCounselors = () => {
                               <span
                                 className="font-medium text-gray-900 cursor-pointer hover:underline"
                                 onClick={() => {
-                                  // Save only the staffAccount_ID in sessionStorage for preview fetch
-                                  try {
-                                    const id = c.staffAccount_ID || c.id || '';
-                                    sessionStorage.setItem('selectedCounselorId', String(id));
-                                  } catch (e) {
-                                    console.warn('Could not write sessionStorage', e);
-                                  }
-                                  navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                                  setPreviewLoading(true);
+                                  setTimeout(() => {
+                                    // Save only the staffAccount_ID in sessionStorage for preview fetch
+                                    try {
+                                      const id = c.staffAccount_ID || c.id || '';
+                                      sessionStorage.setItem('selectedCounselorId', String(id));
+                                    } catch (e) {
+                                      console.warn('Could not write sessionStorage', e);
+                                    }
+                                    navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                                  }, 1000);
                                 }}
                               >
                                 {c.name}
@@ -367,13 +391,16 @@ const AdminCounselors = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center space-x-4">
                           <button className="text-blue-600 hover:text-blue-800" onClick={() => {
-                              try {
-                                const id = c.staffAccount_ID || c.id || '';
-                                sessionStorage.setItem('selectedCounselorId', String(id));
-                              } catch (e) {
-                                console.warn('Could not write sessionStorage', e);
-                              }
-                              navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                              setPreviewLoading(true);
+                              setTimeout(() => {
+                                try {
+                                  const id = c.staffAccount_ID || c.id || '';
+                                  sessionStorage.setItem('selectedCounselorId', String(id));
+                                } catch (e) {
+                                  console.warn('Could not write sessionStorage', e);
+                                }
+                                navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                              }, 1000);
                             }}>
                             <Eye className="w-5 h-5" />
                           </button>

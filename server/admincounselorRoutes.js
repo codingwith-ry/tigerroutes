@@ -453,8 +453,36 @@ module.exports = (db) => {
     router.post('/counselor/delete', async (req, res) => {
         let conn;
         try {
-            const { id } = req.body;
+            const { id, adminPassword } = req.body;
             if (!id) return res.status(400).json({ success: false, message: 'Missing counselor id' });
+
+            // Require a password and verify it against the authenticated staff user (from tigerStaffToken)
+            if (!adminPassword) {
+                return res.status(400).json({ success: false, message: 'Missing admin password' });
+            }
+
+            // `requireJwt` middleware should have populated req.user; ensure it's present
+            if (!req.user || !(req.user.staffAccount_ID || req.user.id)) {
+                return res.status(401).json({ success: false, message: 'Not authenticated' });
+            }
+
+            try {
+                const connVerify = db.promise();
+                const adminId = req.user.staffAccount_ID || req.user.id;
+                const [adminRows] = await connVerify.query('SELECT * FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [adminId]);
+                if (!adminRows || adminRows.length === 0) return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+                const adminRecord = adminRows[0];
+
+                let adminMatch = false;
+                try { adminMatch = await bcrypt.compare(adminPassword, adminRecord.password || ''); } catch (e) { adminMatch = false; }
+                if (!adminMatch && adminRecord.password === adminPassword) {
+                    try { const newHash = await bcrypt.hash(adminPassword, SALT_ROUNDS); await connVerify.query('UPDATE tbl_staffaccounts SET password = ? WHERE staffAccount_ID = ?', [newHash, adminRecord.staffAccount_ID]); adminMatch = true; } catch (e) { console.error('[admin verify] migration failed', e); }
+                }
+                if (!adminMatch) return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+            } catch (verifyErr) {
+                console.error('Admin credential verify error', verifyErr);
+                return res.status(500).json({ success: false, message: 'Server error verifying credentials' });
+            }
 
             conn = await db.promise().getConnection();
 
@@ -468,6 +496,20 @@ module.exports = (db) => {
             const [acctRows] = await conn.query('SELECT staffProfile_ID, name FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);
             const staffProfileId = acctRows && acctRows[0] ? acctRows[0].staffProfile_ID : null;
             const counselorName = acctRows && acctRows[0] ? acctRows[0].name : null;
+
+            // Remove dependent rows that reference this staffAccount_ID to avoid FK constraint failures
+            try {
+                // Remove counselor-specific notes
+                await conn.query('DELETE FROM tbl_counselornotes WHERE staffAccount_ID = ?', [id]);
+            } catch (e) {
+                // ignore if table doesn't exist or other issue; we'll rely on transaction rollback on failure
+            }
+            try {
+                // Remove staff logs that reference this account
+                await conn.query('DELETE FROM tbl_stafflogs WHERE staffAccount_ID = ?', [id]);
+            } catch (e) {
+                // ignore and allow transaction to handle any error
+            }
 
             // Delete the staff account
             await conn.query('DELETE FROM tbl_staffaccounts WHERE staffAccount_ID = ?', [id]);

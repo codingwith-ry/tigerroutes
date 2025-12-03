@@ -192,12 +192,14 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
     e.preventDefault();
 
     if (!confirmPassword) {
-      Swal.fire({
-        icon: "warning",
-        title: "Confirmation Required",
-        text: "Please enter your admin password to confirm deletion (this is only used locally as confirmation).",
-        confirmButtonColor: "#FB9724",
-      });
+      // Focus the inline password field instead of opening a global SweetAlert overlay
+      const el = document.getElementById('confirm-password-input');
+      if (el) {
+        el.focus();
+        // briefly add a visual pulse to draw attention
+        el.classList.add('ring-2', 'ring-red-300');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-red-300'), 700);
+      }
       return;
     }
 
@@ -214,16 +216,17 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
       return;
     }
 
-    const doDelete = async () => {
+        const doDelete = async () => {
       try {
         const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
         // Send only the counselor id; server will use JWT cookie to identify the admin
-        const resp = await fetch(`${base}/api/admin/counselor/delete`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: counselor?.staffAccount_ID })
-        });
+            // Send only the counselor id and the admin password; server verifies password against logged-in staff JWT
+            const resp = await fetch(`${base}/api/admin/counselor/delete`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: counselor?.staffAccount_ID, adminPassword: confirmPassword })
+            });
         const result = await resp.json();
         if (!resp.ok || !result.success) {
           Swal.fire({ icon: 'error', title: 'Delete Failed', text: result.message || 'Invalid credentials or server error', confirmButtonColor: '#FB9724' });
@@ -537,6 +540,8 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                     <span className="font-semibold">{counselor?.name}</span>.
                   </p>
                   <input
+                    id="confirm-password-input"
+                    name="confirmPassword"
                     type="password"
                     placeholder="Enter your password"
                     value={confirmPassword}

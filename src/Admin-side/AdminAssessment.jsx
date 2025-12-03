@@ -75,6 +75,8 @@ const AdminAssessment = () => {
   const [assessments, setAssessments] = useState([]);
   const [totalAssessments, setTotalAssessments] = useState(0);
   const [loading, setLoading] = useState(false);
+  // Only show the full-screen "Preparing..." spinner on the very first assessments load.
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
@@ -135,11 +137,20 @@ const AdminAssessment = () => {
         setTotalAssessments(0);
       } finally {
         setLoading(false);
+        // Clear the initial loading flag after the first attempt (success or fail)
+        setInitialLoading(false);
       }
     }
     load();
     return () => controller.abort();
   }, [currentPage, debouncedFilterText, dateRangeFilter, gradeFilter, activeTab]);
+
+  // When switching to the assessments tab and we have no cached assessments, treat it as the initial load.
+  useEffect(() => {
+    if (activeTab === 'assessments' && assessments.length === 0) {
+      setInitialLoading(true);
+    }
+  }, [activeTab, assessments.length]);
 
   // (debounce handled directly on input change using ref)
 
@@ -752,7 +763,7 @@ const AdminAssessment = () => {
     );
   };
 
-  if (loading) {
+    if (loading && initialLoading) {
           return (
               <div className="min-h-screen w-full bg-[#FFFCED] flex">
                   <AdminSidebar />

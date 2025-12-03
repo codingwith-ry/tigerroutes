@@ -225,7 +225,8 @@ const AdminDashboard = () => {
       if (!s.lastReminderDate) return false;
       const remindedDateObj = parseAsUTCDate(s.lastReminderDate);
       if (!remindedDateObj) return false;
-      const remindedDateStr = remindedDateObj.toLocaleString('en-CA', { timeZone: 'Asia/Manila' });
+      // Use only the date portion (YYYY-MM-DD) for comparisons so 'endDate' is inclusive
+      const remindedDateStr = remindedDateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
       if (startDate && startDate.trim()) {
         if (remindedDateStr < startDate) return false;
       }

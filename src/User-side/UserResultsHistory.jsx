@@ -394,6 +394,7 @@ const UserResultsHistory = () => {
                 <option value="3">3 Stars</option>
                 <option value="2">2 Stars</option>
                 <option value="1">1 Star</option>
+                <option value="0">No Rating</option>
               </select>
 
               {/* Clear Filters */}

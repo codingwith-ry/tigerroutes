@@ -38,6 +38,7 @@ const ProfilePage = () => {
     const [email] = useState(storedEmail);
 
     useEffect(() => {
+        document.title = "TigerRoutes | Profile";
         const initializeData = async () => {
             try {
                 setLoading(true);

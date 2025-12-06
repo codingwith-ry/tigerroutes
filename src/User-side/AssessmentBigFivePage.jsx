@@ -400,7 +400,15 @@ const AssessmentBigFivePage = () => {
     .then(data => {
       if (data.success) {
         console.log('Success:', data.programRecommendations);
+        // Clean up pending assessment entry
+        localStorage.removeItem('riasecAnswers');
+        localStorage.removeItem('bigFiveAnswers');
+        localStorage.removeItem('riasecProgress');
+        localStorage.removeItem('bigFiveProgress');
+        localStorage.removeItem('riasecResults');
+        localStorage.removeItem('bigFiveResults');
         navigate('/assessment/results/'+ localStorage.getItem('currentAssessmentId'));
+        localStorage.removeItem('currentAssessmentId');
       } else {
         Swal.fire({
           icon: 'error',
@@ -427,15 +435,6 @@ const AssessmentBigFivePage = () => {
           console.error('Error deleting pending assessment:', data.message);
         } 
       });
-
-      // Clean up pending assessment entry
-      localStorage.removeItem('currentAssessmentId');
-      localStorage.removeItem('riasecAnswers');
-      localStorage.removeItem('bigFiveAnswers');
-      localStorage.removeItem('riasecProgress');
-      localStorage.removeItem('bigFiveProgress');
-      localStorage.removeItem('riasecResults');
-      localStorage.removeItem('bigFiveResults');
     })
     .catch(error => {
       console.error('Error:', error);

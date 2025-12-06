@@ -256,7 +256,7 @@ module.exports = (db) => {
                                 <p><strong>Time Required:</strong> Just 15-20 minutes to complete both RIASEC and Big Five assessments</p>
                                 
                                 <div style="text-align: center;">
-                                    <a href="${process.env.REACT_APP_BASE_URL || 'http://localhost:3000'}" class="btn">
+                                    <a href="${process.env.REACT_APP_API_URL || 'http://localhost:3000'}" class="btn">
                                         Complete Your Assessment Now
                                     </a>
                                 </div>

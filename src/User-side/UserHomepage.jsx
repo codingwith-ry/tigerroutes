@@ -293,7 +293,7 @@ const UserHomepage = () => {
                   >
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-sm font-bold mr-3 shadow flex-shrink-0">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500 text-white text-sm font-bold mr-3 shadow flex-shrink-0">
                           {index + 1}
                         </span>
                         <h5 className="font-semibold text-sm text-gray-800 group-hover:text-yellow-700 transition-colors">
@@ -309,7 +309,7 @@ const UserHomepage = () => {
                       </p>
                     </div>
                     <div className="ml-4 text-right flex-shrink-0">
-                      <div className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">
+                      <div className="text-xl font-bold bg-clip-text text-yellow-500">
                         {program.alignmentScore}%
                       </div>
                       <div className="text-xs text-gray-500 font-medium">match</div>
@@ -323,7 +323,7 @@ const UserHomepage = () => {
             <div className="mt-5 flex justify-center pt-4 border-t border-gray-200">
               <button
                 onClick={() => navigate(`/assessment/results/${analytics.recentAssessmentData.studentAssessment_ID}`)}
-                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-full font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+                className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
               >
                 View Full Assessment Results
                 <FiChevronRight />

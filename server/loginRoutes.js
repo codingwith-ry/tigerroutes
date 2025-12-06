@@ -284,7 +284,7 @@ module.exports = (db) => {
             const staff = rows[0];
 
             // Admin notify email (can be configured via ENV)
-            const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'dominicadino23@gmail.com';
+            const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'tigerroutes.contact@gmail.com';
 
             // Nodemailer transporter (reuse existing configuration)
             const transporter = nodemailer.createTransport({

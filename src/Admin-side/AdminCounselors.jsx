@@ -274,9 +274,9 @@ const AdminCounselors = () => {
 
                               if (!adminEmail) {
                                 const { value: emailInput } = await Swal.fire({
-                                  title: 'Enter admin email',
+                                  title: 'Enter Your Supervisor Email For Verification',
                                   input: 'email',
-                                  inputLabel: 'Admin email',
+                                  inputLabel: 'Supervisor email',
                                   inputPlaceholder: 'you@school.edu',
                                   showCancelButton: true,
                                   confirmButtonText: 'Continue',

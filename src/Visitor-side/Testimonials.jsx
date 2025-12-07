@@ -6,6 +6,12 @@ import "swiper/css/navigation";
 
 const testimonials = [
 	{
+		name: "Heinson John Quiambao",
+		role: "BS Information Technology, UST",
+		image: "../avatars/heinson.webp",
+		text: "Thanks to TigerRoutes, I found my true calling in Automation. The platform's insights were invaluable!",
+	},
+	{
 		name: "Francis Gohan Ragasa",
 		role: "BS Information Technology, UST",
 		image: "../avatars/francis.webp",
@@ -24,7 +30,7 @@ const testimonials = [
 		text: "TigerRoutes helped me discover my passion for Network Security. The career suggestions were spot on!",
 	},
 	{
-		name: "Chelsea Glorioso",
+		name: "Chelsea Gail Glorioso",
 		role: "BA Communication Arts, UST",
 		image: "../avatars/chelsea.webp",
 		text: "The personality test was so accurate! It felt like TigerRoutes really understood me and my strengths.",

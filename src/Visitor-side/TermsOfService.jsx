@@ -99,7 +99,7 @@ const sections = [
           If you have any questions about these Terms of Service, please contact
           us at:
         </p>
-        <p className="text-gray-900 font-medium">tigeroutes.support@ust.edu.ph</p>
+        <p className="text-gray-900 font-medium">tigerroutes.contact@gmail.com</p>
       </>
     ),
   },
@@ -140,21 +140,30 @@ const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {showNavbar ? (loggedIn ? <UserNavbar /> : <Navbar />) : null}
-      {/* Hero Header */}
-      <header className="relative bg-gradient-to-b from-[#FFCC00] to-white text-black text-center py-16">
-        <h1 className="text-4xl font-bold">Terms of Service</h1>
-        <p className="mt-2 text-gray-700">Effective Date: September 2025</p>
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+      
+      {/* HEADER */}
+      <header className="relative bg-yellow-300 text-black text-center py-16 pb-28">
+        <h1 className="text-4xl font-black mt-3">Terms of Service</h1>
+        <p className="mt-2 text-gray-700">Effective Date: November 2025</p>
+
+        {/* Curve at the bottom */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg
-            className="relative block w-full h-16"
+            className="
+            relative block w-full
+            h-12              /* mobile height */
+            sm:h-16           /* small screens */
+            md:h-20           /* medium screens */
+            lg:h-24           /* large desktops */
+            scale-y-[-1]"
             xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1440 320"
             preserveAspectRatio="none"
-            viewBox="0 0 1200 120"
           >
             <path
-              d="M321.39 56.44C176.27 65.6 71.27 93.4 0 120h1200V0c-75.47 27.13-147.67 55.73-273.87 65.27C789.44 76.24 666.1 43.51 527.23 48.44 440.39 51.48 378.48 51.49 321.39 56.44z"
-              fill="white"
-            ></path>
+              fill="#ffffff"
+              d="M0,256L80,224C160,192,320,128,480,96C640,64,800,64,960,101.3C1120,139,1280,213,1360,250.7L1440,288L1440,0L1360,0C1280,0,1120,0,960,0C800,0,640,0,480,0C320,0,160,0,80,0L0,0Z"
+            />
           </svg>
         </div>
       </header>

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../Visitor-side/Navbar";
 import UserNavbar from "../User-side/UserNavbar";
 import { useAuth } from "../utils/AuthContext";
+import Footer from "./Footer";
 
 const sections = [
   {
@@ -193,7 +194,7 @@ const sections = [
           contact:
         </p>
         <p className="font-medium text-gray-900">
-          tigeroutes.support@ust.edu.ph
+          tigerroutes.contact@gmail.com
         </p>
         <p className="mt-3 text-sm text-gray-600">
           Include your name, student identifier (if applicable), and details of
@@ -256,23 +257,32 @@ const PrivacyPolicy = () => {
       {showNavbar && (loggedIn ? <UserNavbar /> : <Navbar />)}
 
       {/* HEADER */}
-      <header className="relative bg-gradient-to-b from-[#FFCC00] to-white text-black text-center py-12">
-        <h1 className="text-4xl font-bold">Privacy Policy</h1>
+      <header className="relative bg-yellow-300 text-black text-center py-16 pb-28">
+        <h1 className="text-4xl font-black mt-3">Privacy Policy</h1>
         <p className="mt-2 text-gray-700">Effective Date: November 2025</p>
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+
+        {/* Curve at the bottom */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
           <svg
-            className="relative block w-full h-12"
+            className="
+            relative block w-full
+            h-12              /* mobile height */
+            sm:h-16           /* small screens */
+            md:h-20           /* medium screens */
+            lg:h-24           /* large desktops */
+            scale-y-[-1]"
             xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1440 320"
             preserveAspectRatio="none"
-            viewBox="0 0 1200 120"
           >
             <path
-              d="M321.39 56.44C176.27 65.6 71.27 93.4 0 120h1200V0c-75.47 27.13-147.67 55.73-273.87 65.27C789.44 76.24 666.1 43.51 527.23 48.44 440.39 51.48 378.48 51.49 321.39 56.44z"
-              fill="white"
-            ></path>
+              fill="#ffffff"
+              d="M0,256L80,224C160,192,320,128,480,96C640,64,800,64,960,101.3C1120,139,1280,213,1360,250.7L1440,288L1440,0L1360,0C1280,0,1120,0,960,0C800,0,640,0,480,0C320,0,160,0,80,0L0,0Z"
+            />
           </svg>
         </div>
       </header>
+
 
       {/* MAIN CONTENT */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 py-12 max-w-100 px-6 md:px-16">
@@ -337,6 +347,8 @@ const PrivacyPolicy = () => {
           )}
         </main>
       </div>
+
+      <Footer />
     </div>
   );
 };

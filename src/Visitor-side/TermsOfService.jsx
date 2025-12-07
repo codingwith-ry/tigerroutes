@@ -1,4 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import Navbar from "../Visitor-side/Navbar";
+import UserNavbar from "../User-side/UserNavbar";
+import { useAuth } from "../utils/AuthContext";
+
 
 const sections = [
   {
@@ -101,6 +106,29 @@ const sections = [
 ];
 
 const TermsOfService = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
+  const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
+  
+  useEffect(() => {
+    if (!authLoading && user) {
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
+    }
+
+    // Determine how Privacy Policy was accessed
+    if (location.state) {
+      // Hide navbar only if from assessment, otherwise show
+      setShowNavbar(!location.state.fromAssessment);
+    }
+
+    return () => {
+      document.documentElement.style.scrollBehavior = "auto";
+    };
+  }, [location.state, authLoading, user]);
+
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
     document.title = "Terms of Service | TigerRoutes";
@@ -111,6 +139,7 @@ const TermsOfService = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
+      {showNavbar ? (loggedIn ? <UserNavbar /> : <Navbar />) : null}
       {/* Hero Header */}
       <header className="relative bg-gradient-to-b from-[#FFCC00] to-white text-black text-center py-16">
         <h1 className="text-4xl font-bold">Terms of Service</h1>
@@ -132,8 +161,26 @@ const TermsOfService = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
-        {/* Sidebar */}
-        <aside className="md:col-span-1 sticky top-6 self-start">
+        {/* Mobile: horizontal, scrollable nav above content */}
+        <div className="md:hidden mb-6 px-4">
+          <nav>
+            <ul className="flex gap-3 overflow-x-auto whitespace-nowrap no-scrollbar py-2">
+              {sections.map((section) => (
+                <li key={section.id}>
+                  <a
+                    href={`#${section.id}`}
+                    className="inline-block px-3 py-2 rounded-md text-sm text-gray-700 bg-gray-100 hover:bg-[#FFCC00] hover:text-white transition"
+                  >
+                    {section.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        {/* Desktop aside (hidden on small screens) */}
+        <aside className="hidden md:block md:col-span-1 sticky top-6 self-start">
           <nav>
             <ul className="space-y-4 text-sm font-medium">
               {sections.map((section) => (

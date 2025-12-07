@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../Visitor-side/Navbar";
 import UserNavbar from "../User-side/UserNavbar";
+import { useAuth } from "../utils/AuthContext";
 
 const sections = [
   {
@@ -221,11 +222,19 @@ const PrivacyPolicy = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { user, loading: authLoading } = useAuth();
+
+
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
     document.title = "Privacy Policy | TigerRoutes";
 
-    sessionStorage.getItem("user") ? setLoggedIn(true) : setLoggedIn(false);
+
+    if (!authLoading && user) {
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
+    }
 
     // Determine how Privacy Policy was accessed
     if (location.state) {
@@ -240,7 +249,7 @@ const PrivacyPolicy = () => {
     return () => {
       document.documentElement.style.scrollBehavior = "auto";
     };
-  }, [location.state]);
+  }, [location.state, authLoading, user]);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 w-full">
@@ -266,9 +275,28 @@ const PrivacyPolicy = () => {
       </header>
 
       {/* MAIN CONTENT */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 py-12 max-w-7xl px-6 md:px-16">
-        {/* SIDE NAVIGATION */}
-        <aside className="md:col-span-1 sticky top-6 self-start">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 py-12 max-w-100 px-6 md:px-16">
+        {/* SIDE NAVIGATION - mobile horizontal nav + desktop aside */}
+        {/* Mobile: horizontal, scrollable nav above content */}
+        <div className="md:hidden mb-6 px-4">
+          <nav>
+            <ul className="flex gap-3 overflow-x-auto whitespace-nowrap no-scrollbar py-2">
+              {sections.map((section) => (
+                <li key={section.id}>
+                  <a
+                    href={`#${section.id}`}
+                    className="inline-block px-3 py-2 rounded-md text-sm text-gray-700 bg-gray-100 hover:bg-[#FFCC00] hover:text-white transition"
+                  >
+                    {section.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        {/* Desktop aside (hidden on small screens) */}
+        <aside className="hidden md:block md:col-span-1 sticky top-6 self-start">
           <nav>
             <ul className="space-y-4 text-sm font-medium">
               {sections.map((section) => (

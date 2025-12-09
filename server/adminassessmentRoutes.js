@@ -146,6 +146,11 @@ module.exports = (db) => {
             else cross_track.push(item);
           });
 
+          // Order each list by alignment_score descending (null/undefined placed last)
+          const scoreValue = (it) => (typeof it.alignment_score === 'number' ? it.alignment_score : Number.NEGATIVE_INFINITY);
+          track_aligned.sort((a, b) => scoreValue(b) - scoreValue(a));
+          cross_track.sort((a, b) => scoreValue(b) - scoreValue(a));
+          
           return res.json({ success: true, data: { track_aligned, cross_track } });
         } catch (err) {
           console.error('Error fetching program recommendations for assessment:', err);

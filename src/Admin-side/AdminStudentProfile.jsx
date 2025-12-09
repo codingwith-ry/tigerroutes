@@ -519,6 +519,64 @@ const AdminStudentProfile = () => {
                                   </div>
                                 </div>
                                 {p.programDescription && <div className="text-xs text-gray-600 mb-2">{p.programDescription}</div>}
+                                {p.breakdown && (
+                                  (() => {
+                                    // normalize breakdown into an array
+                                    let items = [];
+                                    try {
+                                      const raw = p.breakdown;
+                                      if (Array.isArray(raw)) {
+                                        items = raw;
+                                      } else if (typeof raw === 'string') {
+                                        const parsed = JSON.parse(raw);
+                                        items = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' ? Object.values(parsed) : []);
+                                      } else if (raw && typeof raw === 'object') {
+                                        // single item shaped object?
+                                        if (raw.label !== undefined && raw.score !== undefined) {
+                                          items = [raw];
+                                        } else {
+                                          // object map: { label1: score1, label2: score2 } or { k: {label,score} }
+                                          items = Object.entries(raw).map(([k, v]) => {
+                                            if (v && typeof v === 'object' && (v.label !== undefined || v.score !== undefined)) return v;
+                                            return { label: k, score: Number(v) || 0 };
+                                          });
+                                        }
+                                      }
+                                    } catch (e) {
+                                      items = [];
+                                      console.warn('Failed to parse breakdown', e);
+                                    }
+
+                                    if (!items || items.length === 0) return null;
+
+                                    return (
+                                      <div className="mb-4">
+                                        <p className="text-sm text-gray-500 mb-3">Alignment Breakdown:</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                          {items.map((item, idx) => {
+                                            const score = Number(item.score) || 0;
+                                            const colorClass = item.color || 'bg-blue-500'; // fallback color
+                                            return (
+                                              <div key={idx} className="bg-gray-50 p-2 rounded-lg">
+                                                <div className="flex justify-between items-center mb-1">
+                                                  <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                                                  <span className="text-xs font-bold text-gray-800">{score}%</span>
+                                                </div>
+                                                <div className="w-full h-1.5 bg-gray-200 rounded-full">
+                                                  <div
+                                                    className={`h-1.5 rounded-full ${colorClass}`}
+                                                    style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
+                                                  />
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()
+                                )}
+ 
                                 {p.careerPaths && Array.isArray(p.careerPaths) && (
                                   <div className="text-xs text-gray-600 mt-3">
                                     <span className="font-semibold text-gray-700">Potential career paths:</span>
@@ -552,6 +610,63 @@ const AdminStudentProfile = () => {
                                   </div>
                                 </div>
                                 {p.programDescription && <div className="text-xs text-gray-600 mb-2">{p.programDescription}</div>}
+                                {p.breakdown && (
+                                  (() => {
+                                    // normalize breakdown into an array
+                                    let items = [];
+                                    try {
+                                      const raw = p.breakdown;
+                                      if (Array.isArray(raw)) {
+                                        items = raw;
+                                      } else if (typeof raw === 'string') {
+                                        const parsed = JSON.parse(raw);
+                                        items = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' ? Object.values(parsed) : []);
+                                      } else if (raw && typeof raw === 'object') {
+                                        // single item shaped object?
+                                        if (raw.label !== undefined && raw.score !== undefined) {
+                                          items = [raw];
+                                        } else {
+                                          // object map: { label1: score1, label2: score2 } or { k: {label,score} }
+                                          items = Object.entries(raw).map(([k, v]) => {
+                                            if (v && typeof v === 'object' && (v.label !== undefined || v.score !== undefined)) return v;
+                                            return { label: k, score: Number(v) || 0 };
+                                          });
+                                        }
+                                      }
+                                    } catch (e) {
+                                      items = [];
+                                      console.warn('Failed to parse breakdown', e);
+                                    }
+
+                                    if (!items || items.length === 0) return null;
+
+                                    return (
+                                      <div className="mb-4">
+                                        <p className="text-sm text-gray-500 mb-3">Alignment Breakdown:</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                          {items.map((item, idx) => {
+                                            const score = Number(item.score) || 0;
+                                            const colorClass = item.color || 'bg-blue-500'; // fallback color
+                                            return (
+                                              <div key={idx} className="bg-gray-50 p-2 rounded-lg">
+                                                <div className="flex justify-between items-center mb-1">
+                                                  <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                                                  <span className="text-xs font-bold text-gray-800">{score}%</span>
+                                                </div>
+                                                <div className="w-full h-1.5 bg-gray-200 rounded-full">
+                                                  <div
+                                                    className={`h-1.5 rounded-full ${colorClass}`}
+                                                    style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
+                                                  />
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()
+                                )}
                                 {p.careerPaths && Array.isArray(p.careerPaths) && (
                                   <div className="text-xs text-gray-600 mt-3">
                                     <span className="font-semibold text-gray-700">Potential career paths:</span>

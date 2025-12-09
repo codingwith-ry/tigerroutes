@@ -76,19 +76,59 @@ module.exports = (db) => {
             return res.status(400).json({error: 'Please fill in all fields'});
         }
 
+        // Normalize email: trim and lowercase to prevent duplicates with case variations
+        const normalizedEmail = (email || '').trim().toLowerCase();
+
         // Enforce allowed email domain
-        if (!isAllowedUstEmail(email)) {
+        if (!isAllowedUstEmail(normalizedEmail)) {
             return res.status(400).json({ error: 'Registration is restricted to UST email addresses (ust.edu.ph)'});
         }
 
         try {
+            // Hash password before querying database
             const hashed = await bcrypt.hash(password, SALT_ROUNDS);
+
+            // Check if email already exists (case-insensitive) to prevent duplicates
             db.query(
-                'INSERT into tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
-                [name, email, hashed],
-                (err, result) => {
+                'SELECT studentAccount_ID FROM tbl_studentaccounts WHERE LOWER(email) = LOWER(?)',
+                [normalizedEmail],
+                (err, existing) => {
                     if (err) return res.status(500).json({error: err.message});
-                    res.json({success:true, id: result.insertId});
+                    
+                    if (existing && existing.length > 0) {
+                        // Email already registered; update password
+                        const user = existing[0];
+                        return db.query(
+                            'UPDATE tbl_studentaccounts SET password = ? WHERE studentAccount_ID = ?',
+                            [hashed, user.studentAccount_ID],
+                            (err) => {
+                                if (err) return res.status(500).json({error: err.message});
+                                try {
+                                    const token = jwt.sign({ id: user.studentAccount_ID, email: normalizedEmail, name: name }, secret, { expiresIn: '1h' });
+                                    res.cookie('tigerToken', token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 1 * 60 * 60 * 1000 });
+                                    return res.json({success: true, id: user.studentAccount_ID, isUpdate: true});
+                                } catch (e) {
+                                    return res.json({success: true, id: user.studentAccount_ID, isUpdate: true});
+                                }
+                            }
+                        );
+                    }
+
+                    // New registration: email doesn't exist yet
+                    db.query(
+                        'INSERT into tbl_studentaccounts (name, email, password) VALUES (?, ?, ?)',
+                        [name, normalizedEmail, hashed],
+                        (err, result) => {
+                            if (err) return res.status(500).json({error: err.message});
+                            try {
+                                const token = jwt.sign({ id: result.insertId, email: normalizedEmail, name: name }, secret, { expiresIn: '1h' });
+                                res.cookie('tigerToken', token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 1 * 60 * 60 * 1000 });
+                                return res.json({success: true, id: result.insertId});
+                            } catch (e) {
+                                return res.json({success: true, id: result.insertId});
+                            }
+                        }
+                    );
                 }
             );
         } catch (err) {

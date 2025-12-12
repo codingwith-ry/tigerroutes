@@ -199,12 +199,12 @@ module.exports = (db) => {
                         const token = jwt.sign(
                             { id: user.studentAccount_ID, email: user.email, name: user.name },
                             secret,
-                            { expiresIn: '1h' }
+                            { expiresIn: '6h' }
                         );
 
                         const cookieMaxAge = req.body && req.body.rememberMe
                             ? 30 * 24 * 60 * 60 * 1000 // 30 days
-                            : 1 * 60 * 60 * 1000; // 1 hour (match jwt expiry)
+                            : 6 * 60 * 60 * 1000; // 6 hours (match jwt expiry)
 
                         // successful login -> clear login timer cookie
                         clearLoginTimer(res);
@@ -448,8 +448,8 @@ module.exports = (db) => {
                     // create JWT and set cookie for Google-authenticated user
                     try {
                         const user = results[0];
-                        const token = jwt.sign({ id: user.studentAccount_ID, email: user.email, name: user.name }, secret, { expiresIn: '1h' });
-                        res.cookie('tigerToken', token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 1 * 60 * 60 * 1000 });
+                        const token = jwt.sign({ id: user.studentAccount_ID, email: user.email, name: user.name }, secret, { expiresIn: '6h' });
+                        res.cookie('tigerToken', token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 6 * 60 * 60 * 1000 });
                         return res.json({ success: true, isNew: false, user });
                     } catch (e) {
                         return res.json({ success: true, isNew: false, user: results[0] });

@@ -395,10 +395,8 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         <option>ABM</option>
                         <option>HUMSS</option>
                         <option>Health-Allied</option>
-                        {/* <option>GAS</option>
-                        <option>TVL</option>
-                        <option>Sports</option>
-                        <option>Arts & Design</option> */}
+                        <option>Music, Arts, and Design</option>
+                        <option>Physical Education and Sports</option>
                       </select>
                     </div>
                     <div>

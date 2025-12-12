@@ -533,8 +533,6 @@ module.exports = (db) => {
     })
 
 
-
-
     //Admin Stuffs Here:
     router.post('/staff-login', (req, res) => {
         const { email, password } = req.body;
@@ -674,8 +672,8 @@ module.exports = (db) => {
         )
     })
 
-                // Return current staff profile from JWT (`tigerStaffToken`) set as HttpOnly cookie
-                router.get('/staff/me', (req, res) => {
+    // Return current staff profile from JWT (`tigerStaffToken`) set as HttpOnly cookie
+    router.get('/staff/me', (req, res) => {
                         try {
                             // verifyJwtCookie middleware attaches decoded token to req.user when present
                             if (req.user && req.user.id) {
@@ -701,7 +699,9 @@ module.exports = (db) => {
                             console.warn('[staff/me] error', e);
                         }
                         return res.status(401).json({ success:false, message: 'Not authenticated' });
-                });
+    });
+
+
 
     return router;
 };

@@ -24,8 +24,8 @@ try {
 
 const app = express();
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true
+  origin: process.env.REACT_APP_API_URL || 'http://localhost:3000',
+  credentials: true
 }));
 
 
@@ -128,6 +128,11 @@ if (typeof BedrockAgentRuntimeClient !== 'undefined') {
   }
 }
 
+// Basic ping route
+app.get('/api/ping', (req, res) => {
+  res.json({ success: true, message: 'pong' });
+});
+
 //chatbot route
 app.post("/api/chatbot", async (req, res) => {
   try {
@@ -162,8 +167,6 @@ app.post("/api/chatbot", async (req, res) => {
   }
 });
 
-// lightweight health-check used for tests/monitoring
-app.get('/__health', (req, res) => res.json({ ok: true }));
 
 // NOTE: single app.listen occurs at the bottom using PORT
     

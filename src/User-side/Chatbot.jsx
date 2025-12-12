@@ -80,18 +80,20 @@ const Chatbot = ({
 
     if (!isOpen) {
         return (
-            <button
-                onClick={onOpen}
-                className="fixed bottom-4 right-4 w-14 h-14 bg-yellow-400 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition-colors z-50"
-                aria-label="Open chat"
-            >
-                <FiMessageCircle size={24} className="text-white" />
-            </button>
+            <div className="fixed bottom-4 right-4">
+                <button
+                    onClick={onOpen}
+                    className="fixed bottom-4 right-4 w-12 h-12 sm:w-14 sm:h-14 bg-yellow-400 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition-colors z-50"
+                    aria-label="Open chat"
+                >
+                    <FiMessageCircle size={20} className="text-white" />
+                </button>
+            </div>
         );
     }
 
     return (
-        <div className="fixed bottom-4 right-4 w-96 bg-white rounded-lg shadow-xl z-50">
+        <div className="fixed inset-x-0 bottom-0 sm:bottom-4 sm:right-4 sm:left-auto mx-auto max-w-md sm:w-96 bg-white rounded-t-xl sm:rounded-lg shadow-xl z-50 pb-[env(safe-area-inset-bottom)]">
             {/* Header */}
             <div className="bg-yellow-400 p-4 rounded-t-lg flex justify-between items-center">
                 <h3 className="text-white font-semibold">TigerRoutes Assistant</h3>
@@ -114,7 +116,7 @@ const Chatbot = ({
             {/* Messages Container */}
             {!minimized && (
             <>
-                <div className="h-96 overflow-y-auto p-4 space-y-4">
+                <div className="max-h-[60vh] sm:h-96 overflow-y-auto p-4 space-y-4 touch-pan-y pb-24 sm:pb-0">
                     {messages.map((message, index) => (
                         <div 
                             key={index} 
@@ -171,21 +173,24 @@ const Chatbot = ({
                 {/* Message Input Form */}
                 <form 
                     onSubmit={handleSendMessage}
-                    className="border-t p-4 flex gap-2 items-center"
+                    className="sticky bottom-0 bg-white border-t p-3 sm:p-4 flex gap-2 items-center"
                 >
                     <input
                         type="text"
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="flex-1 p-3 sm:p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        inputMode="text"
+                        autoComplete="off"
+                        enterKeyHint="send"
                     />
                     <button
                         type="submit"
                         disabled={!inputMessage.trim()}
-                        className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-3 sm:p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                     >
-                        <FiSend size={20} />
+                        <FiSend size={18} />
                     </button>
                 </form>
             </>

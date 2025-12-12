@@ -408,7 +408,6 @@ const AssessmentBigFivePage = () => {
         localStorage.removeItem('riasecResults');
         localStorage.removeItem('bigFiveResults');
         navigate('/assessment/results/'+ localStorage.getItem('currentAssessmentId'));
-        localStorage.removeItem('currentAssessmentId');
       } else {
         Swal.fire({
           icon: 'error',
@@ -434,6 +433,7 @@ const AssessmentBigFivePage = () => {
         if (!data.success) {
           console.error('Error deleting pending assessment:', data.message);
         } 
+        localStorage.removeItem('currentAssessmentId');
       });
     })
     .catch(error => {

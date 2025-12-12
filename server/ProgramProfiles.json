@@ -1245,5 +1245,101 @@
       "Music, Arts, and Design": 75,
       "Physical Education and Sports": 55
     }
+  },
+
+  "Bachelor of Canon Law": {
+    "riasec_requirements": {
+      "Realistic": { "weight": 0.05, "ideal_range": [0, 20] },
+      "Investigative": { "weight": 0.35, "ideal_range": [60, 90] },
+      "Artistic": { "weight": 0.05, "ideal_range": [0, 20] },
+      "Social": { "weight": 0.25, "ideal_range": [50, 90] },
+      "Enterprising": { "weight": 0.20, "ideal_range": [30, 60] },
+      "Conventional": { "weight": 0.10, "ideal_range": [40, 70] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.20, "ideal_range": [40, 70] },
+      "Conscientiousness": { "weight": 0.40, "ideal_range": [70, 100] },
+      "Extraversion": { "weight": 0.15, "ideal_range": [30, 60] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [50, 90] },
+      "Neuroticism": { "weight": 0.10, "ideal_range": [0, 30] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.40, "minimum": 85 },
+      "math_performance": { "weight": 0.15, "minimum": 80 },
+      "science_performance": { "weight": 0.15, "minimum": 80 },
+      "english_performance": { "weight": 0.30, "minimum": 85 }
+    },
+    "track_preferences": {
+      "HUMSS": 90,
+      "ABM": 60,
+      "STEM": 40,
+      "Health-Allied": 45,
+      "Music, Arts, and Design": 25,
+      "Physical Education and Sports": 20
+    }
+  },
+
+  "Bachelor of Philosophy (Classical)": {
+    "riasec_requirements": {
+      "Realistic": { "weight": 0.05, "ideal_range": [0, 20] },
+      "Investigative": { "weight": 0.35, "ideal_range": [60, 90] },
+      "Artistic": { "weight": 0.10, "ideal_range": [20, 40] },
+      "Social": { "weight": 0.25, "ideal_range": [50, 90] },
+      "Enterprising": { "weight": 0.15, "ideal_range": [30, 60] },
+      "Conventional": { "weight": 0.10, "ideal_range": [40, 70] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.35, "ideal_range": [70, 100] },
+      "Conscientiousness": { "weight": 0.25, "ideal_range": [65, 100] },
+      "Extraversion": { "weight": 0.15, "ideal_range": [40, 70] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [50, 90] },
+      "Neuroticism": { "weight": 0.10, "ideal_range": [0, 30] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.40, "minimum": 85 },
+      "math_performance": { "weight": 0.10, "minimum": 80 },
+      "science_performance": { "weight": 0.10, "minimum": 80 },
+      "english_performance": { "weight": 0.40, "minimum": 85 }
+    },
+    "track_preferences": {
+      "HUMSS": 95,
+      "ABM": 50,
+      "STEM": 40,
+      "Health-Allied": 45,
+      "Music, Arts, and Design": 35,
+      "Physical Education and Sports": 20
+    }
+  },
+
+  "Bachelor in Theology": {
+    "riasec_requirements": {
+      "Realistic": { "weight": 0.05, "ideal_range": [0, 20] },
+      "Investigative": { "weight": 0.30, "ideal_range": [50, 85] },
+      "Artistic": { "weight": 0.05, "ideal_range": [0, 20] },
+      "Social": { "weight": 0.35, "ideal_range": [60, 95] },
+      "Enterprising": { "weight": 0.15, "ideal_range": [30, 60] },
+      "Conventional": { "weight": 0.10, "ideal_range": [40, 70] }
+    },
+    "bigfive_requirements": {
+      "Openness": { "weight": 0.30, "ideal_range": [60, 90] },
+      "Conscientiousness": { "weight": 0.25, "ideal_range": [65, 100] },
+      "Extraversion": { "weight": 0.20, "ideal_range": [50, 90] },
+      "Agreeableness": { "weight": 0.15, "ideal_range": [60, 95] },
+      "Neuroticism": { "weight": 0.10, "ideal_range": [0, 30] }
+    },
+    "academic_requirements": {
+      "overall_gen_ave": { "weight": 0.40, "minimum": 85 },
+      "math_performance": { "weight": 0.10, "minimum": 78 },
+      "science_performance": { "weight": 0.10, "minimum": 78 },
+      "english_performance": { "weight": 0.40, "minimum": 85 }
+    },
+    "track_preferences": {
+      "HUMSS": 95,
+      "ABM": 40,
+      "STEM": 35,
+      "Health-Allied": 50,
+      "Music, Arts, and Design": 60,
+      "Physical Education and Sports": 25
+    }
   }
 }

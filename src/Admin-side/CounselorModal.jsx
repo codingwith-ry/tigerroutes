@@ -17,7 +17,6 @@ import { fetchStaffProfile } from '../utils/staffProfile';
 
 const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving = false }) => {
   const [formData, setFormData] = useState({
-    title: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -39,7 +38,6 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
 
     const populateEmpty = () => {
       setFormData({
-        title: "",
         firstName: "",
         lastName: "",
         email: "",
@@ -60,10 +58,11 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
           console.warn('Failed to fetch counselor from API, using provided prop');
           if (!aborted && counselor) {
             const nameParts = counselor.name ? counselor.name.split(' ') : [];
+            const first = nameParts[0] || '';
+            const last = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
             setFormData({
-              title: nameParts[0] || '',
-              firstName: nameParts[1] || '',
-              lastName: nameParts.slice(-1)[0] || '',
+              firstName: first,
+              lastName: last,
               email: counselor.email || '',
               strand: counselor.strand || '',
               status: counselor.status || 'Active',
@@ -87,13 +86,14 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
         if (aborted) return;
 
         const nameParts = data.name ? data.name.split(' ') : [];
+        const first = nameParts[0] || '';
+        const last = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
         // Normalize status: DB stores numeric 1/0, UI expects 'Active'/'Inactive'
         const statusVal = (data.status === 1 || data.status === '1' || data.status === 'Active') ? 'Active' : 'Inactive';
 
         setFormData({
-          title: nameParts[0] || '',
-          firstName: nameParts[1] || '',
-          lastName: nameParts.slice(-1)[0] || '',
+          firstName: first,
+          lastName: last,
           email: data.email || '',
           strand: data.strand || '',
           status: statusVal,
@@ -106,10 +106,11 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
         if (!aborted) {
           if (counselor) {
             const nameParts = counselor.name ? counselor.name.split(' ') : [];
+            const first = nameParts[0] || '';
+            const last = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
             setFormData({
-              title: nameParts[0] || '',
-              firstName: nameParts[1] || '',
-              lastName: nameParts.slice(-1)[0] || '',
+              firstName: first,
+              lastName: last,
               email: counselor.email || '',
               strand: counselor.strand || '',
               status: counselor.status || 'Active',
@@ -131,10 +132,11 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
     } else if (counselor) {
       // No id available; fall back to using the prop values
       const nameParts = counselor.name ? counselor.name.split(' ') : [];
+      const first = nameParts[0] || '';
+      const last = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
       setFormData({
-        title: nameParts[0] || '',
-        firstName: nameParts[1] || '',
-        lastName: nameParts.slice(-1)[0] || '',
+        firstName: first,
+        lastName: last,
         email: counselor.email || '',
         strand: counselor.strand || '',
         status: counselor.status || 'Active',
@@ -163,7 +165,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
 
     const counselorData = {
       id: counselor?.staffAccount_ID || null,
-      name: `${formData.title} ${formData.firstName} ${formData.lastName}`.trim(),
+      name: `${formData.firstName} ${formData.lastName}`.trim(),
       email: formData.email && formData.email.trim() !== ''
         ? formData.email.trim()
         : `${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@school.edu`,
@@ -307,26 +309,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                       Personal Information
                     </h3>
                   </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Title
-                      </label>
-                      <select
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent bg-white text-gray-700 transition-all"
-                      >
-                        <option value="">Select</option>
-                        <option>Mr.</option>
-                        <option>Ms.</option>
-                        <option>Mrs.</option>
-                        <option>Dr.</option>
-                        <option>Prof.</option>
-                        <option>Engr.</option>
-                      </select>
-                    </div>
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         First Name

@@ -79,27 +79,29 @@ module.exports = (db) => {
 
 
     router.get('/strand-alignment', (req, res) => {
+        // Match the strand-analytics logic: average of per-assessment averages for track-aligned recommendations
         const sql = `
         SELECT
-        s.strandName,
-        ROUND(AVG(ts.top_score), 2) AS avgAlignment,
-        COUNT(*) as assessments_count
-        FROM (
-        SELECT
-            a.studentAssessment_ID,
-            a.assessmentProfile_ID,
-            MAX(r.alignmentScore) AS top_score
+            s.strand_ID,
+            s.strandName,
+            ROUND(AVG(pa.avgAlignment), 2) AS avgAlignment,
+            COUNT(DISTINCT a_res.studentAssessment_ID) AS assessments_count
+        FROM tbl_strands s
+        LEFT JOIN (
+            SELECT
+                a.studentAssessment_ID,
+                a.studentAccount_ID,
+                a.assessmentProfile_ID,
+                ap.strand_ID AS resolved_strand
             FROM tbl_studentassessments a
-            JOIN tbl_recommendations r
-                ON r.studentAssessment_ID = a.studentAssessment_ID
-                -- Incase I need to only use track aligned check
-                WHERE r.track_aligned = 'Y'
-                GROUP BY a.studentAssessment_ID, a.studentAccount_ID, a.assessmentProfile_ID
-        ) ts
-        JOIN tbl_assessmentprofiles ap
-            ON ap.assessmentProfile_ID = ts.assessmentProfile_ID
-        JOIN tbl_strands s
-            ON s.strand_ID = ap.strand_ID
+            LEFT JOIN tbl_assessmentprofiles ap ON a.assessmentProfile_ID = ap.assessmentProfile_ID
+        ) a_res ON a_res.resolved_strand = s.strand_ID
+        LEFT JOIN (
+            SELECT studentAssessment_ID, AVG(alignmentScore) AS avgAlignment
+            FROM tbl_recommendations
+            WHERE track_aligned = 'Y'
+            GROUP BY studentAssessment_ID
+        ) pa ON pa.studentAssessment_ID = a_res.studentAssessment_ID
         GROUP BY s.strand_ID, s.strandName
         ORDER BY s.strandName;`;
 

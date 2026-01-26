@@ -1,7 +1,10 @@
 {
     "choices": [
-        "Like",
-        "Dislike"
+        "Strongly Disagree",
+        "Disagree",
+        "Neutral",
+        "Agree",
+        "Strongly Agree"
     ],
     "questions": [
         {"question": "I like to work on cars", "trait": "R"},

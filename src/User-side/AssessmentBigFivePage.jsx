@@ -340,31 +340,35 @@ const AssessmentBigFivePage = () => {
             const answer = answers[index];
             if (answer !== undefined) {
               const trait = question.trait;
-              if (answer === 1) {
-                traitScores[trait] += 1;
+              // Use Likert scoring (1-5). If item is reversed, invert the score.
+              let score = answer;
+              if (question.reversed) {
+                score = 6 - score; // reverse 1-5 -> 5-1
               }
+              traitScores[trait] += score;
               traitCounts[trait]++;
             }
           });
 
-          // Convert to percentage scores
+          // Convert to percentage scores based on Likert averages (1-5 mapped to 20-100)
           Object.keys(traitScores).forEach((trait) => {
             if (traitCounts[trait] > 0) {
-              traitScores[trait] = Math.round(
-                (traitScores[trait] / traitCounts[trait]) * 100
-              );
+              const avg = traitScores[trait] / traitCounts[trait];
+              traitScores[trait] = Math.round(avg * 20);
+            } else {
+              traitScores[trait] = 0;
             }
           });
 
           riasecResults = {
-            Realistic: Math.round(traitScores.R),
-            Investigative: Math.round(traitScores.I),
-            Artistic: Math.round(traitScores.A),
-            Social: Math.round(traitScores.S),
-            Enterprising: Math.round(traitScores.E),
-            Conventional: Math.round(traitScores.C),
+            Realistic: traitScores.R,
+            Investigative: traitScores.I,
+            Artistic: traitScores.A,
+            Social: traitScores.S,
+            Enterprising: traitScores.E,
+            Conventional: traitScores.C,
           };
-          
+
           // Store the calculated results for future use
           localStorage.setItem("riasecResults", JSON.stringify(riasecResults));
         } else {

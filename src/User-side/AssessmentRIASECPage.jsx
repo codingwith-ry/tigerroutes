@@ -90,11 +90,11 @@ const AssessmentRIASECPage = () => {
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-    
+
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  });
+  }, [hasUnsavedChanges]);
 
   /**
    * Calculate RIASEC trait scores based on user answers
@@ -105,23 +105,27 @@ const AssessmentRIASECPage = () => {
     const traitScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
     const traitCounts = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
 
+    // New JSON uses a 5-point Likert scale (1..5). Normalize to 0..1
+    // where 0 = Strongly Disagree, 1 = Strongly Agree, then convert to percent.
     questions.forEach((question, index) => {
       const answer = newAnswers[index];
-      if (answer !== undefined) {
+      if (answer !== undefined && answer !== null) {
         const trait = question.trait;
-        if (answer === 1) {
-          traitScores[trait] += 1;
+        const numeric = Number(answer);
+        if (!isNaN(numeric)) {
+          const normalized = Math.max(0, Math.min(4, numeric - 1)) / 4; // 0..1
+          traitScores[trait] += normalized;
+          traitCounts[trait]++;
         }
-        traitCounts[trait]++;
       }
     });
 
-    // Convert to percentage scores
+    // Convert averaged normalized scores to percentages (0-100)
     Object.keys(traitScores).forEach((trait) => {
       if (traitCounts[trait] > 0) {
-        traitScores[trait] = Math.round(
-          (traitScores[trait] / traitCounts[trait]) * 100
-        );
+        traitScores[trait] = Math.round((traitScores[trait] / traitCounts[trait]) * 100);
+      } else {
+        traitScores[trait] = 0;
       }
     });
 
@@ -168,7 +172,7 @@ const AssessmentRIASECPage = () => {
    * Navigate to the next question
    */
   const handleNext = () => {
-    if (currentQuestionIndex <= questions.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -277,8 +281,8 @@ const AssessmentRIASECPage = () => {
         } else if (result.isDenied) {
           // Leave without saving
           setHasUnsavedChanges(false);
-          localStorage.removeItem("riasec_answers");
-          localStorage.removeItem("riasec_progress");
+            localStorage.removeItem("riasecAnswers");
+            localStorage.removeItem("riasecProgress");
           navigate("/assessment"); // Change to your desired route
         }
       });

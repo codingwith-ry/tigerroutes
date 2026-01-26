@@ -80,7 +80,7 @@ app.use(verifyJwtCookie);
 
 // MySQL connection
 const dbConfig = {
-  host: 'tigerroutesdb.c4f8mocc8fh0.us-east-1.rds.amazonaws.com',
+  host: process.env.DB_HOST,
   user: process.env.DB_USER,
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
   password: process.env.DB_PASSWORD,

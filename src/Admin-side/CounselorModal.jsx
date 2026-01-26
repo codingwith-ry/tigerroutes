@@ -282,35 +282,35 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
             className="relative bg-gradient-to-br from-white to-orange-50 rounded-2xl shadow-2xl w-full max-w-[900px] max-h-[90vh] overflow-hidden z-10"
           >
             {/* Header */}
-            <div className="bg-[#FBBC05] px-6 py-5 relative">
+            <div className="bg-[#FBBC05] px-4 sm:px-6 py-4 sm:py-5 relative">
               <div className="absolute inset-0 bg-black opacity-5"></div>
-              <h2 className="text-2xl font-bold text-white relative z-10 flex items-center gap-2">
-                <User className="w-6 h-6" />
+              <h2 className="text-xl sm:text-2xl font-bold text-white relative z-10 flex items-center gap-2">
+                <User className="w-5 h-5 sm:w-6 sm:h-6" />
                 {counselor ? "Edit Counselor Profile" : "Add Counselor"}
               </h2>
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-1.5 transition-all z-10"
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-1.5 transition-all z-10"
               >
-                <X size={24} />
+                <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
 
             {/* Form */}
-            <div className="overflow-y-auto max-h-[calc(90vh-80px)] overscroll-behavior-contain">
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div className="overflow-y-auto max-h-[calc(90vh-70px)] sm:max-h-[calc(90vh-80px)] overscroll-behavior-contain">
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Personal Info */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
+                <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-orange-100">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
+                      <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                       Personal Information
                     </h3>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="sm:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         First Name
                       </label>
@@ -319,11 +319,11 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
                         placeholder="Enter first name"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Last Name
                       </label>
@@ -332,11 +332,11 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
                         placeholder="Enter last name"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-1 lg:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Email
                       </label>
@@ -345,7 +345,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
                         placeholder="e.g. first.last@school.edu"
                       />
                     </div>
@@ -353,16 +353,16 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                 </div>
 
                 {/* Professional Details */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
-                      <Briefcase className="w-4 h-4 text-white" />
+                <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-orange-100">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
+                      <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                       Professional Details
                     </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Profession
@@ -371,7 +371,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="strand"
                         value={formData.strand}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent text-gray-700 bg-white transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent text-gray-700 bg-white transition-all"
                       >
                         <option value="">Select Profession</option>
                         <option>STEM</option>
@@ -390,7 +390,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="status"
                         value={formData.status}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent text-gray-700 bg-white transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent text-gray-700 bg-white transition-all"
                       >
                         <option>Active</option>
                         <option>Inactive</option>
@@ -400,16 +400,16 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                 </div>
 
                 {/* Schedule */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-white" />
+                <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-orange-100">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                       Schedule
                     </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         Office Location
@@ -419,7 +419,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="officeLocation"
                         value={formData.officeLocation}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
                         placeholder="e.g. Room 204 / Building A"
                       />
                     </div>
@@ -432,7 +432,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                         name="consultationHours"
                         value={formData.consultationHours}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all"
                         placeholder="e.g. Mon & Wed 2:00 PM - 4:00 PM"
                       />
                     </div>
@@ -440,12 +440,12 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                 </div>
 
                 {/* About */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-white" />
+                <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-orange-100">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FB9724] to-[#FBBC05] flex items-center justify-center">
+                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                       About
                     </h3>
                   </div>
@@ -454,36 +454,36 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                     rows="4"
                     value={formData.about}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent resize-none transition-all"
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm sm:text-base focus:ring-2 focus:ring-[#FB9724] focus:border-transparent resize-none transition-all"
                     placeholder="Enter about information"
                   ></textarea>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-between items-center pt-2">
+                <div className="flex flex-col sm:flex-row justify-between items-center pt-2 gap-4 sm:gap-0">
                   {counselor && (
                     <button
                       type="button"
                       onClick={() => setShowConfirmDelete(true)}
-                      className="px-5 py-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all flex items-center gap-2 font-medium"
+                      className="w-full sm:w-auto px-5 py-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all flex items-center justify-center gap-2 font-medium"
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
                     </button>
                   )}
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSaving}
-                    className={`px-6 py-2.5 bg-[#FBBC05] text-white rounded-lg shadow-md transition-all font-medium flex items-center gap-2 ${isSaving ? 'opacity-60 cursor-not-allowed hover:shadow-none hover:scale-100' : 'hover:shadow-lg hover:scale-105'}`}
+                    className={`w-full sm:w-auto px-6 py-2.5 bg-[#FBBC05] text-white rounded-lg shadow-md transition-all font-medium flex items-center justify-center gap-2 ${isSaving ? 'opacity-60 cursor-not-allowed hover:shadow-none hover:scale-100' : 'hover:shadow-lg hover:scale-105'}`}
                     >
                       <CheckCircle className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
@@ -497,7 +497,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
           <AnimatePresence>
             {showConfirmDelete && (
               <motion.div
-                className="fixed inset-0 flex items-center justify-center z-50"
+                className="fixed inset-0 flex items-center justify-center z-50 p-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -529,16 +529,16 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#FB9724] focus:border-transparent transition-all mb-4"
                   />
-                  <div className="flex justify-end gap-3">
+                  <div className="flex flex-col sm:flex-row justify-end gap-3">
                     <button
                       onClick={() => setShowConfirmDelete(false)}
-                      className="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-700 transition-all"
+                      className="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-700 transition-all w-full sm:w-auto"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConfirmDelete}
-                      className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+                      className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all w-full sm:w-auto"
                     >
                       Confirm Delete
                     </button>

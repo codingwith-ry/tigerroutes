@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
-import { Search, Edit, Eye, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Edit, Eye, UserPlus, ChevronLeft, ChevronRight, Mail, Calendar, User, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CounselorModal from "./CounselorModal";
 import Swal from "sweetalert2";
@@ -42,12 +42,7 @@ const AdminCounselors = () => {
   };
 
 
-  const [counselors, setCounselors] = useState([
-  //   { name: "Dr. John Cruz", strand: "STEM", lastLogin: "2025-09-16 08:10", status: "Active" },
-  //   { name: "Dr. Lily Cruz", strand: "ABM", lastLogin: "2025-09-16 06:45", status: "Active" },
-  // { name: "Ms. Carla Rivera", strand: "HUMSS", lastLogin: "2025-09-15 19:20", status: "Active" },
-  //   { name: "Dr. John Doe", strand: "TVL", lastLogin: "2025-09-18 08:20", status: "Inactive" },
-  ]);
+  const [counselors, setCounselors] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -119,52 +114,52 @@ const AdminCounselors = () => {
   const currentCounselors = filteredCounselors.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
-            return (
-                <div className="min-h-screen w-full bg-[#FFFCED] flex">
-                    <AdminSidebar />
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">Preparing for manage counselors...</p>
-                        </div>
-                    </div>
-                </div>
-            );
-      }
-
-      if (previewLoading) {
-        return (
-          <div className="min-h-screen w-full bg-[#FFFCED] flex">
-            <AdminSidebar />
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Preparing for counselor preview...</p>
-              </div>
-            </div>
+    return (
+      <div className="min-h-screen w-full bg-[#FFFCED] flex">
+        <AdminSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Preparing for manage counselors...</p>
           </div>
-        );
-      }
-    
-        if (error) {
-            return (
-                <div className="min-h-screen w-full bg-[#FFFCED] flex">
-                    <AdminSidebar />
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center text-red-500">
-                            <p className="text-lg font-semibold">Error loading manage counselors</p>
-                            <p className="mt-2">{error}</p>
-                            <button 
-                                onClick={() => { window.location.reload(); }}
-                                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                            >
-                                Retry
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
+        </div>
+      </div>
+    );
+  }
+
+  if (previewLoading) {
+    return (
+      <div className="min-h-screen w-full bg-[#FFFCED] flex">
+        <AdminSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Preparing for counselor preview...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full bg-[#FFFCED] flex">
+        <AdminSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center text-red-500">
+            <p className="text-lg font-semibold">Error loading manage counselors</p>
+            <p className="mt-2">{error}</p>
+            <button 
+              onClick={() => { window.location.reload(); }}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
@@ -173,7 +168,7 @@ const AdminCounselors = () => {
         <AdminHeader title="Manage Counselors" />
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-          <div className="bg-white rounded-xl p-6 shadow border border-gray-200">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow border border-gray-200">
             {/* Search + Add */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">
               <div className="relative w-full sm:w-64">
@@ -182,19 +177,19 @@ const AdminCounselors = () => {
                   placeholder="Search counselors..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:border-transparent focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring focus:ring-yellow-300 focus:border-transparent focus:outline-none text-sm sm:text-base"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               </div>
               <button
                 onClick={() => { setSelectedCounselor(null); setIsModalOpen(true); }}
-                className="flex items-center bg-[#FBBC05] hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center bg-[#FBBC05] hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto justify-center"
               >
                 <UserPlus className="mr-2 w-4 h-4" /> Add Counselor
               </button>
             </div>
 
-            {/* Table */}
+            {/* Desktop Table - Hidden on mobile */}
             <div className="hidden sm:block overflow-x-auto rounded-lg border">
               <table className="w-full text-sm">
                 <thead className="bg-gray-100 text-gray-600">
@@ -210,29 +205,28 @@ const AdminCounselors = () => {
                 <tbody className="divide-y divide-gray-200">
                   {currentCounselors.map((c, i) => (
                     <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span
-                                className="font-medium text-gray-900 cursor-pointer hover:underline"
-                                onClick={() => {
-                                  setPreviewLoading(true);
-                                  setTimeout(() => {
-                                    // Save only the staffAccount_ID in sessionStorage for preview fetch
-                                    try {
-                                      const id = c.staffAccount_ID || c.id || '';
-                                      sessionStorage.setItem('selectedCounselorId', String(id));
-                                    } catch (e) {
-                                      console.warn('Could not write sessionStorage', e);
-                                    }
-                                    navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
-                                  }, 1000);
-                                }}
-                              >
-                                {c.name}
-                              </span>
-                              <span className="text-sm text-gray-500">{c.email}</span>
-                            </div>
-                          </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span
+                            className="font-medium text-gray-900 cursor-pointer hover:underline"
+                            onClick={() => {
+                              setPreviewLoading(true);
+                              setTimeout(() => {
+                                try {
+                                  const id = c.staffAccount_ID || c.id || '';
+                                  sessionStorage.setItem('selectedCounselorId', String(id));
+                                } catch (e) {
+                                  console.warn('Could not write sessionStorage', e);
+                                }
+                                navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                              }, 1000);
+                            }}
+                          >
+                            {c.name}
+                          </span>
+                          <span className="text-sm text-gray-500">{c.email}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-center">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium inline-block min-w-[80px] ${getStrandColors(c.strand).bgColor} ${getStrandColors(c.strand).textColor}`}
@@ -255,8 +249,7 @@ const AdminCounselors = () => {
                       <td className="px-6 py-4 text-center">
                         <button
                           onClick={async () => {
-                            // Reveal password flow: prompt admin for their password, verify, then show counselor password and offer to remind
-                              try {
+                            try {
                               const staffUser = await fetchStaffProfile();
                               let adminEmail = staffUser && (staffUser.email || staffUser.emailAddress) ? (staffUser.email || staffUser.emailAddress) : null;
 
@@ -318,7 +311,6 @@ const AdminCounselors = () => {
                               });
 
                               if (remind.isConfirmed) {
-                                // Trigger sending the counselor password email via admin endpoint
                                 const mailResp = await fetch(`${base}/api/admin/counselor/send-password`, {
                                   method: 'POST',
                                   credentials: 'include',
@@ -332,7 +324,6 @@ const AdminCounselors = () => {
                                   Swal.fire({ icon: 'error', title: 'Send Failed', text: mailData.message || 'Failed to send email.', confirmButtonColor: '#FB9724' });
                                 }
                               } else if (remind.isDenied) {
-                                // Admin chose to change the counselor's password
                                 try {
                                   const changeResp = await fetch(`${base}/api/admin/counselor/change-password`, {
                                     method: 'POST',
@@ -353,7 +344,6 @@ const AdminCounselors = () => {
                                         confirmButtonColor: '#FB9724'
                                       });
                                       if (show.isConfirmed) {
-                                        // send the new password via email
                                         const mailResp2 = await fetch(`${base}/api/admin/counselor/send-password`, {
                                           method: 'POST',
                                           credentials: 'include',
@@ -383,7 +373,7 @@ const AdminCounselors = () => {
                               Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while revealing password', confirmButtonColor: '#FB9724' });
                             }
                           }}
-                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
                         >
                           Reveal
                         </button>
@@ -391,17 +381,17 @@ const AdminCounselors = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center space-x-4">
                           <button className="text-blue-600 hover:text-blue-800" onClick={() => {
-                              setPreviewLoading(true);
-                              setTimeout(() => {
-                                try {
-                                  const id = c.staffAccount_ID || c.id || '';
-                                  sessionStorage.setItem('selectedCounselorId', String(id));
-                                } catch (e) {
-                                  console.warn('Could not write sessionStorage', e);
-                                }
-                                navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
-                              }, 1000);
-                            }}>
+                            setPreviewLoading(true);
+                            setTimeout(() => {
+                              try {
+                                const id = c.staffAccount_ID || c.id || '';
+                                sessionStorage.setItem('selectedCounselorId', String(id));
+                              } catch (e) {
+                                console.warn('Could not write sessionStorage', e);
+                              }
+                              navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                            }, 1000);
+                          }}>
                             <Eye className="w-5 h-5" />
                           </button>
                           <button className="text-blue-600 hover:text-blue-800" onClick={() => { setSelectedCounselor(c); setIsModalOpen(true); }}>
@@ -415,16 +405,240 @@ const AdminCounselors = () => {
               </table>
             </div>
 
+            {/* Mobile Cards - Shown on mobile, hidden on desktop */}
+            <div className="sm:hidden space-y-4">
+              {currentCounselors.map((c, i) => (
+                <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                  {/* Header with name and actions */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{c.name}</h3>
+                      <p className="text-sm text-gray-500 flex items-center mt-1">
+                        <Mail className="w-3 h-3 mr-1" />
+                        {c.email}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => {
+                          setPreviewLoading(true);
+                          setTimeout(() => {
+                            try {
+                              const id = c.staffAccount_ID || c.id || '';
+                              sessionStorage.setItem('selectedCounselorId', String(id));
+                            } catch (e) {
+                              console.warn('Could not write sessionStorage', e);
+                            }
+                            navigate(`/admin/preview/${encodeURIComponent(c.name)}`);
+                          }, 1000);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => { setSelectedCounselor(c); setIsModalOpen(true); }}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Details grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                        <User className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Strand</p>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStrandColors(c.strand).bgColor} ${getStrandColors(c.strand).textColor}`}>
+                          {getStrandAcronym(c.strand)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                        <Calendar className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Last Login</p>
+                        <p className="font-medium">{c.lastLogin}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                        <Shield className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Status</p>
+                        <span 
+                          className="px-2 py-1 rounded-full text-xs font-medium"
+                          style={{
+                            backgroundColor: c.status === "Active" ? "#DAFFE4" : "#D9D9D9",
+                            color: c.status === "Active" ? "#34A853" : "#1E1E1E",
+                          }}
+                        >
+                          {c.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Password</p>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const staffUser = await fetchStaffProfile();
+                              let adminEmail = staffUser && (staffUser.email || staffUser.emailAddress) ? (staffUser.email || staffUser.emailAddress) : null;
+
+                              const { value: adminPassword } = await Swal.fire({
+                                title: `Confirm Admin Password`,
+                                input: 'password',
+                                inputLabel: 'Enter your admin password to reveal the counselor password',
+                                inputPlaceholder: 'Your password',
+                                showCancelButton: true,
+                                confirmButtonText: 'Verify',
+                                confirmButtonColor: '#FB9724'
+                              });
+
+                              if (!adminPassword) return;
+
+                              if (!adminEmail) {
+                                const { value: emailInput } = await Swal.fire({
+                                  title: 'Enter Your Supervisor Email For Verification',
+                                  input: 'email',
+                                  inputLabel: 'Supervisor email',
+                                  inputPlaceholder: 'you@school.edu',
+                                  showCancelButton: true,
+                                  confirmButtonText: 'Continue',
+                                  confirmButtonColor: '#FB9724'
+                                });
+                                if (!emailInput) return;
+                                adminEmail = emailInput;
+                              }
+
+                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                              const resp = await fetch(`${base}/api/admin/counselor/reveal`, {
+                                method: 'POST',
+                                credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                              });
+                              const data = await resp.json();
+                              if (!resp.ok || !data.success) {
+                                Swal.fire({ icon: 'error', title: 'Unauthorized', text: data.message || 'Invalid admin credentials', confirmButtonColor: '#FB9724' });
+                                return;
+                              }
+
+                              const password = data.data && data.data.password ? data.data.password : null;
+                              if (!password) {
+                                Swal.fire({ icon: 'error', title: 'No password found', confirmButtonColor: '#FB9724' });
+                                return;
+                              }
+
+                              const remind = await Swal.fire({
+                                title: `Counselor Password`,
+                                html: `<div style="font-family: Inter, system-ui; font-size: 14px;">
+                                  <p>For: <b>${data.data.name}</b></p>
+                                  <p class="mt-2">Password: <b>${password}</b></p>
+                                </div>`,
+                                showCancelButton: true,
+                                showDenyButton: true,
+                                confirmButtonText: 'Email Password',
+                                denyButtonText: 'Change',
+                                cancelButtonText: 'Close',
+                                confirmButtonColor: '#FB9724',
+                                denyButtonColor: '#d33'
+                              });
+
+                              if (remind.isConfirmed) {
+                                const mailResp = await fetch(`${base}/api/admin/counselor/send-password`, {
+                                  method: 'POST',
+                                  credentials: 'include',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                });
+                                const mailData = await mailResp.json();
+                                if (mailResp.ok && mailData.success) {
+                                  Swal.fire({ icon: 'success', title: 'Sent', text: 'Password emailed.', confirmButtonColor: '#FB9724' });
+                                } else {
+                                  Swal.fire({ icon: 'error', title: 'Failed', text: mailData.message || 'Failed to send.', confirmButtonColor: '#FB9724' });
+                                }
+                              } else if (remind.isDenied) {
+                                try {
+                                  const changeResp = await fetch(`${base}/api/admin/counselor/change-password`, {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                  });
+                                  const changeData = await changeResp.json();
+                                  if (changeResp.ok && changeData.success) {
+                                    const newPw = changeData.data && changeData.data.newPassword ? changeData.data.newPassword : null;
+                                    if (newPw) {
+                                      const show = await Swal.fire({
+                                        title: 'Password Changed',
+                                        html: `<div style="font-family: Inter, system-ui; font-size: 14px;">New Password: <b>${newPw}</b></div>`,
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Email',
+                                        cancelButtonText: 'Close',
+                                        confirmButtonColor: '#FB9724'
+                                      });
+                                      if (show.isConfirmed) {
+                                        const mailResp2 = await fetch(`${base}/api/admin/counselor/send-password`, {
+                                          method: 'POST',
+                                          credentials: 'include',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                        });
+                                        const mailData2 = await mailResp2.json();
+                                        if (mailResp2.ok && mailData2.success) {
+                                          Swal.fire({ icon: 'success', title: 'Sent', text: 'New password emailed.', confirmButtonColor: '#FB9724' });
+                                        } else {
+                                          Swal.fire({ icon: 'error', title: 'Failed', text: mailData2.message || 'Failed to send.', confirmButtonColor: '#FB9724' });
+                                        }
+                                      }
+                                    }
+                                  }
+                                } catch (err) {
+                                  Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to change password', confirmButtonColor: '#FB9724' });
+                                }
+                              }
+                            } catch (err) {
+                              Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to reveal password', confirmButtonColor: '#FB9724' });
+                            }
+                          }}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-xs mt-1"
+                        >
+                          Reveal
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-600">
               <div className="mb-2 sm:mb-0">
                 Showing {startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredCounselors.length)} of {filteredCounselors.length} entries
               </div>
-              <div className="flex space-x-1">
+              <div className="flex space-x-1 overflow-x-auto py-2">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+                  className="px-3 py-1 border rounded disabled:opacity-50 min-w-[40px]"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -432,7 +646,7 @@ const AdminCounselors = () => {
                   <button
                     key={i}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`px-3 py-1 border rounded ${currentPage === i + 1 ? "bg-yellow-200 font-bold" : ""}`}
+                    className={`px-3 py-1 border rounded min-w-[40px] ${currentPage === i + 1 ? "bg-yellow-200 font-bold" : ""}`}
                   >
                     {i + 1}
                   </button>
@@ -440,7 +654,7 @@ const AdminCounselors = () => {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+                  className="px-3 py-1 border rounded disabled:opacity-50 min-w-[40px]"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -453,17 +667,11 @@ const AdminCounselors = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             counselor={selectedCounselor}
-            // onSave={(updated) => {
-            //   setCounselors(prev => prev.map(c => c.name === (selectedCounselor?.name || "") ? updated : c));
-            //   setIsModalOpen(false);
-            //   setSelectedCounselor(null);
-            // }}
             isSaving={isSaving}
             onSave={async (counselorData) => {
               if (isSaving) return;
               setIsSaving(true);
               try {
-                // Validate required fields
                 if (!counselorData.name || !counselorData.name.trim()) {
                   Swal.fire({
                     icon: 'error',
@@ -486,16 +694,15 @@ const AdminCounselors = () => {
                   return;
                 }
 
-                // Show loading state
                 Swal.fire({
-                  title: counselorData.id ? 'Updating counselor...' : 'Adding counselor...',
+                  title: counselorData.id ? 'Updating...' : 'Adding...',
                   allowOutsideClick: false,
                   allowEscapeKey: false,
                   didOpen: async () => {
                     Swal.showLoading();
                     
                     const startTime = Date.now();
-                    const minLoadTime = 1500; // Minimum 1.5 seconds display time
+                    const minLoadTime = 1500;
                     
                     try {
                       const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -504,26 +711,24 @@ const AdminCounselors = () => {
                       if (counselorData.id) {
                         response = await fetch(`${base}/api/admin/counselor/${encodeURIComponent(counselorData.id)}`, {
                           method: 'PUT',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(counselorData)
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(counselorData)
                         });
                       } else {
                         response = await fetch(`${base}/api/admin/counselor/add`, {
                           method: 'POST',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(counselorData)
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(counselorData)
                         });
                       }
 
                       const result = await response.json();
                       
-                      // Calculate remaining wait time
                       const elapsedTime = Date.now() - startTime;
                       const remainingWait = Math.max(0, minLoadTime - elapsedTime);
                       
-                      // Wait for minimum load time to complete
                       if (remainingWait > 0) {
                         await new Promise(resolve => setTimeout(resolve, remainingWait));
                       }
@@ -537,7 +742,7 @@ const AdminCounselors = () => {
                           const pw = result.data.password;
                           Swal.fire({
                             icon: 'success',
-                            title: 'Counselor Created Successfully!',
+                            title: 'Counselor Created!',
                             html: `<div class="text-left">
                               <p>Password for <b>${result.data.name}</b>:</p>
                               <div style="margin-top:12px; padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
@@ -575,26 +780,24 @@ const AdminCounselors = () => {
                         } else {
                           Swal.fire({
                             icon: 'success',
-                            title: counselorData.id ? 'Counselor Updated!' : 'Counselor Added!',
-                            text: 'Changes have been saved successfully',
+                            title: counselorData.id ? 'Updated!' : 'Added!',
+                            text: 'Changes saved successfully',
                             timer: 2000,
                             timerProgressBar: true,
                             confirmButtonColor: '#FB9724'
                           });
                         }
                       } else {
-                        // Handle API error response
                         Swal.fire({
                           icon: 'error',
                           title: 'Operation Failed',
-                          text: result.message || 'An error occurred while saving the counselor',
+                          text: result.message || 'An error occurred while saving',
                           confirmButtonColor: '#FB9724'
                         });
                       }
                     } catch (error) {
                       console.error('Error saving counselor:', error);
                       
-                      // Ensure minimum loading time even on error
                       const elapsedTime = Date.now() - startTime;
                       const remainingWait = Math.max(0, minLoadTime - elapsedTime);
                       if (remainingWait > 0) {
@@ -604,7 +807,7 @@ const AdminCounselors = () => {
                       Swal.fire({
                         icon: 'error',
                         title: 'Network Error',
-                        text: 'Failed to connect to the server. Please check your connection and try again.',
+                        text: 'Failed to connect to the server.',
                         confirmButtonColor: '#FB9724'
                       });
                     } finally {
@@ -617,7 +820,7 @@ const AdminCounselors = () => {
                 Swal.fire({
                   icon: 'error',
                   title: 'Unexpected Error',
-                  text: 'An unexpected error occurred. Please try again.',
+                  text: 'An unexpected error occurred.',
                   confirmButtonColor: '#FB9724'
                 });
                 setIsSaving(false);
@@ -634,7 +837,6 @@ const AdminCounselors = () => {
               });
             }}
           />
-
         </main>
       </div>
     </div>

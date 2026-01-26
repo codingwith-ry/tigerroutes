@@ -24,7 +24,7 @@ try {
 
 const app = express();
 app.use(cors({
-  origin: process.env.REACT_APP_API_URL || 'http://localhost:3000',
+  origin: 'http://localhost:3000',
   credentials: true
 }));
 

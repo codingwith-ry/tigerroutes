@@ -63,7 +63,7 @@ const AdminCounselors = () => {
           name: c.name,
           strand: c.strand || 'N/A',
           // Format lastLogin (ISO/UTC) into Philippines time for display
-          lastLogin: c.lastLogin ? c.lastLogin ? (() => { const d = parseAsUTCDate(c.lastLogin); return d ? `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}` : '—'; })() : '—' : '—',
+          lastLogin: formatToManilaTime(c.lastLogin),
           status: c.status === 1 ? 'Active' : 'Inactive',
           email: c.email,
           about: c.about,
@@ -85,8 +85,31 @@ const AdminCounselors = () => {
   const navigate = useNavigate();
   const itemsPerPage = 10;
 
-  const parseAsUTCDate = (value) => {
-    try { return new Date(value); } catch (e) { return null; }
+  // Helper: format UTC datetime to Manila time with full month name
+  const formatToManilaTime = (value) => {
+    if (!value) return '—';
+    
+    let dateStr = String(value).trim();
+    // Replace space with 'T' and ensure it has 'Z' for UTC
+    if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+      dateStr = dateStr.replace(' ', 'T') + 'Z';
+    }
+    
+    const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return '—';
+    
+    // Convert UTC to Manila time by adding 8 hours
+    const manilaDate = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000));
+    
+    // Format the Manila date
+    return manilaDate.toLocaleString('en-US', { 
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   // Generate email from name

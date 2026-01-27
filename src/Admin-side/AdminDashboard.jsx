@@ -135,6 +135,36 @@ const AdminDashboard = () => {
     try { return new Date(value); } catch (e) { return null; }
   };
 
+  // Helper: format UTC datetime to Manila time with full month name
+  const formatToManilaTime = (value) => {
+    if (!value) return '—';
+    
+    let dateStr = String(value).trim();
+    // Replace space with 'T' and ensure it has 'Z' for UTC
+    if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+      dateStr = dateStr.replace(' ', 'T') + 'Z';
+    }
+    
+    const utcDate = new Date(dateStr);
+    if (isNaN(utcDate.getTime())) return '—';
+    
+    // Check for epoch time (no reminder sent)
+    if (utcDate.getTime() === 0) return 'No reminder sent';
+    
+    // Convert UTC to Manila time by adding 8 hours
+    const manilaDate = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000));
+    
+    // Format the Manila date
+    return manilaDate.toLocaleString('en-US', { 
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   // Helper: returns true if lastReminderDate is within the 24-hour cooldown window
   const isRemindDisabledFor = (s) => {
     if (!s || !s.lastReminderDate) return false;
@@ -559,14 +589,8 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                             <td className="px-6 py-4 text-gray-600">{s.email}</td>
                             <td className="px-6 py-4">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
                             <td className="px-6 py-4 text-gray-600">
-                            {(() => {
-                              const d = parseAsUTCDate(s.lastReminderDate);
-                              if (!d || isNaN(d.getTime())) return '—';
-                              // treat epoch (1970-01-01T00:00:00Z) which shows as 1/1/1970, 8:00 AM in Asia/Manila as "No reminder sent"
-                              if (d.getTime() === 0) return 'No reminder sent';
-                              return `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}`;
-                            })()}
-                          </td>
+                              {formatToManilaTime(s.lastReminderDate)}
+                            </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <button
@@ -597,13 +621,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         <div className="text-sm text-gray-600">{s.email}</div>
                         <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
                         <div className="text-sm text-gray-600">
-                          Reminded:{' '}
-                          {(() => {
-                            const d = parseAsUTCDate(s.lastReminderDate);
-                            if (!d || isNaN(d.getTime())) return '—';
-                            if (d.getTime() === 0) return 'No reminder sent';
-                            return `${d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}, ${d.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' })}`;
-                          })()}
+                          Reminded: {formatToManilaTime(s.lastReminderDate)}
                         </div>
                         <div className="mt-2">
                           <button

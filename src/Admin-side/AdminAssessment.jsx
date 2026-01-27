@@ -97,6 +97,25 @@ const AdminAssessment = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentStudents = assessments;
 
+  // Helper: format UTC datetime to Manila time with full month name
+  const formatToManilaTime = (value) => {
+    if (!value) return '—';
+    
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return '—';
+    
+    // Use timeZone option to properly convert UTC to Manila time
+    return date.toLocaleString('en-US', { 
+      timeZone: 'Asia/Manila',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   
 
   // Debounce filterText -> debouncedFilterText (300ms)
@@ -421,7 +440,7 @@ const AdminAssessment = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center text-gray-600">
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                          {student.date ? new Date(student.date).toLocaleDateString() : "-"}
+                          {formatToManilaTime(student.date)}
                         </div>
                       </td>
                       <td className="px-6 py-4">

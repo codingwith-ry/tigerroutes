@@ -12,10 +12,6 @@ const RegisterPage = () => {
     document.title = "Register | TigerRoutes";
   }, []);
 
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordLengthError, setPasswordLengthError] = useState('');
-  
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,81 +37,91 @@ const handleInputChange = (e) => {
     ...formData,
     [name]: value
   });
-
-  if (name === 'email') {
-    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    if (!emailRegex.test(value)) {
-      setEmailError('Please enter a valid email address.');
-    } else {
-      // enforce ust.edu.ph domain (allow subdomains)
-      const parts = value.split('@');
-      const domain = parts[1] ? parts[1].toLowerCase() : '';
-      if (domain === 'ust.edu.ph' || domain.endsWith('.ust.edu.ph')) {
-        setEmailError('');
-      } else {
-        setEmailError('Registration is restricted to UST email addresses (ust.edu.ph)');
-      }
-    }
-  }
-
-  if (name === 'password' || name === 'confirmPassword') {
-    // password match error
-    setPasswordError(
-      name === 'password' && value !== formData.confirmPassword && formData.confirmPassword
-        ? 'Passwords do not match.'
-        : name === 'confirmPassword' && value !== formData.password && formData.password
-        ? 'Passwords do not match.'
-        : ''
-    );
-
-    // password length validation (apply to password field)
-    const passVal = name === 'password' ? value : formData.password;
-    if (passVal && passVal.length < 8) {
-      setPasswordLengthError('Password must be at least 8 characters.');
-    } else {
-      setPasswordLengthError('');
-    }
-  }
 };
 
   const handleSubmit = async (e) => {
     e.preventDefault();   
 
+    // Validate first name and last name
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Name fields required',
-      text: 'Please enter both your first and last name.',
-    });
-    return;
-  }
-
-    if (formData.password !== formData.confirmPassword) {
-      setPasswordError('Passwords do not match.');
       Swal.fire({
         icon: 'error',
-        title: 'Password Mismatch',
+        title: 'Name fields required',
+        text: 'Please enter both your first and last name.',
+      });
+      return;
+    }
+
+    // Check for numerical characters in names
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(formData.firstName.trim()) || !nameRegex.test(formData.lastName.trim())) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid name',
+        text: 'First and last names must not contain numbers.',
+      });
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!formData.email.trim()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Email required',
+        text: 'Please enter your email address.',
+      });
+      return;
+    }
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid email',
+        text: 'Please enter a valid email address.',
+      });
+      return;
+    }
+    // Enforce ust.edu.ph domain
+    const parts = formData.email.split('@');
+    const domain = parts[1] ? parts[1].toLowerCase() : '';
+    if (!(domain === 'ust.edu.ph' || domain.endsWith('.ust.edu.ph'))) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid email domain',
+        text: 'Registration is restricted to UST email addresses (ust.edu.ph).',
+      });
+      return;
+    }
+
+    // Validate password
+    if (!formData.password) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Password required',
+        text: 'Please enter a password.',
+      });
+      return;
+    }
+    if (formData.password.length < 8) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Weak password',
+        text: 'Password must be at least 8 characters.',
+      });
+      return;
+    }
+
+    // Validate password confirmation
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Password mismatch',
         text: 'Please ensure both password fields match.',
-      })
-      return;
-    }else {
-      setPasswordError('');
-    }
-
-    if (emailError || passwordError) {
+      });
       return;
     }
 
-       // enforce minimum password length
-    if (!formData.password || formData.password.length < 8) {
-      setPasswordLengthError('Password must be at least 8 characters.');
-      Swal.fire({ icon: 'error', title: 'Weak Password', text: 'Password must be at least 8 characters.' });
-      return;
-    } else {
-      setPasswordLengthError('');
-    }
-
-       const first = formData.firstName.trim();
+    const first = formData.firstName.trim();
     const last = formData.lastName.trim();
     const fullName = first + ' ' + last;
     const emailTrimmed = formData.email.trim();
@@ -126,12 +132,6 @@ const handleInputChange = (e) => {
     }
 
     try{
-      // Prevent submission if email domain invalid
-      if (emailError) {
-        Swal.fire({ icon: 'error', title: 'Invalid Email', text: emailError });
-        return;
-      }
-
       const res = await fetch (`${process.env.REACT_APP_API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
@@ -153,12 +153,12 @@ const handleInputChange = (e) => {
         });
       }
     } catch (error) {
-      alert('Error: ' + error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message,
+      });
     }
-    console.log("Login submitted:", formData);
-    // After successful login, you might want to navigate somewhere
-    // navigate("/dashboard");
-
   };
 
   const togglePasswordVisibility = () => {
@@ -291,12 +291,7 @@ const handleInputChange = (e) => {
             onChange={handleInputChange}
             required
             className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
-          />
-        {emailError && (
-          <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
-            {emailError}
-          </div>
-        )}          
+          />          
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -307,16 +302,6 @@ const handleInputChange = (e) => {
               required
               className="w-full px-4 py-3 rounded-full border border-gray-300 bg-transparent placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F6BE1E]"
             />
-            {passwordLengthError && (
-              <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
-                {passwordLengthError}
-              </div>
-            )}
-            {passwordError && !passwordLengthError && (
-              <div style={{ color: 'red', fontSize: '0.9em', marginTop: '4px' }}>
-                {passwordError}
-              </div>
-            )}
             <span 
               onClick={togglePasswordVisibility}
               className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600"

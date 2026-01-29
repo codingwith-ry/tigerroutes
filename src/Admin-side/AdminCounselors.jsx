@@ -276,38 +276,51 @@ const AdminCounselors = () => {
                               const staffUser = await fetchStaffProfile();
                               let adminEmail = staffUser && (staffUser.email || staffUser.emailAddress) ? (staffUser.email || staffUser.emailAddress) : null;
 
-                              const { value: adminPassword } = await Swal.fire({
-                                title: `Confirm Admin Password`,
-                                input: 'password',
-                                inputLabel: 'Enter your admin password to reveal the counselor password',
-                                inputPlaceholder: 'Your password',
+                              const { value: formData } = await Swal.fire({
+                                title: 'Verify Your Identity',
+                                html: `
+                                  <div style="text-align: left; font-size: 14px;">
+                                    ${!adminEmail ? `
+                                      <div style="margin-bottom: 15px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Supervisor Email</label>
+                                        <input type="email" id="supervisorEmail" placeholder="your.email@school.edu" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                                      </div>
+                                    ` : ''}
+                                    <div style="margin-bottom: 15px;">
+                                      <label style="display: block; margin-bottom: 5px; font-weight: 500;">Admin Password</label>
+                                      <input type="password" id="adminPassword" placeholder="Enter your password" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                                    </div>
+                                  </div>
+                                `,
                                 showCancelButton: true,
                                 confirmButtonText: 'Verify',
-                                confirmButtonColor: '#FB9724'
+                                confirmButtonColor: '#FB9724',
+                                preConfirm: () => {
+                                  const password = document.getElementById('adminPassword').value;
+                                  const email = adminEmail || document.getElementById('supervisorEmail')?.value;
+                                  
+                                  if (!password) {
+                                    Swal.showValidationMessage('Admin password is required');
+                                    return false;
+                                  }
+                                  if (!email) {
+                                    Swal.showValidationMessage('Email is required');
+                                    return false;
+                                  }
+                                  return { password, email };
+                                }
                               });
 
-                              if (!adminPassword) return;
+                              if (!formData) return;
 
-                              if (!adminEmail) {
-                                const { value: emailInput } = await Swal.fire({
-                                  title: 'Enter Your Supervisor Email For Verification',
-                                  input: 'email',
-                                  inputLabel: 'Supervisor email',
-                                  inputPlaceholder: 'you@school.edu',
-                                  showCancelButton: true,
-                                  confirmButtonText: 'Continue',
-                                  confirmButtonColor: '#FB9724'
-                                });
-                                if (!emailInput) return;
-                                adminEmail = emailInput;
-                              }
+                              const { password: adminPassword, email: finalEmail } = formData;
 
                               const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
                               const resp = await fetch(`${base}/api/admin/counselor/reveal`, {
                                 method: 'POST',
                                 credentials: 'include',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                body: JSON.stringify({ adminEmail: finalEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                               });
                               const data = await resp.json();
                               if (!resp.ok || !data.success) {
@@ -323,11 +336,11 @@ const AdminCounselors = () => {
 
                               const remind = await Swal.fire({
                                 title: `Counselor Password for ${data.data.name}`,
-                                html: `<div style="font-family: Inter, system-ui; font-size: 16px;">Password: <b>${password}</b></div>`,
+                                html: `<div style="font-family: Inter, system-ui; font-size: 16px;">Password has been securely retrieved. You can email it to the counselor or change it.</div>`,
                                 showCancelButton: true,
                                 showDenyButton: true,
-                                confirmButtonText: 'Remind via Email',
-                                denyButtonText: 'Change password',
+                                confirmButtonText: 'Email Password',
+                                denyButtonText: 'Change Password',
                                 cancelButtonText: 'Close',
                                 confirmButtonColor: '#FB9724',
                                 denyButtonColor: '#d33'
@@ -352,7 +365,7 @@ const AdminCounselors = () => {
                                     method: 'POST',
                                     credentials: 'include',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                    body: JSON.stringify({ adminEmail: finalEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                   });
                                   const changeData = await changeResp.json();
                                   if (changeResp.ok && changeData.success) {
@@ -360,9 +373,9 @@ const AdminCounselors = () => {
                                     if (newPw) {
                                       const show = await Swal.fire({
                                         title: 'Password Changed',
-                                        html: `<div style="font-family: Inter, system-ui; font-size: 16px;">New Password: <b>${newPw}</b></div>`,
-                                        showCancelButton: true,
-                                        confirmButtonText: 'Email new password',
+                                      html: `<div style="font-family: Inter, system-ui; font-size: 16px;">A new password has been generated. You can email it to the counselor.</div>`,
+                                      showCancelButton: true,
+                                      confirmButtonText: 'Email New Password',
                                         cancelButtonText: 'Close',
                                         confirmButtonColor: '#FB9724'
                                       });
@@ -371,7 +384,7 @@ const AdminCounselors = () => {
                                           method: 'POST',
                                           credentials: 'include',
                                           headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                          body: JSON.stringify({ adminEmail: finalEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                         });
                                         const mailData2 = await mailResp2.json();
                                         if (mailResp2.ok && mailData2.success) {
@@ -398,7 +411,7 @@ const AdminCounselors = () => {
                           }}
                           className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
                         >
-                          Reveal
+                          Manage
                         </button>
                       </td>
                       <td className="px-6 py-4">
@@ -524,38 +537,51 @@ const AdminCounselors = () => {
                               const staffUser = await fetchStaffProfile();
                               let adminEmail = staffUser && (staffUser.email || staffUser.emailAddress) ? (staffUser.email || staffUser.emailAddress) : null;
 
-                              const { value: adminPassword } = await Swal.fire({
-                                title: `Confirm Admin Password`,
-                                input: 'password',
-                                inputLabel: 'Enter your admin password to reveal the counselor password',
-                                inputPlaceholder: 'Your password',
+                              const { value: formData } = await Swal.fire({
+                                title: 'Verify Your Identity',
+                                html: `
+                                  <div style="text-align: left; font-size: 14px;">
+                                    ${!adminEmail ? `
+                                      <div style="margin-bottom: 15px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Supervisor Email</label>
+                                        <input type="email" id="supervisorEmail" placeholder="your.email@school.edu" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                                      </div>
+                                    ` : ''}
+                                    <div style="margin-bottom: 15px;">
+                                      <label style="display: block; margin-bottom: 5px; font-weight: 500;">Admin Password</label>
+                                      <input type="password" id="adminPassword" placeholder="Enter your password" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                                    </div>
+                                  </div>
+                                `,
                                 showCancelButton: true,
                                 confirmButtonText: 'Verify',
-                                confirmButtonColor: '#FB9724'
+                                confirmButtonColor: '#FB9724',
+                                preConfirm: () => {
+                                  const password = document.getElementById('adminPassword').value;
+                                  const email = adminEmail || document.getElementById('supervisorEmail')?.value;
+                                  
+                                  if (!password) {
+                                    Swal.showValidationMessage('Admin password is required');
+                                    return false;
+                                  }
+                                  if (!email) {
+                                    Swal.showValidationMessage('Email is required');
+                                    return false;
+                                  }
+                                  return { password, email };
+                                }
                               });
 
-                              if (!adminPassword) return;
+                              if (!formData) return;
 
-                              if (!adminEmail) {
-                                const { value: emailInput } = await Swal.fire({
-                                  title: 'Enter Your Supervisor Email For Verification',
-                                  input: 'email',
-                                  inputLabel: 'Supervisor email',
-                                  inputPlaceholder: 'you@school.edu',
-                                  showCancelButton: true,
-                                  confirmButtonText: 'Continue',
-                                  confirmButtonColor: '#FB9724'
-                                });
-                                if (!emailInput) return;
-                                adminEmail = emailInput;
-                              }
+                              const { password: adminPassword, email: finalEmail } = formData;
 
                               const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
                               const resp = await fetch(`${base}/api/admin/counselor/reveal`, {
                                 method: 'POST',
                                 credentials: 'include',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                body: JSON.stringify({ adminEmail: finalEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                               });
                               const data = await resp.json();
                               if (!resp.ok || !data.success) {
@@ -573,7 +599,7 @@ const AdminCounselors = () => {
                                 title: `Counselor Password`,
                                 html: `<div style="font-family: Inter, system-ui; font-size: 14px;">
                                   <p>For: <b>${data.data.name}</b></p>
-                                  <p class="mt-2">Password: <b>${password}</b></p>
+                                  <p class="mt-2">Password has been securely retrieved. You can email it to the counselor or change it.</p>
                                 </div>`,
                                 showCancelButton: true,
                                 showDenyButton: true,
@@ -603,7 +629,7 @@ const AdminCounselors = () => {
                                     method: 'POST',
                                     credentials: 'include',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                    body: JSON.stringify({ adminEmail: finalEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                   });
                                   const changeData = await changeResp.json();
                                   if (changeResp.ok && changeData.success) {
@@ -611,7 +637,7 @@ const AdminCounselors = () => {
                                     if (newPw) {
                                       const show = await Swal.fire({
                                         title: 'Password Changed',
-                                        html: `<div style="font-family: Inter, system-ui; font-size: 14px;">New Password: <b>${newPw}</b></div>`,
+                                        html: `<div style="font-family: Inter, system-ui; font-size: 14px;">A new password has been generated. You can email it to the counselor.</div>`,
                                         showCancelButton: true,
                                         confirmButtonText: 'Email',
                                         cancelButtonText: 'Close',
@@ -622,7 +648,7 @@ const AdminCounselors = () => {
                                           method: 'POST',
                                           credentials: 'include',
                                           headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({ adminEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
+                                          body: JSON.stringify({ adminEmail: finalEmail, adminPassword, counselorId: c.staffAccount_ID || c.id })
                                         });
                                         const mailData2 = await mailResp2.json();
                                         if (mailResp2.ok && mailData2.success) {
@@ -643,7 +669,7 @@ const AdminCounselors = () => {
                           }}
                           className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-xs mt-1"
                         >
-                          Reveal
+                          Manage
                         </button>
                       </div>
                     </div>

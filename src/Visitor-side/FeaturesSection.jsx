@@ -30,7 +30,7 @@ const features = [
 const FeaturesSection = () => {
   return (
     <section className="bg-[#fefce9] py-16 px-8 md:px-16 font-sfpro">
-      <h2 className="text-center text-base text-gray-600 tracking-widest font-bold mb-2">FEATURES</h2>
+      <h2 className="text-center text-base text-gray-600 tracking-widest font-bold mb-2">WHAT&#39;S NEW</h2>
       <h3 className="text-center text-4xl md:text-5xl font-extrabold mb-14 leading-tight">How TigerRoutes Works?</h3>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-20">

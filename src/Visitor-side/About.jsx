@@ -6,7 +6,7 @@ const About = () => {
       <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-12">
         <div className="w-full lg:w-1/2 text-center lg:text-left">
           <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-[#ea9d2d]">
-            About <span className="text-[#4278c5]">TigerRoutes</span>
+            About <span className="text-black">TigerRoutes</span>
           </h2>
           <p className="text-base sm:text-lg text-[#333] leading-relaxed mb-4">
   <strong>TigerRoutes</strong> is your personalized college decision companion built specifically for Thomasian Senior High School students. Using structured assessments and research-backed evaluation methods, it helps you discover UST programs that match your personality, interests, and strengths.

@@ -86,8 +86,8 @@ const HeroSection = () => {
             <p className="text-base sm:text-lg md:text-xl">UST PROGRAMS</p>
           </div>
           <div className="text-center min-w-[120px]">
-            <p className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">SCORE</p>
-            <p className="text-base sm:text-lg md:text-xl">Driven-Matching</p>
+            <NumberCounter end={95} suffix="%" /> 
+            <p className="text-base sm:text-lg md:text-xl">MATCH RATE</p>
           </div>
           <div className="text-center min-w-[120px]">
             <NumberCounter end={100} suffix="%" />

@@ -9,6 +9,8 @@ import Testimonials from "./Testimonials";
 import CTA from "./CTA";
 import Footer from "./Footer";
 import PropTypes from 'prop-types';
+import Mockup from "./Mockup";
+import MockupFeatures from "./MockupFeatures";
 
 const ScrollAnimationWrapper = ({ children }) => {
   return (
@@ -43,7 +45,15 @@ const LandingPage = () => {
       </ScrollAnimationWrapper>
 
       <ScrollAnimationWrapper>
+        <Mockup />
+      </ScrollAnimationWrapper>
+
+      <ScrollAnimationWrapper>
         <FeaturesSection />
+      </ScrollAnimationWrapper>
+
+      <ScrollAnimationWrapper>
+        <MockupFeatures />
       </ScrollAnimationWrapper>
 
       <ScrollAnimationWrapper>

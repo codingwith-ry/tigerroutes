@@ -284,17 +284,17 @@ module.exports = (db) => {
         );
     });
 
-    router.get('/assessment/assessmentDetails', (req, res) => {
+    router.post('/assessment/assessmentDetails', (req, res) => {
         try {
-            const { assessmentID } = req.query;
+            const { assessmentID, studentAccountId } = req.body;
 
-            if (!assessmentID) {
-                return res.json({ success: false, message: 'assessmentID is required' });
+            if (!assessmentID || !studentAccountId) {
+                return res.json({ success: false, message: 'assessmentID and studentAccountId are required' });
             }
 
-            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID, rating, feedback FROM tbl_studentassessments WHERE studentAssessment_ID = ? LIMIT 1';
+            const fetchPsychometricIDs = 'SELECT assessmentProfile_ID, studentAccount_ID, riasecResult_ID, bigFiveResult_ID, rating, feedback FROM tbl_studentassessments WHERE studentAssessment_ID = ? AND studentAccount_ID = ? LIMIT 1';
 
-            db.query(fetchPsychometricIDs, [assessmentID], (err, result) => {
+            db.query(fetchPsychometricIDs, [assessmentID, studentAccountId], (err, result) => {
                 if (err) {
                     return res.json({ success: false, message: err.message });
                 }

@@ -25,6 +25,7 @@ const UserHomepage = () => {
     // Wait until auth has resolved
     if (!authLoading && user) {
       fetchAnalytics();
+      deletePendingAssessment();
     } else {
       // if auth resolved but no user, ensure we leave loading state and clear analytics
       if (!authLoading && !user) {
@@ -36,6 +37,40 @@ const UserHomepage = () => {
     
   }, [authLoading, user]);
 
+  const deletePendingAssessment = async () => {
+    //Fetch if there is a pending assessment to be deleted
+    try {
+      if (!user || !user.studentAccount_ID) {
+        throw new Error('No user found');
+      }
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/get-PendingAssessment?studentAccountId=${user.studentAccount_ID}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch pending assessment data');
+      }
+
+      const data = await response.json();
+
+      //If there is a pending assessment and it has already reached 30 days, delete it
+      if ((data && data.studentAssessment_ID) && (new Date() - new Date(data.created_at)) > 30 * 24 * 60 * 60 * 1000) {
+        const deleteResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/delete-PendingAssessment`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ studentAssessmentId: data.studentAssessment_ID }),
+        });
+        if (!deleteResponse.ok) {
+          throw new Error('Failed to delete pending assessment');
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting pending assessment:', err);
+    }
+  };
 
   const fetchAnalytics = async () => {
     try {

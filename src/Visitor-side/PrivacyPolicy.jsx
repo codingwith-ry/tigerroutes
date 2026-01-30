@@ -136,6 +136,11 @@ const sections = [
         account creation for operational and statistical purposes, after which
         they will be archived. Users may request deletion earlier as described
         below.
+        <br />
+        <br />
+        <b>Pending assessments</b> however, can only be taken 30 days after the initial date of assessment.
+        If not taken within the said period, all data related to the pending assessment will be deleted from the system.
+        This is to ensure that the data used for assessment is up-to-date and relevant.
       </p>
     ),
   },

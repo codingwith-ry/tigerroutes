@@ -1,5 +1,6 @@
 // src/pages/AssessmentResults.jsx
 import React from "react";
+import { useAuth } from "../utils/AuthContext";
 import { useState, useEffect } from "react";
 import { FiDownload, FiStar, FiCheckCircle, FiFileText, FiX, FiGift, FiInfo, FiAlertTriangle } from "react-icons/fi";
 import { BsBriefcase, BsPerson } from "react-icons/bs";
@@ -229,6 +230,7 @@ const TopTraitsSection = ({ riasec, bigFive }) => {
 };
 
 const AssessmentResults = () => {
+    const { user, loading: authLoading } = useAuth();
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
@@ -311,14 +313,20 @@ const AssessmentResults = () => {
 
     useEffect(() => {
         document.title = 'Assessment | Results';
-        fetchAssessmentDetails();
-    }, [assessmentId]);
+        
+        if (!authLoading && user) {
+            fetchAssessmentDetails();
+        }
+    }, [authLoading]);
 
     const fetchAssessmentDetails = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/assessmentDetails?assessmentID=${assessmentId}`, {
-                credentials: 'include'
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/assessmentDetails`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assessmentID: assessmentId, studentAccountId: user.studentAccount_ID })
             });
             const data = await response.json();
             

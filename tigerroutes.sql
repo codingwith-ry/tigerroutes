@@ -365,19 +365,19 @@ CREATE TABLE IF NOT EXISTS `tbl_counselornotes` (
   `counselorNotes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `date` timestamp NULL DEFAULT NULL,
   `edited_date` timestamp NULL DEFAULT NULL,
-	`reassignedToStaffAccount_ID` int DEFAULT NULL,
-	`reassignedByStaffAccount_ID` int DEFAULT NULL,
-	`reassigned_date` timestamp NULL DEFAULT NULL,
+  `reassignedToStaffAccount_ID` int DEFAULT NULL,
+  `reassignedByStaffAccount_ID` int DEFAULT NULL,
+  `reassigned_date` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`counselorNote_ID`),
   KEY `studentAssessment_ID` (`studentAssessment_ID`),
   KEY `staffAccount_ID` (`staffAccount_ID`),
-	KEY `reassignedToStaffAccount_ID` (`reassignedToStaffAccount_ID`),
-	KEY `reassignedByStaffAccount_ID` (`reassignedByStaffAccount_ID`),
+  KEY `FK_tbl_counselornotes_tbl_staffaccounts` (`reassignedToStaffAccount_ID`),
+  KEY `FK_tbl_counselornotes_tbl_staffaccounts_2` (`reassignedByStaffAccount_ID`),
+  CONSTRAINT `FK_tbl_counselornotes_tbl_staffaccounts` FOREIGN KEY (`reassignedToStaffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`),
+  CONSTRAINT `FK_tbl_counselornotes_tbl_staffaccounts_2` FOREIGN KEY (`reassignedByStaffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`),
   CONSTRAINT `FK_tbl_counselornotes_tbl_studentassessments` FOREIGN KEY (`studentAssessment_ID`) REFERENCES `tbl_studentassessments` (`studentAssessment_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT `tbl_counselornotes_ibfk_2` FOREIGN KEY (`staffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT `tbl_counselornotes_ibfk_3` FOREIGN KEY (`reassignedToStaffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`) ON DELETE SET NULL ON UPDATE CASCADE,
-	CONSTRAINT `tbl_counselornotes_ibfk_4` FOREIGN KEY (`reassignedByStaffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `tbl_counselornotes_ibfk_2` FOREIGN KEY (`staffAccount_ID`) REFERENCES `tbl_staffaccounts` (`staffAccount_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table tigerroutesdb.tbl_counselornotes: ~0 rows (approximately)
 INSERT INTO `tbl_counselornotes` (`counselorNote_ID`, `studentAssessment_ID`, `staffAccount_ID`, `counselorNotes`, `date`, `edited_date`) VALUES

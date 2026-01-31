@@ -414,14 +414,15 @@ const AdminAssessment = () => {
                   <th className="px-6 py-3">Assessment Date</th>
                   <th className="px-6 py-3">Alignment Score</th>
                   <th className="px-6 py-3">Satisfaction Rating</th>
+                  <th className="px-6 py-3">Status</th>
                   <th className="px-6 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
-                  <tr><td colSpan="7" className="text-center py-4 text-gray-500">Loading assessments...</td></tr>
+                  <tr><td colSpan="8" className="text-center py-4 text-gray-500">Loading assessments...</td></tr>
                 ) : currentStudents.length === 0 ? (
-                  <tr><td colSpan="7" className="text-center py-4 text-gray-500">No assessments found.</td></tr>
+                  <tr><td colSpan="8" className="text-center py-4 text-gray-500">No assessments found.</td></tr>
                 ) : (
                   currentStudents.map((student) => (
                     <tr key={student.assessmentId} className="hover:bg-gray-50">
@@ -460,6 +461,21 @@ const AdminAssessment = () => {
                           </div>
                           <span className="text-sm text-gray-500">{student.rating || ""}</span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {student.status === 'reviewed' ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            Reviewed
+                          </span>
+                        ) : student.status === 'reassigned' ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                            Reassigned
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            Open
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <button

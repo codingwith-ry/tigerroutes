@@ -159,6 +159,27 @@ module.exports = (db) => {
         alignmentMap[r.studentAssessment_ID] = r.avgAlignment;
       });
 
+      // Fetch counselor note status for each assessment
+      const noteQuery = `
+        SELECT 
+          studentAssessment_ID,
+          COUNT(*) as noteCount,
+          MAX(reassignedToStaffAccount_ID) as hasReassignment
+        FROM tbl_counselornotes 
+        WHERE studentAssessment_ID IN (${placeholders})
+        GROUP BY studentAssessment_ID
+      `;
+      const [noteRows] = await db.promise().query(noteQuery, ids);
+
+      const noteStatusMap = {};
+      (noteRows || []).forEach((r) => {
+        if (r.hasReassignment !== null) {
+          noteStatusMap[r.studentAssessment_ID] = 'reassigned';
+        } else if (r.noteCount > 0) {
+          noteStatusMap[r.studentAssessment_ID] = 'reviewed';
+        }
+      });
+
       const data = rows.map((r) => ({
         assessmentId: r.assessmentId,
         studentAccountId: r.studentAccountId,
@@ -167,6 +188,7 @@ module.exports = (db) => {
         rating: r.rating,
         strand: r.strand || 'N/A',
         alignment: alignmentMap[r.assessmentId] != null ? Number(alignmentMap[r.assessmentId]) : null,
+        status: noteStatusMap[r.assessmentId] || 'open',
       }));
 
       return res.json({ success: true, data, total });

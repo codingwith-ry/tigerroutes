@@ -30,7 +30,7 @@ const AdminStudentProfile = () => {
     let cancelled = false;
     async function loadDetails() {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/assessment/assessmentDetails?assessmentID=${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/assessment/${encodeURIComponent(assessmentId)}`, { credentials: 'include' });
         const payload = await res.json();
         if (cancelled) return;
         if (!payload || !payload.success) {
@@ -45,7 +45,7 @@ const AdminStudentProfile = () => {
           if ((rating !== null && rating !== undefined) || (feedbackText && String(feedbackText).trim() !== '')) {
             setStudentFeedback({
               rating: rating || 0,
-              date: payload.data && payload.data.assessmentProfile && payload.data.assessmentProfile.date ? new Date(payload.data.assessmentProfile.date) : new Date(),
+              date: payload.data && payload.data.date ? new Date(payload.data.date) : new Date(),
               comment: feedbackText || ''
             });
           } else {
@@ -126,6 +126,9 @@ const AdminStudentProfile = () => {
 
   const [newNote, setNewNote] = useState('');
 
+  const [counselorsList, setCounselorsList] = useState([]);
+  const [counselorsLoading, setCounselorsLoading] = useState(false);
+
   // Local cached staff profile (fetched from server via JWT cookie)
   const [staffUserProfile, setStaffUserProfile] = useState(null);
 
@@ -159,7 +162,11 @@ const AdminStudentProfile = () => {
             date: n.date ? new Date(n.date) : new Date(),
             // convert edited_date (TIMESTAMP or ISO string) to JS Date if present
             editedDate: n.edited_date ? (typeof n.edited_date === 'number' ? new Date(Number(n.edited_date) * 1000) : new Date(n.edited_date)) : null,
-            comment: n.counselorNotes || ''
+            comment: n.counselorNotes || '',
+            reassignedToStaffAccount_ID: n.reassignedToStaffAccount_ID || null,
+            reassignedDate: n.reassigned_date ? (typeof n.reassigned_date === 'number' ? new Date(Number(n.reassigned_date) * 1000) : new Date(n.reassigned_date)) : null,
+            reassignedToName: n.reassignedToName || null,
+            reassignedToEmail: n.reassignedToEmail || null
           }));
           setCounselorNotes(notes);
         }
@@ -177,19 +184,12 @@ const AdminStudentProfile = () => {
     if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
     if (!newNote.trim()) return Swal.fire('Empty note', 'Please enter a note before replying.', 'warning');
 
-    // Enforce single counselor note per assessment
-    if (counselorNotes && counselorNotes.length > 0) {
-      return Swal.fire('One note only', 'A counselor note already exists for this assessment. Delete the existing note before adding a new one.', 'info');
-    }
-
-    // determine current staff user from sessionStorage
-  let staffUser = staffUserProfile;
-  if (!staffUser) {
-    staffUser = await fetchStaffProfile();
-    if (staffUser) setStaffUserProfile(staffUser);
-  }
-  const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
-    if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
+    // Always fetch current staff user from server to ensure we have the correct logged-in account
+    const staffUser = await fetchStaffProfile();
+    if (!staffUser) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
+    
+    const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
+    if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account ID not found. Please login again.', 'error');
 
     const confirm = await Swal.fire({
       title: 'Add counselor note?',
@@ -222,7 +222,11 @@ const AdminStudentProfile = () => {
             email: n.counselorEmail || null,
             date: n.date ? new Date(n.date) : new Date(),
             editedDate: n.edited_date ? (typeof n.edited_date === 'number' ? new Date(Number(n.edited_date) * 1000) : new Date(n.edited_date)) : null,
-            comment: n.counselorNotes || ''
+            comment: n.counselorNotes || '',
+            reassignedToStaffAccount_ID: n.reassignedToStaffAccount_ID || null,
+            reassignedDate: n.reassigned_date ? (typeof n.reassigned_date === 'number' ? new Date(Number(n.reassigned_date) * 1000) : new Date(n.reassigned_date)) : null,
+            reassignedToName: n.reassignedToName || null,
+            reassignedToEmail: n.reassignedToEmail || null
           }));
           setCounselorNotes(notes);
         }
@@ -236,47 +240,99 @@ const AdminStudentProfile = () => {
     }
   };
 
-  // delete a note if current staff user is the owner
-  const handleDeleteNote = async (noteId, noteStaffId) => {
-  const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
-  if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
-
-  let staffUser = staffUserProfile;
-  if (!staffUser) {
-    staffUser = await fetchStaffProfile();
-    if (staffUser) setStaffUserProfile(staffUser);
-  }
-  const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
-  if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
-
-    if (String(staffAccount_ID) !== String(noteStaffId)) {
-      return Swal.fire('Unauthorized', 'You are not authorized to delete this note', 'error');
-    }
-
-    const confirmed = await Swal.fire({
-      title: 'Delete this note?',
-      text: 'This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
-      cancelButtonText: 'Cancel'
-    });
-    if (!confirmed.isConfirmed) return;
-
+  const fetchCounselorsForReassign = async () => {
+    if (counselorsLoading) return;
+    setCounselorsLoading(true);
     try {
-      const url = `${process.env.REACT_APP_API_URL}/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(noteId)}?staffAccount_ID=${encodeURIComponent(staffAccount_ID)}`;
-      const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
+      const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${base}/api/admin/counselors`, { credentials: 'include' });
       const body = await res.json();
       if (body && body.success) {
-        // remove from local state
-        setCounselorNotes((prev) => prev.filter(n => String(n.id) !== String(noteId)));
-        await Swal.fire('Deleted', 'Counselor note deleted', 'success');
-      } else {
-        Swal.fire('Error', body?.message || 'Failed to delete note', 'error');
+        const list = (body.data || []).map((c) => ({
+          staffAccount_ID: c.staffAccount_ID || c.id,
+          name: c.name,
+          email: c.email || null
+        }));
+        setCounselorsList(list);
+        return list;
       }
     } catch (err) {
-      console.error('Error deleting counselor note', err);
-      Swal.fire('Error', 'Failed to delete note', 'error');
+      console.error('Error loading counselors', err);
+    } finally {
+      setCounselorsLoading(false);
+    }
+    return [];
+  };
+
+  const handleReassignNote = async (note) => {
+    const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
+    if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
+
+    let list = counselorsList || [];
+    if (!list || list.length === 0) {
+      list = await fetchCounselorsForReassign();
+    }
+
+    const options = (list || [])
+      .filter((c) => c && c.staffAccount_ID)
+      .map((c) => `<option value="${c.staffAccount_ID}">${c.name}${c.email ? ` (${c.email})` : ''}</option>`)
+      .join('');
+
+    if (!options) {
+      return Swal.fire('No counselors', 'No counselors available for reassignment.', 'info');
+    }
+
+    const { value: selectedId } = await Swal.fire({
+      title: 'Reassign counselor note',
+      html: `
+        <div style="text-align:left;font-size:14px;">
+          <label style="display:block;margin-bottom:6px;font-weight:600;">Select counselor</label>
+          <select id="reassignCounselor" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+            <option value="">-- Select --</option>
+            ${options}
+          </select>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Submit',
+      confirmButtonColor: '#FB9724',
+      preConfirm: () => {
+        const el = document.getElementById('reassignCounselor');
+        const value = el ? el.value : '';
+        if (!value) {
+          Swal.showValidationMessage('Please select a counselor');
+          return false;
+        }
+        return value;
+      }
+    });
+
+    if (!selectedId) return;
+
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/assessment/${encodeURIComponent(assessmentId)}/notes/${encodeURIComponent(note.id)}/reassign`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reassignedToStaffAccount_ID: selectedId })
+      });
+      const body = await res.json();
+      if (body && body.success) {
+        const newName = body.data && body.data.reassignedToName ? body.data.reassignedToName : (list.find(c => String(c.staffAccount_ID) === String(selectedId))?.name || 'Counselor');
+        setCounselorNotes((prev) => prev.map(n => n.id === note.id ? {
+          ...n,
+          reassignedToStaffAccount_ID: selectedId,
+          reassignedToName: newName,
+          reassignedToEmail: body.data && body.data.reassignedToEmail ? body.data.reassignedToEmail : n.reassignedToEmail,
+          reassignedDate: new Date()
+        } : n));
+        await Swal.fire('Reassigned', `Reassigned to ${newName}.`, 'success');
+      } else {
+        Swal.fire('Error', body?.message || 'Failed to reassign note', 'error');
+      }
+    } catch (err) {
+      console.error('Error reassigning note', err);
+      Swal.fire('Error', 'Failed to reassign note', 'error');
     }
   };
 
@@ -298,13 +354,12 @@ const AdminStudentProfile = () => {
   const assessmentId = id || sessionStorage.getItem('selectedAssessmentId');
   if (!assessmentId) return Swal.fire('Missing', 'Assessment ID missing', 'error');
 
-  let staffUser = staffUserProfile;
-  if (!staffUser) {
-    staffUser = await fetchStaffProfile();
-    if (staffUser) setStaffUserProfile(staffUser);
-  }
+  // Always fetch current staff user from server to ensure we have the correct logged-in account
+  const staffUser = await fetchStaffProfile();
+  if (!staffUser) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
+  
   const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
-  if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account not found. Please login again.', 'error');
+  if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account ID not found. Please login again.', 'error');
 
     if (String(staffAccount_ID) !== String(noteStaffId)) return Swal.fire('Unauthorized', 'You are not authorized to edit this note', 'error');
 
@@ -746,11 +801,12 @@ const AdminStudentProfile = () => {
                                       {note.editedDate ? (
                                         <span className="text-xs text-gray-400">· edited {note.editedDate.toLocaleString()}</span>
                                       ) : null}
-                                      {/* show Edit/Delete buttons only for the owner */}
+                                      {/* show Edit and Reassign only for the owner */}
                                         {(() => {
                                         const staffUser = staffUserProfile;
                                         const staffAccount_ID = staffUser ? (staffUser.staffAccount_ID || staffUser.staffAccountId || staffUser.staffAccountID || staffUser.id) : null;
-                                        if (staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
+                                        const isOwner = staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID);
+                                        if (isOwner) {
                                           return (
                                             <>
                                               {editingNoteId === note.id ? (
@@ -761,11 +817,20 @@ const AdminStudentProfile = () => {
                                               ) : (
                                                 <>
                                                   <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
-                                                  <button onClick={() => handleDeleteNote(note.id, note.staffAccount_ID)} className="text-xs text-red-500 ml-2 hover:underline">Delete</button>
+                                                  {note.reassignedToName ? (
+                                                    <span className="text-xs text-gray-500 ml-2">Reassigned to {note.reassignedToName} counselor</span>
+                                                  ) : (
+                                                    <button onClick={() => handleReassignNote(note)} className="text-xs text-orange-600 ml-2 hover:underline">Reassign</button>
+                                                  )}
                                                 </>
                                               )}
                                             </>
                                           );
+                                        } else {
+                                          // Not the owner, just show reassignment status if applicable
+                                          if (note.reassignedToName) {
+                                            return <span className="text-xs text-gray-500">Reassigned to {note.reassignedToName} counselor</span>;
+                                          }
                                         }
                                         return null;
                                       })()}
@@ -785,7 +850,7 @@ const AdminStudentProfile = () => {
                       </div>
                     ) : null}
 
-                    {/* Reply Box: only enabled if studentFeedback exists */}
+                    {/* Reply Box: only the most recently reassigned counselor can comment */}
                     <div className="ml-13 mt-4">
                       <div className="flex space-x-3">
                         <div className="flex-shrink-0">
@@ -795,13 +860,28 @@ const AdminStudentProfile = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                            {studentFeedback ? (
-                              counselorNotes && counselorNotes.length > 0 ? (
-                                <div className="text-sm text-gray-500 py-4">
-                                  <div className="mb-2">A counselor note already exists for this assessment.</div>
-                                  <div className="text-xs text-gray-500">Delete the existing note to add a new one.</div>
-                                </div>
-                              ) : (
+                            {(() => {
+                              const currentStaffId = staffUserProfile?.staffAccount_ID || staffUserProfile?.staffAccountId || staffUserProfile?.staffAccountID || staffUserProfile?.id;
+                              
+                              // Find if any note has been reassigned
+                              const reassignedNote = counselorNotes.find(n => n.reassignedToStaffAccount_ID);
+                              
+                              let canComment = false;
+                              let disabledMessage = 'This assessment has no student feedback. Counselor commenting is disabled until feedback is provided.';
+                              
+                              if (reassignedNote) {
+                                // If note has been reassigned, only the reassigned counselor can comment
+                                if (String(reassignedNote.reassignedToStaffAccount_ID) === String(currentStaffId)) {
+                                  canComment = true;
+                                } else {
+                                  disabledMessage = `This case has been reassigned to ${reassignedNote.reassignedToName || 'another counselor'}. Only they can add comments.`;
+                                }
+                              } else {
+                                // No reassignment exists, allow commenting if student feedback exists
+                                canComment = !!studentFeedback;
+                              }
+                              
+                              return canComment ? (
                                 <>
                                   <textarea
                                     rows={2}
@@ -819,10 +899,10 @@ const AdminStudentProfile = () => {
                                     </button>
                                   </div>
                                 </>
-                              )
-                            ) : (
-                              <div className="text-sm text-gray-500 py-6 text-center">This assessment has no student feedback. Counselor commenting is disabled until feedback is provided.</div>
-                            )}
+                              ) : (
+                                <div className="text-sm text-gray-500 py-6 text-center">{disabledMessage}</div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>

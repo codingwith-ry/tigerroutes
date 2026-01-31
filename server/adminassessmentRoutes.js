@@ -1,10 +1,78 @@
 const express = require('express');
 const requireJwt = require('./middleware/requireJwt');
+const nodemailer = require('nodemailer');
 
 module.exports = (db) => {
   const router = express.Router();
   // Require admin JWT for all admin assessment routes
   router.use(requireJwt);
+
+  // GET /api/admin/assessment/:id
+  // Returns complete assessment details including profile, RIASEC, Big Five, feedback, etc.
+  router.get('/assessment/:id', async (req, res) => {
+    try {
+      const assessmentId = req.params.id;
+      if (!assessmentId) return res.status(400).json({ success: false, message: 'Assessment ID required' });
+
+      // Fetch base assessment record with feedback/rating
+      const [assessments] = await db.promise().query(
+        `SELECT studentAssessment_ID, studentAccount_ID, assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID, rating, feedback, date 
+         FROM tbl_studentassessments 
+         WHERE studentAssessment_ID = ? LIMIT 1`,
+        [assessmentId]
+      );
+
+      if (!assessments || assessments.length === 0) {
+        return res.status(404).json({ success: false, message: 'Assessment not found' });
+      }
+
+      const assessment = assessments[0];
+      const { assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID, studentAccount_ID } = assessment;
+
+      // Fetch assessment profile with student and strand info
+      const [profileRows] = await db.promise().query(
+        `SELECT ap.gradeLevel, ap.mathGrade, ap.scienceGrade, ap.englishGrade, ap.genAverageGrade, 
+                s.strandName, st.name, st.email, sa.date, sa.studentAccount_ID
+         FROM tbl_assessmentprofiles ap
+         LEFT JOIN tbl_strands s ON ap.strand_ID = s.strand_ID
+         LEFT JOIN tbl_studentassessments sa ON ap.assessmentProfile_ID = sa.assessmentProfile_ID
+         LEFT JOIN tbl_studentaccounts st ON sa.studentAccount_ID = st.studentAccount_ID
+         WHERE ap.assessmentProfile_ID = ? LIMIT 1`,
+        [assessmentProfile_ID]
+      );
+
+      // Fetch RIASEC results
+      const [riasecRows] = await db.promise().query(
+        'SELECT * FROM tbl_riasecresults WHERE riasecResult_ID = ? LIMIT 1',
+        [riasecResult_ID]
+      );
+
+      // Fetch Big Five results
+      const [bigFiveRows] = await db.promise().query(
+        'SELECT * FROM tbl_bigfiveresults WHERE bigFiveResult_ID = ? LIMIT 1',
+        [bigFiveResult_ID]
+      );
+
+      const responseData = {
+        success: true,
+        data: {
+          assessmentID: assessmentId,
+          studentAccount_ID: studentAccount_ID,
+          assessmentProfile: profileRows && profileRows[0] ? profileRows[0] : null,
+          riasec: riasecRows && riasecRows[0] ? riasecRows[0] : null,
+          bigFive: bigFiveRows && bigFiveRows[0] ? bigFiveRows[0] : null,
+          rating: assessment.rating,
+          feedback: assessment.feedback,
+          date: assessment.date
+        }
+      };
+
+      return res.json(responseData);
+    } catch (err) {
+      console.error('Error fetching assessment details:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  });
 
   // GET /api/assessments
   // Returns paginated list of assessments with computed average alignment (track_aligned recommendations)
@@ -170,18 +238,6 @@ module.exports = (db) => {
             return res.status(400).json({ success: false, message: 'assessment id, staffAccount_ID and counselorNotes are required' });
           }
 
-          // Enforce single counselor note per assessment at the DB level
-          // so multiple staff sessions can't race to create multiple notes.
-          try {
-            const [existing] = await db.promise().query('SELECT counselorNote_ID FROM tbl_counselornotes WHERE studentAssessment_ID = ? LIMIT 1', [assessmentId]);
-            if (existing && existing.length > 0) {
-              return res.status(409).json({ success: false, message: 'A counselor note already exists for this assessment' });
-            }
-          } catch (chkErr) {
-            console.warn('Failed to check existing counselor note:', chkErr);
-            // allow operation to proceed or fail on insert; do not block on check errors
-          }
-
           const insertSql = `INSERT INTO tbl_counselornotes (studentAssessment_ID, staffAccount_ID, counselorNotes, date) VALUES (?, ?, ?, NOW())`;
           const [result] = await db.promise().query(insertSql, [assessmentId, staffAccount_ID, counselorNotes]);
 
@@ -285,6 +341,119 @@ module.exports = (db) => {
           return res.status(403).json({ success: false, message: 'Not authorized to edit this note or note not found' });
         } catch (err) {
           console.error('Error editing counselor note:', err);
+          return res.status(500).json({ success: false, message: err.message });
+        }
+      });
+
+      // POST /api/assessment/:id/notes/:noteId/reassign
+      // Reassign a counselor note to another counselor and email them
+      router.post('/assessment/:id/notes/:noteId/reassign', async (req, res) => {
+        try {
+          const assessmentId = req.params.id;
+          const noteId = req.params.noteId;
+          const reassignedToStaffAccount_ID = req.body && (req.body.reassignedToStaffAccount_ID || req.body.reassignedToStaffAccountId);
+          const staffAccount_ID = req.user && (req.user.staffAccount_ID || req.user.id);
+
+          if (!assessmentId || !noteId || !reassignedToStaffAccount_ID || !staffAccount_ID) {
+            return res.status(400).json({ success: false, message: 'assessment id, note id, reassignedToStaffAccount_ID and staffAccount_ID are required' });
+          }
+
+          // Verify note exists
+          const [noteRows] = await db.promise().query(
+            'SELECT counselorNote_ID, counselorNotes, studentAssessment_ID FROM tbl_counselornotes WHERE counselorNote_ID = ? AND studentAssessment_ID = ? LIMIT 1',
+            [noteId, assessmentId]
+          );
+          if (!noteRows || noteRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Note not found' });
+          }
+
+          // Fetch target counselor details
+          const [staffRows] = await db.promise().query(
+            'SELECT staffAccount_ID, name, email FROM tbl_staffaccounts WHERE staffAccount_ID = ? LIMIT 1',
+            [reassignedToStaffAccount_ID]
+          );
+          const target = staffRows && staffRows[0] ? staffRows[0] : null;
+          if (!target) {
+            return res.status(404).json({ success: false, message: 'Target counselor not found' });
+          }
+
+          // Update note with reassignment info
+          const updateSql = `UPDATE tbl_counselornotes SET reassignedToStaffAccount_ID = ?, reassignedByStaffAccount_ID = ?, reassigned_date = UTC_TIMESTAMP() WHERE counselorNote_ID = ? AND studentAssessment_ID = ?`;
+          const [updateResult] = await db.promise().query(updateSql, [reassignedToStaffAccount_ID, staffAccount_ID, noteId, assessmentId]);
+          if (!updateResult.affectedRows) {
+            return res.status(400).json({ success: false, message: 'Failed to reassign note' });
+          }
+
+          // Try to send email notification
+          let mailSent = false;
+          let mailError = null;
+          try {
+            const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: process.env.SMTP_USER || 'tigerroutes.contact@gmail.com',
+                pass: process.env.SMTP_PASS || 'epki kwhr jdff egaj'
+              }
+            });
+
+            const mailOptions = {
+              from: process.env.SMTP_FROM || 'tigerroutes.contact@gmail.com',
+              to: target.email,
+              subject: 'TigerRoutes — Counselor Note Reassigned',
+              text: `Hello ${target.name},\n\nA counselor note has been reassigned to you for assessment ID: ${assessmentId}.\nPlease log in to the admin portal to review and respond.\n\nAdmin Portal: http://localhost:3000/admin\n\nThank you.`,
+              html: `
+                <div style="font-family: Inter, Arial, sans-serif; background:#f3f4f6; padding:24px;">
+                  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(17,24,39,0.06);">
+                    <div style="padding:20px 28px;background:linear-gradient(90deg,#fffaf0,#fffdf7);">
+                      <h2 style="margin:0;font-size:18px;color:#111827;">Counselor Note Reassigned</h2>
+                      <p style="margin:6px 0 0;color:#6b7280;font-size:13px;">Assessment ID: <strong>${assessmentId}</strong></p>
+                    </div>
+                    <div style="padding:20px 28px;color:#374151;font-size:14px;line-height:1.5;">
+                      <p style="margin:0 0 10px;">Hello <strong>${target.name}</strong>,</p>
+                      <p style="margin:0 0 16px;">A counselor note has been reassigned to you. Please log in to review and respond.</p>
+                      <div style="text-align:center;margin-top:12px;">
+                        <a href="http://localhost:3000/admin" target="_blank" rel="noopener" style="display:inline-block;padding:10px 18px;border-radius:8px;background:#F6BE1E;color:#111827;font-weight:700;text-decoration:none;">Open Admin Portal</a>
+                      </div>
+                    </div>
+                    <div style="padding:12px 20px;background:#fafafa;border-top:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:12px;">
+                      &copy; 2025 TigerRoutes. All rights reserved.
+                    </div>
+                  </div>
+                </div>
+              `
+            };
+
+            await transporter.sendMail(mailOptions);
+            mailSent = true;
+          } catch (mailErr) {
+            console.error('Failed to send reassignment email:', mailErr && mailErr.stack ? mailErr.stack : mailErr);
+            mailError = mailErr && mailErr.message ? mailErr.message : String(mailErr);
+          }
+
+          // Log reassignment
+          try {
+            const actionText = `Reassign counselor note (noteId:${noteId}) to staff id:${reassignedToStaffAccount_ID} for assessment id:${assessmentId}`;
+            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
+          } catch (logErr) {
+            console.warn('Failed to write staff log for note reassign:', logErr);
+          }
+
+          const payload = {
+            success: true,
+            data: {
+              reassignedToStaffAccount_ID: target.staffAccount_ID,
+              reassignedToName: target.name,
+              reassignedToEmail: target.email
+            }
+          };
+          if (!mailSent) {
+            payload.mailWarning = 'Failed to send reassignment email';
+            payload.mailError = mailError;
+          }
+
+          return res.json(payload);
+        } catch (err) {
+          console.error('Error reassigning counselor note:', err);
           return res.status(500).json({ success: false, message: err.message });
         }
       });

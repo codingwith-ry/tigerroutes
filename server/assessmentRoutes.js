@@ -980,9 +980,12 @@ module.exports = (db) => {
             if (!assessmentId) return res.status(400).json({ success: false, message: 'assessment id required' });
 
             const sql = `
-                SELECT cn.counselorNote_ID, cn.studentAssessment_ID, cn.staffAccount_ID, cn.counselorNotes, cn.date, cn.edited_date, s.name AS counselorName, s.email AS counselorEmail
+                SELECT cn.counselorNote_ID, cn.studentAssessment_ID, cn.staffAccount_ID, cn.counselorNotes, cn.date, cn.edited_date,
+                       cn.reassignedToStaffAccount_ID, cn.reassigned_date, s.name AS counselorName, s.email AS counselorEmail,
+                       s2.name AS reassignedToName, s2.email AS reassignedToEmail
                 FROM tbl_counselornotes cn
                 LEFT JOIN tbl_staffaccounts s ON cn.staffAccount_ID = s.staffAccount_ID
+                LEFT JOIN tbl_staffaccounts s2 ON cn.reassignedToStaffAccount_ID = s2.staffAccount_ID
                 WHERE cn.studentAssessment_ID = ?
                 ORDER BY cn.date ASC
             `;

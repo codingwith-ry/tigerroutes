@@ -452,10 +452,10 @@ const UserResultsHistory = () => {
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                              {assessment.assessmentId.substring(0, 8)}...
+                              {assessment.assessmentCode}
                             </span>
                             <button
-                              onClick={() => copyToClipboard(assessment.assessmentId)}
+                              onClick={() => copyToClipboard(assessment.assessmentCode)}
                               className="text-gray-400 hover:text-gray-600 transition"
                               title="Copy Assessment ID"
                             >
@@ -526,7 +526,10 @@ const UserResultsHistory = () => {
                         {/* Action Column */}
                         <td className="py-3 px-4">
                           <button
-                            onClick={() => navigate(`/assessment/results/${assessment.assessmentId}`)}
+                            onClick={() => {
+                              localStorage.setItem('currentAssessmentId', assessment.assessmentId);
+                              navigate(`/assessment/results`);
+                            }}
                             className="flex items-center gap-1 text-blue-600 hover:underline"
                           >
                             <FiEye /> View Details

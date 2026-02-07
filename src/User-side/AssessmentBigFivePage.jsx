@@ -411,7 +411,25 @@ const AssessmentBigFivePage = () => {
         localStorage.removeItem('bigFiveProgress');
         localStorage.removeItem('riasecResults');
         localStorage.removeItem('bigFiveResults');
-        navigate('/assessment/results/'+ localStorage.getItem('currentAssessmentId'));
+
+        fetch(`${process.env.REACT_APP_API_URL}/api/assessment/delete-PendingAssessment/`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pendingAssessment_ID: localStorage.getItem('currentAssessmentId'),
+            studentAccount_ID: user?.studentAccount_ID
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            console.error('Error deleting pending assessment:', data.message);
+          } 
+        });
+        navigate('/assessment/results');
       } else {
         Swal.fire({
           icon: 'error',
@@ -419,26 +437,6 @@ const AssessmentBigFivePage = () => {
           text: 'There was an error saving your results. Please try again.'
         });
       }
-      
-      
-      fetch(`${process.env.REACT_APP_API_URL}/api/assessment/delete-PendingAssessment/`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          pendingAssessment_ID: localStorage.getItem('currentAssessmentId'),
-          studentAccount_ID: user?.studentAccount_ID
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (!data.success) {
-          console.error('Error deleting pending assessment:', data.message);
-        } 
-        localStorage.removeItem('currentAssessmentId');
-      });
     })
     .catch(error => {
       console.error('Error:', error);

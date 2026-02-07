@@ -15,7 +15,7 @@ const AssessmentBigFive = () => {
   const navigate = useNavigate();
 
   const handleBigFiveTest = () => {
-    navigate('/assessment/test/BigFive/' + localStorage.getItem('currentAssessmentId'));
+    navigate('/assessment/test/BigFive');
   }
   return (
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">

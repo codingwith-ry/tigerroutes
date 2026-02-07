@@ -109,7 +109,6 @@ module.exports = (db) => {
             (openness, conscientiousness, extraversion, agreeableness, neuroticism) 
             VALUES (?, ?, ?, ?, ?)
         `;
-
         
 
         db.query(
@@ -173,111 +172,120 @@ module.exports = (db) => {
                                         }
                                         const assessmentProfile_ID = assessmentProfileResult.insertId;
 
-                                        const assessmentQuery = `INSERT INTO tbl_studentassessments (studentAssessment_ID, studentAccount_ID, assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID, date) VALUES(?, ?, ?, ?, ?, ?)`;
-                                        db.query(
-                                            assessmentQuery,
-                                            [
-                                                studentAssessment_ID,
-                                                studentAccount_ID,
-                                                assessmentProfile_ID,
-                                                riasecResult.insertId,
-                                                bigFiveResult.insertId,
-                                                timestamp
-                                            ],
-                                            async (err) => {
-                                                if (err) {
-                                                    console.error('Error inserting Student Assessment record:', err);
-                                                    return res.status(500).json({ message: 'Error inserting Student Assessment record' });
-                                                }
+                                        const year = new Date().getFullYear();
+                                        const getLastAssessmentCode = `SELECT COUNT(*) AS count FROM tbl_studentassessments WHERE assessmentCode LIKE ?`;
+                                        
+                                        db.query(getLastAssessmentCode, [`${year}-%`], (err, codeResult) => {
+                                            if (err) {
+                                                console.error('Error fetching last assessment code:', err);
+                                                return res.status(500).json({ message: 'Error fetching last assessment code' });
+                                            }
 
-                                                let programsResponse;
-                                                try {
-                                                    const response = await fetch('http://localhost:8000/score', {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({
-                                                            studentGrades: {
-                                                                mathGrade: profileResults[0].mathGrade,
-                                                                scienceGrade: profileResults[0].scienceGrade,
-                                                                englishGrade: profileResults[0].englishGrade,
-                                                                genAverageGrade: profileResults[0].genAverageGrade
-                                                            },
-                                                            strand: profileResults[0].strandName,
-                                                            riasec: riasecResults,
-                                                            bigfive: bigFiveResults
-                                                        })
-                                                    });
+                                            const nextNumber = codeResult[0].count + 1;
+                                            const assessmentCode = `${year}-${String(nextNumber).padStart(6, '0')}`;
 
-                                                    programsResponse = await response.json();
-                                                } catch (error) {
-                                                    console.error('Error fetching program recommendations:', error);
-                                                    return res.status(500).json({ message: 'Error fetching program recommendations' });
-                                                }
+                                            const assessmentQuery = `INSERT INTO tbl_studentassessments (studentAssessment_ID, assessmentCode, studentAccount_ID, assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID, date) VALUES(?, ?, ?, ?, ?, ?, ?)`;
+                                            db.query(
+                                                assessmentQuery,
+                                                [
+                                                    studentAssessment_ID,
+                                                    assessmentCode,
+                                                    studentAccount_ID,
+                                                    assessmentProfile_ID,
+                                                    riasecResult.insertId,
+                                                    bigFiveResult.insertId,
+                                                    timestamp
+                                                ],
+                                                async (err) => {
+                                                    if (err) {
+                                                        console.error('Error inserting Student Assessment record:', err);
+                                                        return res.status(500).json({ message: 'Error inserting Student Assessment record' });
+                                                    }
 
-                                                const allRecommendations = [
-                                                    ...programsResponse.track_aligned.map(([name, data]) => ({
-                                                        programName: name,
-                                                        ...data,
-                                                        trackAligned: 'Y'
-                                                    })),
-                                                    ...programsResponse.cross_track.map(([name, data]) => ({
-                                                        programName: name,
-                                                        ...data,
-                                                        trackAligned: 'N'
-                                                    }))
-                                                ];
+                                                    let programsResponse;
+                                                    try {
+                                                        const response = await fetch('http://localhost:8000/score', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                studentGrades: {
+                                                                    mathGrade: profileResults[0].mathGrade,
+                                                                    scienceGrade: profileResults[0].scienceGrade,
+                                                                    englishGrade: profileResults[0].englishGrade,
+                                                                    genAverageGrade: profileResults[0].genAverageGrade
+                                                                },
+                                                                strand: profileResults[0].strandName,
+                                                                riasec: riasecResults,
+                                                                bigfive: bigFiveResults
+                                                            })
+                                                        });
 
-                                                for (const rec of allRecommendations) {
-                                                    const { programName, score, breakdown, trackAligned } = rec;
-                                                    const alignmentScore = score;
-                                                    const breakdownJSON = JSON.stringify(breakdown);
+                                                        programsResponse = await response.json();
+                                                    } catch (error) {
+                                                        console.error('Error fetching program recommendations:', error);
+                                                        return res.status(500).json({ message: 'Error fetching program recommendations' });
+                                                    }
 
-                                                    // Get program_ID
-                                                    const getProgramQuery = `SELECT program_ID FROM tbl_programs WHERE programName = ? LIMIT 1`;
+                                                    const allRecommendations = [
+                                                        ...programsResponse.track_aligned.map(([name, data]) => ({
+                                                            programName: name,
+                                                            ...data,
+                                                            trackAligned: 'Y'
+                                                        })),
+                                                        ...programsResponse.cross_track.map(([name, data]) => ({
+                                                            programName: name,
+                                                            ...data,
+                                                            trackAligned: 'N'
+                                                        }))
+                                                    ];
 
-                                                    db.query(getProgramQuery, [programName], (err, programResult) => {
-                                                        if (err) {
-                                                            console.error(`Error fetching program ID for ${programName}:`, err);
-                                                            return;
-                                                        }
+                                                    for (const rec of allRecommendations) {
+                                                        const { programName, score, breakdown, trackAligned } = rec;
+                                                        const alignmentScore = score;
+                                                        const breakdownJSON = JSON.stringify(breakdown);
 
-                                                        if (programResult.length === 0) {
-                                                            console.warn(`Program not found: ${programName}`);
-                                                            return;
-                                                        }
+                                                        // Get program_ID
+                                                        const getProgramQuery = `SELECT program_ID FROM tbl_programs WHERE programName = ? LIMIT 1`;
 
-                                                        const program_ID = programResult[0].program_ID;
-
-                                                        // Insert recommendation
-                                                        const insertRecQuery = `
-                                                            INSERT INTO tbl_recommendations 
-                                                            (studentAssessment_ID, program_ID, alignmentScore, breakdown, track_aligned)
-                                                            VALUES (?, ?, ?, ?, ?)
-                                                        `;
-
-                                                        db.query(
-                                                            insertRecQuery,
-                                                            [studentAssessment_ID, program_ID, alignmentScore, breakdownJSON, trackAligned],
-                                                            (err) => {
-                                                                if (err) {
-                                                                    console.error(`Error inserting recommendation for ${programName}:`, err);
-                                                                } else {
-                                                                    console.log(`✅ Saved recommendation for ${programName} (${trackAligned})`);
-                                                                }
+                                                        db.query(getProgramQuery, [programName], (err, programResult) => {
+                                                            if (err) {
+                                                                console.error(`Error fetching program ID for ${programName}:`, err);
+                                                                return;
                                                             }
-                                                        );
-                                                    });
-                                                }
 
-                                                
-                                                return res.status(200).json({ success: true, message: 'Assessment completed successfully', programRecommendations: allRecommendations});
+                                                            if (programResult.length === 0) {
+                                                                console.warn(`Program not found: ${programName}`);
+                                                                return;
+                                                            }
+
+                                                            const program_ID = programResult[0].program_ID;
+
+                                                            // Insert recommendation
+                                                            const insertRecQuery = `
+                                                                INSERT INTO tbl_recommendations 
+                                                                (studentAssessment_ID, program_ID, alignmentScore, breakdown, track_aligned)
+                                                                VALUES (?, ?, ?, ?, ?)
+                                                            `;
+
+                                                            db.query(
+                                                                insertRecQuery,
+                                                                [studentAssessment_ID, program_ID, alignmentScore, breakdownJSON, trackAligned],
+                                                                (err) => {
+                                                                    if (err) {
+                                                                        console.error(`Error inserting recommendation for ${programName}:`, err);
+                                                                    } else {
+                                                                        console.log(`✅ Saved recommendation for ${programName} (${trackAligned})`);
+                                                                    }
+                                                                }
+                                                            );
+                                                        });
+                                                    }                                                
+                                                    return res.status(200).json({ success: true, message: 'Assessment completed successfully', programRecommendations: allRecommendations});
+                                            });
                                         });
                                     }
-                                );
-                                
+                                );     
                         });
-
-
                     }
                 );
             }
@@ -464,6 +472,7 @@ module.exports = (db) => {
             const fetchAssessmentHistory = `
                 SELECT 
                     sa.studentAssessment_ID as assessmentId,
+                    sa.assessmentCode as assessmentCode,
                     sa.date as date,
                     sa.rating as satisfaction,
                     sa.feedback as feedback,
@@ -494,6 +503,7 @@ module.exports = (db) => {
                     
                     return {
                         assessmentId: assessment.assessmentId,
+                        assessmentCode: assessment.assessmentCode,
                         date: assessmentDate.toLocaleDateString('en-US'),
                         day: dayNames[assessmentDate.getDay()],
                         status: 'Completed', // Assuming all are completed since they're in history
@@ -576,6 +586,7 @@ module.exports = (db) => {
                 const recentAssessmentData = `
                 SELECT
                     sa.studentAssessment_ID,
+                    sa.assessmentCode,
                     sa.date,
 
                     /* top 3 RIASEC traits as JSON (requires MySQL 8+ for JSON_ARRAYAGG ORDER BY) */
@@ -656,10 +667,6 @@ module.exports = (db) => {
 
                     res.json(response);
                 });
-                
-                
-                // Format the response
-                
             });
 
         } catch (error) {

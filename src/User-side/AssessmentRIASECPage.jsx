@@ -341,7 +341,7 @@ const AssessmentRIASECPage = () => {
    * Navigate to Big Five assessment page
    */
   const handleBigFiveTest = () => {
-    navigate('/assessmentBigFive/' + localStorage.getItem('currentAssessmentId'));
+    navigate('/assessmentBigFive');
   };
 
   /**

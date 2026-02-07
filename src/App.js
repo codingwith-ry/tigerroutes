@@ -47,11 +47,11 @@ function App() {
           <Route path="/results" element={<UserResultsHistory />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/noresult" element={<NoResultPage />} />
-          <Route path="/assessment/test/RIASEC/:assessmentId" element={<AssessmentRIASECPage />} />
-          <Route path="/assessmentBigFive/:assessmentId" element={<AssessmentBigFive />} />
-          <Route path="/assessment/test/BigFive/:assessmentId" element={<AssessmentBigFivePage />} />
-          <Route path="/assessmentRIASEC/:assessmentId" element={<AssessmentRIASEC />} />
-          <Route path="/assessment/results/:assessmentId" element={<AssessmentResults />} />
+          <Route path="/assessment/test/RIASEC" element={<AssessmentRIASECPage />} />
+          <Route path="/assessmentBigFive" element={<AssessmentBigFive />} />
+          <Route path="/assessment/test/BigFive" element={<AssessmentBigFivePage />} />
+          <Route path="/assessmentRIASEC" element={<AssessmentRIASEC />} />
+          <Route path="/assessment/results" element={<AssessmentResults />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminAuthProvider><AdminDashboard /></AdminAuthProvider>} />
           <Route path="/admin/assessment" element={<AdminAuthProvider><AdminAssessment /></AdminAuthProvider>} />

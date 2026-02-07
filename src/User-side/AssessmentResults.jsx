@@ -8,7 +8,6 @@ import { FaUserTie, FaEnvelope } from "react-icons/fa";
 import { UserCircle2, SquarePen } from "lucide-react";
 import UserNavbar from "./UserNavbar";
 import Footer from "../Visitor-side/Footer";
-import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import generatePDF from "./generatePDF";
 import PropTypes from "prop-types";
@@ -237,7 +236,7 @@ const AssessmentResults = () => {
     const [assessmentData, setAssessmentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { assessmentId } = useParams();
+    const assessmentId = localStorage.getItem('currentAssessmentId');
 
     
     const handleSubmitRating = (ratingData) => {

@@ -145,12 +145,12 @@ const AssessmentPage = () => {
     // Determine which assessment to continue based on progress
     
     if (pendingAssessment.riasec_progress <= progress.riasecTotal && pendingAssessment.bigfive_progress === 0) {
-      navigate(`/assessment/test/RIASEC/${pendingAssessment.pendingAssessment_ID}`);
+      navigate(`/assessment/test/RIASEC}`);
     } else if (pendingAssessment.bigfive_progress <= progress.bigFiveTotal) {
-      navigate(`/assessment/test/BigFive/${pendingAssessment.pendingAssessment_ID}`);
+      navigate(`/assessment/test/BigFive`);
     } else {
       // If both are complete, go to results
-      navigate(`/assessment/results/${pendingAssessment.pendingAssessment_ID}`);
+      navigate(`/assessment/results`);
     }
   };
 
@@ -172,7 +172,7 @@ const AssessmentPage = () => {
     const assessmentId = uuidv4();
     localStorage.setItem('currentAssessmentId', assessmentId);
     window.scrollTo(0, 0);
-    navigate(`/assessmentRIASEC/${assessmentId}`);
+    navigate(`/assessmentRIASEC`);
   };
 
   const cancelPendingAssessment = async () => {

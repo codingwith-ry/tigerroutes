@@ -15,7 +15,7 @@ const AssessmentRIASEC = () => {
   const navigate = useNavigate();
 
   const handleStartTest = () => {
-    navigate('/assessment/test/RIASEC/' + localStorage.getItem('currentAssessmentId'));
+    navigate('/assessment/test/RIASEC');
   };
 
   return (

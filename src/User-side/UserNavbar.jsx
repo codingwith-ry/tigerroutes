@@ -138,6 +138,9 @@ const UserNavbar = () => {
   };
 
   return (
+
+    //Create a modern, responsive student navbar in React using Tailwind CSS. Include a logo on the left, menu items (Home, Assessment, Results), a user profile avatar with a dropdown containing "Profile" and "Logout", and a mobile menu with the same options. The navbar should have hover effects and a shadow, but no JavaScript functionality or dynamic logic—just the static frontend layout.
+
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled ? "bg-white shadow-md" : "bg-transparent"

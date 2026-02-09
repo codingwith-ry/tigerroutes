@@ -173,6 +173,10 @@ const AdminSidebar = () => {
   };
 
   return (
+
+//Generate a responsive React admin sidebar component. The sidebar has a vertical layout on the left and a topbar for mobile screens. Include a logo at the top of both sidebar and mobile topbar. Add a close button on mobile to collapse the sidebar. Include navigation links with icons: Dashboard, Assessment, Manage Counselors, and Activity Logs. Add a logout button at the bottom with a red color style. Highlight active links visually. Add a dark overlay behind the sidebar on mobile when open. Use TailwindCSS for styling. Do not include state, hooks, or logic. Only generate the JSX structure with class names. Make the design modern and clean.
+
+
     <>
       {/* Topbar for Mobile */}
       <div className="md:hidden flex justify-between items-center p-5 bg-[#fdfcf8] border-b">

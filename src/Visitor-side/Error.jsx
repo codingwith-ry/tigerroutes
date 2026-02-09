@@ -9,6 +9,9 @@ const Error404Page = () => {
   };
 
   return (
+
+    //Create a friendly 404 error page layout for a student career guidance website using React and Tailwind CSS. Include an illustration, heading, message, and a button.
+
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
 
       <div className="w-full max-w-sm space-y-6">

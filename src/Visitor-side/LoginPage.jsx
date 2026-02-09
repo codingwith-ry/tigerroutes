@@ -251,6 +251,9 @@ const handleForgotPassword = () => {
 };
 
   return (
+//Create a modern login page for a student career guidance web app using React and Tailwind CSS. Include email, password with show/hide icon, remember me checkbox, forgot password link, Google sign-in button, and links for sign up and admin login.
+
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
       <img
         src="/images/04_TigerRoutes_Logo.webp"

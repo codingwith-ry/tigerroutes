@@ -369,6 +369,9 @@ const AssessmentRIASECPage = () => {
     activeStep === step ? "#FB9724" : "currentColor";
 
   return (
+//Create a unified frontend UI for a two-part career assessment consisting of the RIASEC test and the Big Five personality test. The layout should include a shared step indicator, instructions card, question display, answer buttons, navigation controls, and save/cancel actions using React and Tailwind CSS. Only UI/JSX structure is required.
+
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
 

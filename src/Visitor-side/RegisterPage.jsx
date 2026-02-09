@@ -244,6 +244,10 @@ const handleInputChange = (e) => {
   
 
   return (
+
+    //Design a responsive registration page for a student career guidance system using React and Tailwind CSS. Include name, email, password fields, terms agreement, and Google sign-in button.
+
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex items-center justify-center px-4 font-sfpro relative">
       <img
         src="/images/04_TigerRoutes_Logo.webp"

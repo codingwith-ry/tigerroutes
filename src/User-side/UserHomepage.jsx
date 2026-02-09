@@ -114,6 +114,10 @@ const UserHomepage = () => {
 
 
   return (
+
+  //Create a frontend-only React homepage for a student career guidance web app using Tailwind CSS, including welcome message, analytics overview with progress bars, most recent assessment section, top programs, quick actions, profile completion banner, and tips/resources cards, without any state, hooks, or functions.
+
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
 

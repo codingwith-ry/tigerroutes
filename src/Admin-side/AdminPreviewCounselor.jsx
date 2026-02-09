@@ -110,6 +110,9 @@ const CounselorPreview = () => {
   const email = counselor?.email || formatEmail(decodedName);
 
   return (
+
+    //Create a static HTML page that resembles an admin dashboard profile view for a counselor. Include a sidebar and a top header. Show the counselor’s initials as an avatar, full name, role, and department. Display a two-column section with contact information (email, office, consultation hours) on the left and an about section with a description and strand specialization on the right. Below that, show a "Recent Comments" section listing comment cards with student ID, assessment ID, timestamp, and counselor notes. Style the page with TailwindCSS including rounded corners, shadows, spacing, and responsive layout.
+
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       {/* Sidebar */}
       <AdminSidebar />

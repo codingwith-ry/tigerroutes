@@ -185,6 +185,10 @@ const AdminCounselors = () => {
   }
 
   return (
+    
+//Create a static HTML page using TailwindCSS that add  a top header with the page title "Manage Counselors" and an admin avatar. Include a search bar and an "Add Counselor" button above the table. The table should have columns: Counselor (name and email), Strand (color-coded badge), Last Login, Status (Active/Inactive badge), Password (Reveal button), and Actions (view/edit icons) with sample rows. Add pagination below the table with previous/next buttons and page numbers. Style everything with TailwindCSS, including hover effects, rounded corners, shadows, and responsive layout for mobile. Make it visually resemble a functional dashboard but keep it static HTML only.
+
+
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">

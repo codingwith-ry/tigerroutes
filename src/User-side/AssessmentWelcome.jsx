@@ -298,6 +298,9 @@ const AssessmentPage = () => {
     }
 
   return (
+
+    //Create a responsive assessment overview page UI using React and Tailwind CSS. The page should display the student profile summary, pending assessment alert, assessment progress visualization (RIASEC and Big Five), and a section to start a new career assessment journey.
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
       <main className="flex-grow w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 mt-16">

@@ -8,6 +8,10 @@ const NoResultsPage = () => {
   const navigate = useNavigate();
 
   return (
+
+    //Create a clean and responsive React frontend page using Tailwind CSS to handle the empty state when a user has no previous assessment results. The page should include a navigation bar and footer, a centered message box with an icon, a title indicating no assessments are available, a short descriptive message, and a prominent call-to-action button that navigates the user to take their first assessment. Focus only on layout, styling, and user-friendly empty-state design without backend logic.
+
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
 

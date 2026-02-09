@@ -110,6 +110,9 @@ const ResetPasswordPage = () => {
   };
 
   return (
+
+//Create a modern Reset Password page using React and Tailwind CSS with a top-left logo, centered heading with an illustrative icon, two password fields with show/hide icons, validation messages for mismatched or short passwords, a submit button, and a “Back to Log in” link.
+
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
       {/* Logo top-left */}
       <img

@@ -254,6 +254,10 @@ const ProfilePage = () => {
     }
 
     return (
+        
+//Create a student academic profile page UI using React and Tailwind CSS with sections for personal information, academic details, and semester grades.
+
+
         <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
             <UserNavbar />
 

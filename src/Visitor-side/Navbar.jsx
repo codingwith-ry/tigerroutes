@@ -27,6 +27,8 @@ const Navbar = () => {
   };
 
   return (
+    //Create a responsive navigation bar with logo, login and register buttons, and a mobile hamburger menu using Tailwind CSS.
+
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled ? "bg-white shadow-md" : "bg-transparent"

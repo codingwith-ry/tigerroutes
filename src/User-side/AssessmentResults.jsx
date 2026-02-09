@@ -163,6 +163,10 @@ const TopTraitsSection = ({ riasec, bigFive }) => {
     const bigFiveTop = getTopThree(bigFive);
 
     return (
+
+    //Create a frontend UI page explaining the RIASEC career interest test using React and Tailwind CSS. The page should include an overview of the model, descriptive text, a start button, and footer. UI only, no logic.
+
+
         <div className="grid md:grid-cols-2 gap-6 mb-6">
             <div className="bg-white rounded-2xl shadow border border-blue-100 p-6">
                 <div className="flex items-center gap-2 mb-4">

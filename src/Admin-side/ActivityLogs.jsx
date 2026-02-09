@@ -126,6 +126,10 @@ const ActivityLogs = () => {
   }
 
   return (
+	
+//Generate a responsive Admin Activity Logs page in HTML with TailwindCSS, including a sidebar, header with title, search and date filters, a desktop table and mobile accordion for logs, pagination controls, and placeholder data, all styled with rounded cards, shadows, and responsive layout.
+
+
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">

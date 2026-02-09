@@ -95,6 +95,9 @@ const ForgotPassPage = () => {
   };
 
   return (
+    
+    //Create a modern Forgot Password page using React and Tailwind CSS with a top-left logo, centered heading with an illustrative icon, email input field, submit button, and a “Back to Log in” link, all responsive and styled with rounded edges and yellow accent colors.
+
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
       {/* Logo top-left */}
       <img

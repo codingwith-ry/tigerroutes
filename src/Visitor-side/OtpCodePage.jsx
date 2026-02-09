@@ -119,6 +119,10 @@ const handleSubmit = async (e) => {
 };
 
   return (
+
+    //Create an OTP verification page layout for a password reset flow using React and Tailwind CSS. Include a logo, illustration, 6-digit OTP inputs, resend text, and navigation button.
+
+
     <div className="w-full min-h-screen bg-[#FEFCE9] flex items-center justify-center px-4 font-sfpro relative">
       {/* Logo top-left */}
       <img

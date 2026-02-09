@@ -253,6 +253,10 @@ const AdminAssessment = () => {
     const strokeDashoffset = circumference - (safeValue / safeMax) * circumference;
 
     return (
+
+
+      //Create a static HTML page that resembles an admin dashboard for student assessments. Include a sidebar and a top header. Show summary statistics cards for total students, completed assessments, pending assessments, and overall alignment. Add a searchable and filterable table of assessments with columns for Assessment ID, Student, Strand, Assessment Date, Alignment Score, Satisfaction Rating, and an action button. Include a responsive mobile view with accordion-style assessment cards. Below the table, add pagination controls. Style the page with TailwindCSS using rounded corners, shadows, spacing, hover effects, and a responsive layout.
+
       <div className="relative w-16 h-16 sm:w-12 sm:h-12 md:w-16 md:h-16">
         <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 64 64">
           <circle cx="32" cy="32" r={normalizedRadius} fill="transparent" stroke="#eef2ff" strokeWidth={strokeWidth} />

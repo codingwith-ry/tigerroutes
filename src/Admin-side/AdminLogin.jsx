@@ -114,6 +114,10 @@ const AdminLogin = () => {
   };
 
   return (
+
+    //Generate a responsive React admin login page. The page has two sections: a left-side image with welcome text and a right-side login form. The left image section is hidden on small screens. Include a clickable logo at the top that navigates home. Add a title “Log in” and a subtitle “Please login to view your dashboard.” Include an email input field. Include a password input field with an eye icon to toggle visibility. Add a “Forgot Password” link. Include a login button with hover effect. Add footer copyright text on the left image for large screens and at the bottom for small screens. Use TailwindCSS for styling. Do not include state, functions, or logic. Only generate the JSX structure with class names. Make the design modern and clean.
+
+
     <div className="flex flex-col lg:flex-row h-screen w-full font-sfpro bg-[#fffbe9] text-gray-900">
      <div className="hidden lg:flex w-1/2 items-center justify-center px-6 py-12 relative bg-cover bg-center" style={{ backgroundImage: "url('/images/VectorBg.webp')" }}>
         <div className="max-w-md text-white w-full font-sfpro">

@@ -378,6 +378,10 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
     }
 
   return (
+    
+//Generate a React admin dashboard page with a responsive layout. Include a sidebar on the left and a header at the top. Display a grid of four statistic cards: Total Students, Completed Assessments, Overall Alignment, and Total Counselors. Each card shows a main number, a subtitle, and a circular progress indicator with an icon. Below the stats, display two sections side by side on desktop (stacked on mobile): Strand Alignment Scores and Top 5 Most Recommended Programs. For Strand Scores, show a vertical list with colored bars and percentage values. For Top Programs, show a list with program name, average score, and number of recommendations. Below that, display a table of students pending assessment completion with search, date range filter, remind buttons, and pagination. Include a mobile-friendly list version of the table. Use TailwindCSS for styling. Include hover and transition effects on interactive elements.
+
+
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">

@@ -6,6 +6,9 @@ const Footer = () => {
   const [isCookiesModalOpen, setIsCookiesModalOpen] = useState(false);
 
   return (
+
+    //Create a responsive footer layout for a student career guidance website using Tailwind CSS. Include logo, description, contact info, quick links, and a copyright section.
+
     <>
       <footer className="bg-[#F6BE1E] text-black px-6 py-12 font-sfpro">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">

@@ -398,6 +398,9 @@ const AdminStudentProfile = () => {
   };
 
   return (
+
+    //Create a React admin dashboard page for a student profile showing a sidebar, top header, and a main section with a student avatar, name, ID, year level, strand, status, semester grades, RIASEC and Big Five results, program recommendations with alignment scores and potential career paths, and a counselor notes section where feedback can be viewed, added, edited, or deleted; fetch all data from APIs using React hooks, handle state with useState and useEffect, use TailwindCSS for styling with rounded corners, shadows, spacing, responsive layout, and include confirmation dialogs using SweetAlert2.
+
     <div className="flex flex-col md:flex-row w-screen h-screen bg-[#fdfcf8]">
       <AdminSidebar />
 

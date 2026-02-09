@@ -19,6 +19,9 @@ const AssessmentRIASEC = () => {
   };
 
   return (
+
+    //Create a frontend UI page explaining the RIASEC career interest test using React and Tailwind CSS. The page should include an overview of the model, descriptive text, a start button, and footer. UI only, no logic.
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
 

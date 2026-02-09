@@ -309,6 +309,10 @@ const UserResultsHistory = () => {
   }
 
   return (
+
+    //Create a responsive React frontend page for displaying a student’s assessment history using Tailwind CSS. The page should include a statistics section showing total assessments, average satisfaction rating, and counselor replies using circular progress indicators. Add a searchable, filterable, and paginated assessment history section with both desktop table and mobile card layouts. Each assessment item should display assessment ID with copy-to-clipboard UI, date, satisfaction stars, student feedback preview, counselor reply status, and a button to view detailed results. Include UI elements for search, date filter, satisfaction filter, pagination controls, and loading and error states. Focus only on UI structure and layout; backend logic and data fetching behavior are assumed.
+
+
     <div className="w-full min-h-screen bg-[#FFFCED] flex flex-col font-sfpro">
       <UserNavbar />
       <div className="flex-grow px-6 md:px-12 py-6 space-y-6 mt-24">

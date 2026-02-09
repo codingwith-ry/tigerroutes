@@ -587,7 +587,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                           <tr key={s.studentAccount_ID} className="hover:bg-gray-50">
                             <td className="px-6 py-4 font-medium text-gray-900">{s.name}</td>
                             <td className="px-6 py-4 text-gray-600">{s.email}</td>
-                            <td className="px-6 py-4">{s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</td>
+                            <td className="px-6 py-4">{s.pendingAssessment_ID ? 'Yes' : 'No'}</td>
                             <td className="px-6 py-4 text-gray-600">
                               {formatToManilaTime(s.lastReminderDate)}
                             </td>

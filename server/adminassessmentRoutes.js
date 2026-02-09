@@ -122,7 +122,7 @@ module.exports = (db) => {
       }
 
       // Data query
-      let dataQuery = `SELECT sa.studentAssessment_ID AS assessmentId, sa.studentAccount_ID AS studentAccountId, sa.date, sa.rating, st.name AS studentName, s.strandName AS strand ${baseFrom}`;
+      let dataQuery = `SELECT sa.studentAssessment_ID AS assessmentId, sa.assessmentCode AS assessmentCode, sa.studentAccount_ID AS studentAccountId, sa.date, sa.rating, st.name AS studentName, s.strandName AS strand ${baseFrom}`;
       if (whereClauses.length > 0) dataQuery += ` WHERE ${whereClauses.join(' AND ')}`;
       dataQuery += ` ORDER BY sa.date DESC LIMIT ? OFFSET ?`;
 
@@ -182,6 +182,7 @@ module.exports = (db) => {
 
       const data = rows.map((r) => ({
         assessmentId: r.assessmentId,
+        assessmentCode: r.assessmentCode,
         studentAccountId: r.studentAccountId,
         studentName: r.studentName,
         date: r.date,

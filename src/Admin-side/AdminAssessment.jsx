@@ -426,7 +426,7 @@ const AdminAssessment = () => {
                 ) : (
                   currentStudents.map((student) => (
                     <tr key={student.assessmentId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{student.assessmentId}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{student.assessmentCode}</td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 font-medium">
                           {`STU${student.studentAccountId || ''}-${student.studentName || '-'}`}

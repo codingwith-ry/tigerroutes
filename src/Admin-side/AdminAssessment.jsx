@@ -5,6 +5,7 @@ import { FaStar, FaRegStar } from "react-icons/fa";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from './AdminHeader';
 import { useNavigate } from "react-router-dom";
+import { formatDisplayName } from "../utils/nameFormat";
 /* eslint-disable react/prop-types */
 
 
@@ -114,6 +115,11 @@ const AdminAssessment = () => {
       minute: '2-digit',
       hour12: true
     });
+  };
+
+  const formatStudentLabel = (student) => {
+    const displayName = formatDisplayName(student?.studentName || '') || student?.studentName || '-';
+    return `STU${student?.studentAccountId || ''}-${displayName}`;
   };
 
   
@@ -433,7 +439,7 @@ const AdminAssessment = () => {
                       <td className="px-6 py-4 font-medium text-gray-900">{student.assessmentCode}</td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 font-medium">
-                          {`STU${student.studentAccountId || ''}-${student.studentName || '-'}`}
+                          {formatStudentLabel(student)}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -518,7 +524,7 @@ const AdminAssessment = () => {
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <div className="font-semibold text-gray-900">{student.assessmentId}</div>
-                      <div className="text-xs text-gray-600">{`STU${student.studentAccountId || ''}-${student.studentName || '-'}`}</div>
+                      <div className="text-xs text-gray-600">{formatStudentLabel(student)}</div>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStrandColors(student.strand).bgColor} ${getStrandColors(student.strand).textColor}`}>
                       {getStrandAcronym(student.strand)}

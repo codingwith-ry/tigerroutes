@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import CounselorModal from "./CounselorModal";
 import Swal from "sweetalert2";
 import { fetchStaffProfile } from '../utils/staffProfile';
+import { formatDisplayName } from "../utils/nameFormat";
 
 /* eslint-disable react/prop-types */
 
@@ -249,7 +250,7 @@ const AdminCounselors = () => {
                               }, 1000);
                             }}
                           >
-                            {c.name}
+                            {formatDisplayName(c.name) || c.name}
                           </span>
                           <span className="text-sm text-gray-500">{c.email}</span>
                         </div>

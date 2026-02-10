@@ -12,6 +12,7 @@ import {
   Lock,
 } from "lucide-react";
 import { fetchStaffProfile } from '../utils/staffProfile';
+import { formatDisplayName } from '../utils/nameFormat';
 
 /* eslint-disable react/prop-types */
 
@@ -518,7 +519,7 @@ const CounselorModal = ({ isOpen, onClose, counselor, onSave, onDelete, isSaving
                   </h3>
                   <p className="text-gray-600 mb-4">
                     Enter your password to confirm the deletion of{" "}
-                    <span className="font-semibold">{counselor?.name}</span>.
+                    <span className="font-semibold">{formatDisplayName(counselor?.name) || counselor?.name}</span>.
                   </p>
                   <input
                     id="confirm-password-input"

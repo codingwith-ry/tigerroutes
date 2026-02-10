@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 // Icon imports removed — not currently used
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
+import { formatDisplayName } from '../utils/nameFormat';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -197,7 +198,7 @@ const ActivityLogs = () => {
 												logs.map((r) => (
 													<tr key={r.staffLogs_ID} className="hover:bg-gray-50">
 														<td className="px-6 py-4 font-medium text-gray-900">{r.staffLogs_ID}</td>
-														<td className="px-6 py-4">{r.staffName || `#${r.staffAccount_ID}`}</td>
+														<td className="px-6 py-4">{formatDisplayName(r.staffName) || r.staffName || `#${r.staffAccount_ID}`}</td>
 														<td className="px-6 py-4">{r.action}</td>
 														<td className="px-6 py-4 text-gray-600">{r.date ? formatToPhilippines(r.date) : ''}</td>
 													</tr>
@@ -219,7 +220,7 @@ const ActivityLogs = () => {
 												<div className="flex justify-between items-center mb-2">
 													<div>
 														<div className="font-semibold text-gray-900">Log #{r.staffLogs_ID}</div>
-														<div className="text-xs text-gray-600">{r.staffName || `#${r.staffAccount_ID}`}</div>
+														<div className="text-xs text-gray-600">{formatDisplayName(r.staffName) || r.staffName || `#${r.staffAccount_ID}`}</div>
 													</div>
 												</div>
 												<div className="space-y-2">

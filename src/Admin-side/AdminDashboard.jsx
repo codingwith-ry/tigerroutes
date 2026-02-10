@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import { FileCheck, BarChart2, Users } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import { formatDisplayName } from "../utils/nameFormat";
 /* eslint-disable react/prop-types */
 
 const AdminDashboard = () => {
@@ -204,9 +205,10 @@ const AdminDashboard = () => {
   }
 
   const handleRemind = async (studentAccount_ID, studentName) => {
+    const formattedName = formatDisplayName(studentName || '') || studentName || '';
     const confirm = await Swal.fire({
       title: 'Send reminder?',
-      text: `Send reminder email to ${studentName}?`,
+      text: `Send reminder email to ${formattedName}?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Send',
@@ -589,7 +591,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                       ) : (
                         currentPageItems.map((s) => (
                           <tr key={s.studentAccount_ID} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium text-gray-900">{s.name}</td>
+                            <td className="px-6 py-4 font-medium text-gray-900">{formatDisplayName(s.name) || s.name}</td>
                             <td className="px-6 py-4 text-gray-600">{s.email}</td>
                             <td className="px-6 py-4">{s.pendingAssessment_ID ? 'Yes' : 'No'}</td>
                             <td className="px-6 py-4 text-gray-600">
@@ -598,7 +600,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => handleRemind(s.studentAccount_ID, s.name)}
+                                  onClick={() => handleRemind(s.studentAccount_ID, formatDisplayName(s.name) || s.name)}
                                   disabled={remindingStudents.has(s.studentAccount_ID) || isRemindDisabledFor(s)}
                                   title={isRemindDisabledFor(s) ? 'Reminded within the last 24 hours' : undefined}
                                   className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -621,7 +623,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                   <div className="space-y-3 p-2">
                     {currentPageItems.map((s) => (
                       <div key={s.studentAccount_ID} className="border rounded-md p-3">
-                        <div className="font-medium text-gray-900">{s.name}</div>
+                        <div className="font-medium text-gray-900">{formatDisplayName(s.name) || s.name}</div>
                         <div className="text-sm text-gray-600">{s.email}</div>
                         <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
                         <div className="text-sm text-gray-600">
@@ -629,7 +631,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                         </div>
                         <div className="mt-2">
                           <button
-                            onClick={() => handleRemind(s.studentAccount_ID, s.name)}
+                            onClick={() => handleRemind(s.studentAccount_ID, formatDisplayName(s.name) || s.name)}
                             disabled={remindingStudents.has(s.studentAccount_ID) || isRemindDisabledFor(s)}
                             title={isRemindDisabledFor(s) ? 'Reminded within the last 24 hours' : undefined}
                             className="bg-yellow-400 text-white px-3 py-1 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"

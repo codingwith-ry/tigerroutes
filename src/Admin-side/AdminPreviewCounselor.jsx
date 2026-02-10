@@ -3,6 +3,7 @@ import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import { Mail, MapPin, BookOpen, Clock, Dot, MessageSquareText } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { formatDisplayName, getNameInitials } from "../utils/nameFormat";
 /* eslint-disable react/prop-types */
 
 const CounselorPreview = () => {
@@ -108,6 +109,8 @@ const CounselorPreview = () => {
   const renderValue = (value, fallback = 'N/A') => (value ? value : fallback);
   // Accept either `officeDetails`/`consultationDetails` (DB names) or `officeLocation`/`consultationHours` (frontend)
   const email = counselor?.email || formatEmail(decodedName);
+  const displayName = formatDisplayName(counselor?.name || decodedName) || counselor?.name || decodedName;
+  const initials = getNameInitials(counselor?.name || decodedName) || 'CN';
 
   return (
 
@@ -130,14 +133,11 @@ const CounselorPreview = () => {
             {error && <div className="p-4 text-center text-red-600">{error}</div>}
             <div className="flex items-center gap-5 mb-6">
               <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-xl font-bold text-white">
-                {decodedName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
+                {initials}
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-800">
-                  {counselor?.name || decodedName}
+                  {displayName}
                 </h2>
                 <p className="text-gray-500 flex items-center gap-1">
                   {counselor?.role || "Counselor"} <Dot className="w-4 h-4" /> Guidance & Counseling

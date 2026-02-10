@@ -13,6 +13,7 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { useParams } from "react-router-dom";
 import { fetchStaffProfile } from '../utils/staffProfile';
+import { formatDisplayName, getNameInitials } from '../utils/nameFormat';
 
 const AdminStudentProfile = () => {
   const { id } = useParams();
@@ -117,6 +118,9 @@ const AdminStudentProfile = () => {
     riasec: assessmentData?.riasec || {},
     bigFive: assessmentData?.bigFive || {},
   };
+
+  const studentDisplayName = formatDisplayName(student.name) || student.name;
+  const studentInitials = getNameInitials(student.name) || 'ST';
 
   // Student feedback comes from the assessment record (tbl_studentassessments.feedback and rating)
   // If absent, set to null and disable counselor commenting
@@ -275,7 +279,7 @@ const AdminStudentProfile = () => {
 
     const options = (list || [])
       .filter((c) => c && c.staffAccount_ID)
-      .map((c) => `<option value="${c.staffAccount_ID}">${c.name}${c.email ? ` (${c.email})` : ''}</option>`)
+      .map((c) => `<option value="${c.staffAccount_ID}">${formatDisplayName(c.name) || c.name}${c.email ? ` (${c.email})` : ''}</option>`)
       .join('');
 
     if (!options) {
@@ -326,7 +330,7 @@ const AdminStudentProfile = () => {
           reassignedToEmail: body.data && body.data.reassignedToEmail ? body.data.reassignedToEmail : n.reassignedToEmail,
           reassignedDate: new Date()
         } : n));
-        await Swal.fire('Reassigned', `Reassigned to ${newName}.`, 'success');
+        await Swal.fire('Reassigned', `Reassigned to ${formatDisplayName(newName) || newName}.`, 'success');
       } else {
         Swal.fire('Error', body?.message || 'Failed to reassign note', 'error');
       }
@@ -417,7 +421,7 @@ const AdminStudentProfile = () => {
 
             {/* Student Info */}
             <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl font-bold text-gray-900">{student.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{studentDisplayName}</h2>
               <p className="text-sm text-gray-500 mb-2">{student.id}</p>
               <div className="flex flex-wrap justify-center md:justify-start gap-3 text-sm">
                 <span className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full border border-orange-200">
@@ -754,14 +758,14 @@ const AdminStudentProfile = () => {
                       <div className="flex space-x-3">
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                            {student.name.split(' ').map(n => n[0]).join('')}
+                            {studentInitials}
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition-colors">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center space-x-2">
-                                <span className="font-semibold text-gray-900 text-sm">{student.name}</span>
+                                <span className="font-semibold text-gray-900 text-sm">{studentDisplayName}</span>
                                 <span className="text-xs text-gray-500">
                                   {new Date(String(studentFeedback.date).endsWith('Z') ? studentFeedback.date : `${studentFeedback.date}Z`).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}
                                 </span>
@@ -792,13 +796,13 @@ const AdminStudentProfile = () => {
                           <div key={index} className="flex space-x-3">
                             <div className="flex-shrink-0">
                               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                                {note.author.split(' ').map(n => n[0]).join('')}
+                                {getNameInitials(note.author) || 'CN'}
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
                                 <div className="flex items-center justify-between mb-1">
-                                  <span className="font-semibold text-gray-900 text-sm">{note.author}</span>
+                                  <span className="font-semibold text-gray-900 text-sm">{formatDisplayName(note.author) || note.author}</span>
                                     <div className="flex items-center gap-3">
                                       <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
                                       {note.editedDate ? (
@@ -821,7 +825,7 @@ const AdminStudentProfile = () => {
                                                 <>
                                                   <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
                                                   {note.reassignedToName ? (
-                                                    <span className="text-xs text-gray-500 ml-2">Reassigned to {note.reassignedToName} counselor</span>
+                                                    <span className="text-xs text-gray-500 ml-2">Reassigned to {formatDisplayName(note.reassignedToName) || note.reassignedToName} counselor</span>
                                                   ) : (
                                                     <button onClick={() => handleReassignNote(note)} className="text-xs text-orange-600 ml-2 hover:underline">Reassign</button>
                                                   )}
@@ -832,7 +836,7 @@ const AdminStudentProfile = () => {
                                         } else {
                                           // Not the owner, just show reassignment status if applicable
                                           if (note.reassignedToName) {
-                                            return <span className="text-xs text-gray-500">Reassigned to {note.reassignedToName} counselor</span>;
+                                            return <span className="text-xs text-gray-500">Reassigned to {formatDisplayName(note.reassignedToName) || note.reassignedToName} counselor</span>;
                                           }
                                         }
                                         return null;
@@ -877,7 +881,7 @@ const AdminStudentProfile = () => {
                                 if (String(reassignedNote.reassignedToStaffAccount_ID) === String(currentStaffId)) {
                                   canComment = true;
                                 } else {
-                                  disabledMessage = `This case has been reassigned to ${reassignedNote.reassignedToName || 'another counselor'}. Only they can add comments.`;
+                                  disabledMessage = `This case has been reassigned to ${formatDisplayName(reassignedNote.reassignedToName) || reassignedNote.reassignedToName || 'another counselor'}. Only they can add comments.`;
                                 }
                               } else {
                                 // No reassignment exists, allow commenting if student feedback exists

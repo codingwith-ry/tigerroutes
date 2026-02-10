@@ -6,6 +6,13 @@ jest.mock('mysql2', () => ({
     on: () => {},
     // query as callback-style used by /register
     query: (sql, params, cb) => {
+      if (typeof sql === 'string' && sql.toLowerCase().includes('select studentaccount_id from tbl_studentaccounts')) {
+        const email = Array.isArray(params) ? String(params[0] || '').toLowerCase() : '';
+        if (email.includes('existing@ust.edu.ph')) {
+          return cb(null, [{ studentAccount_ID: 99 }]);
+        }
+        return cb(null, []);
+      }
       // simulate INSERT into tbl_studentaccounts
       if (typeof sql === 'string' && sql.toLowerCase().includes('insert into tbl_studentaccounts')) {
         // simulate successful insert
@@ -36,5 +43,13 @@ describe('Registration domain restriction', () => {
     expect(res.statusCode).toBe(400);
     expect(res.body).toHaveProperty('error');
     expect(res.body.error).toMatch(/UST email/i);
+  });
+
+  test('rejects registration for existing emails', async () => {
+    const payload = { name: 'Existing User', email: 'existing@ust.edu.ph', password: 'password123' };
+    const res = await request(app).post('/api/register').send(payload).set('Accept', 'application/json');
+    expect(res.statusCode).toBe(409);
+    expect(res.body).toHaveProperty('error');
+    expect(res.body.error).toMatch(/already registered/i);
   });
 });

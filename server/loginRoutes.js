@@ -96,22 +96,7 @@ module.exports = (db) => {
                     if (err) return res.status(500).json({error: err.message});
                     
                     if (existing && existing.length > 0) {
-                        // Email already registered; update password
-                        const user = existing[0];
-                        return db.query(
-                            'UPDATE tbl_studentaccounts SET password = ? WHERE studentAccount_ID = ?',
-                            [hashed, user.studentAccount_ID],
-                            (err) => {
-                                if (err) return res.status(500).json({error: err.message});
-                                try {
-                                    const token = jwt.sign({ id: user.studentAccount_ID, email: normalizedEmail, name: name }, secret, { expiresIn: '1h' });
-                                    res.cookie('tigerToken', token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 1 * 60 * 60 * 1000 });
-                                    return res.json({success: true, id: user.studentAccount_ID, isUpdate: true});
-                                } catch (e) {
-                                    return res.json({success: true, id: user.studentAccount_ID, isUpdate: true});
-                                }
-                            }
-                        );
+                        return res.status(409).json({ error: 'Email already registered' });
                     }
 
                     // New registration: email doesn't exist yet

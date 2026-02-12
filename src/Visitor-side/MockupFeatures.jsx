@@ -121,7 +121,7 @@ const MockupFeatures = () => {
             <div className="pointer-events-none absolute -inset-8 rounded-[40px] bg-[#F5C400]/25 blur-3xl" />
 
             <div className="relative rounded-[28px] border border-black/10 bg-white p-3 shadow-2xl shadow-[#F5C400]/25">
-              <div className="aspect-square w-full max-w-[520px] overflow-hidden rounded-[22px] bg-white">
+              <div className="aspect-square w-full max-w-[760px] overflow-hidden rounded-[22px] bg-white">
                 {/* Fade swap */}
                 <img
                   key={active.imageSrc}

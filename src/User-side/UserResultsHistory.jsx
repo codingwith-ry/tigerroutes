@@ -43,16 +43,43 @@ const UserResultsHistory = () => {
 
   // Filter assessments when search, date filter, or original data changes
   useEffect(() => {
+    const s = searchTerm.trim().toLowerCase();
     let filtered = assessments;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(assessment =>
-        assessment.assessmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (assessment.feedback && assessment.feedback.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (typeof assessment.reply === 'object' && 
-         assessment.reply.counselor.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+    // Apply search filter (safe checks for multiple ID fields and reply formats)
+    if (s) {
+      filtered = filtered.filter((assessment) => {
+        try {
+          const id = (
+            assessment.assessmentCode
+          ).toString().toLowerCase();
+
+          const feedback = (assessment.feedback || "").toString().toLowerCase();
+
+          let replyStr = "";
+          if (assessment.reply) {
+            if (typeof assessment.reply === "string") {
+              replyStr = assessment.reply.toLowerCase();
+            } else if (typeof assessment.reply === "object") {
+              replyStr = (
+                (assessment.reply.counselor || "") +
+                " " +
+                (assessment.reply.message || "") +
+                " " +
+                (assessment.reply.body || "")
+              )
+                .toString()
+                .toLowerCase();
+            } else {
+              replyStr = String(assessment.reply).toLowerCase();
+            }
+          }
+
+          return id.includes(s) || feedback.includes(s) || replyStr.includes(s);
+        } catch (err) {
+          return false;
+        }
+      });
     }
 
     // Apply date filter

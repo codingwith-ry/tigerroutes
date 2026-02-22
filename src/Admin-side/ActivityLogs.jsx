@@ -55,34 +55,27 @@ const ActivityLogs = () => {
 		}
 	};
 
-	// Helper: parse datetime from MySQL (stored as UTC) and format for Manila timezone
+	// Helper: format datetime string from database into a friendly Manila-style string
 	const formatToPhilippines = (value) => {
 		if (!value) return '';
-		
-		// MySQL stores datetime as UTC in format 'YYYY-MM-DD HH:MM:SS'
-		// We need to parse it as UTC and convert to Manila time (UTC+8)
-		let dateStr = String(value).trim();
-		
-		// Replace space with 'T' and ensure it has 'Z' for UTC
-		if (!dateStr.includes('Z') && !dateStr.includes('+')) {
-			dateStr = dateStr.replace(' ', 'T') + 'Z';
+
+		// Accept either MySQL datetime or ISO-like string
+		const d = new Date(value);
+		if (isNaN(d.getTime())) {
+			// if parsing fails just return raw value
+			return String(value);
 		}
-		
-		const utcDate = new Date(dateStr);
-		if (isNaN(utcDate.getTime())) return '';
-		
-		// Convert UTC to Manila time by adding 8 hours
-		const manilaDate = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000));
-		
-		// Format the Manila date
-		return manilaDate.toLocaleString('en-US', { 
+		const datePart = d.toLocaleDateString('en-US', {
 			month: 'long',
 			day: 'numeric',
 			year: 'numeric',
+		});
+		const timePart = d.toLocaleTimeString('en-US', {
 			hour: 'numeric',
 			minute: '2-digit',
-			hour12: true
+			hour12: true,
 		});
+		return `${datePart} at ${timePart}`;
 	};
 
   useEffect(() => {

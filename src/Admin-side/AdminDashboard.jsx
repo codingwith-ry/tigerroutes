@@ -136,34 +136,27 @@ const AdminDashboard = () => {
     try { return new Date(value); } catch (e) { return null; }
   };
 
-  // Helper: format UTC datetime to Manila time with full month name
+  // Helper: format any date string from the database into an inclusive human-readable value
+  // (treats the incoming string "as is" and does not apply additional timezone shifts)
   const formatToManilaTime = (value) => {
     if (!value) return '—';
-    
-    let dateStr = String(value).trim();
-    // Replace space with 'T' and ensure it has 'Z' for UTC
-    if (!dateStr.includes('Z') && !dateStr.includes('+')) {
-      dateStr = dateStr.replace(' ', 'T') + 'Z';
-    }
-    
-    const utcDate = new Date(dateStr);
-    if (isNaN(utcDate.getTime())) return '—';
-    
-    // Check for epoch time (no reminder sent)
-    if (utcDate.getTime() === 0) return 'No reminder sent';
-    
-    // Convert UTC to Manila time by adding 8 hours
-    const manilaDate = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000));
-    
-    // Format the Manila date
-    return manilaDate.toLocaleString('en-US', { 
+
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '—';
+
+    if (d.getTime() === 0) return 'No reminder sent';
+
+    const datePart = d.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
-      year: 'numeric',
+      year: 'numeric'
+    });
+    const timePart = d.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     });
+    return `${datePart} at ${timePart}`;
   };
 
   // Helper: returns true if lastReminderDate is within the 24-hour cooldown window

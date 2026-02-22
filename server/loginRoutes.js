@@ -609,7 +609,7 @@ module.exports = (db) => {
                         // Log staff login (non-blocking)
                         try {
                             const actionText = `Staff login: ${staffUser.email} (ID:${staffUser.staffAccount_ID})`;
-                            db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffUser.staffAccount_ID || null, actionText]).catch(() => {});
+                            db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [staffUser.staffAccount_ID || null, actionText]).catch(() => {});
                         } catch (e) {
                             console.warn('[staff-login] non-blocking log error', e);
                         }

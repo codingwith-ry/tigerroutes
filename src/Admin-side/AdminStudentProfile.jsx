@@ -365,7 +365,11 @@ const AdminStudentProfile = () => {
   const staffAccount_ID = staffUser?.staffAccount_ID || staffUser?.staffAccountId || staffUser?.staffAccountID || staffUser?.id;
   if (!staffAccount_ID) return Swal.fire('Not signed in', 'Staff account ID not found. Please login again.', 'error');
 
-    if (String(staffAccount_ID) !== String(noteStaffId)) return Swal.fire('Unauthorized', 'You are not authorized to edit this note', 'error');
+    // Only the original author can edit their own notes
+    const isOriginal = String(staffAccount_ID) === String(noteStaffId);
+    if (!isOriginal) {
+      return Swal.fire('Unauthorized', 'You can only edit notes you created', 'error');
+    }
 
     const confirmed = await Swal.fire({
       title: 'Save changes?',
@@ -808,34 +812,61 @@ const AdminStudentProfile = () => {
                                       {note.editedDate ? (
                                         <span className="text-xs text-gray-400">· edited {note.editedDate.toLocaleString()}</span>
                                       ) : null}
-                                      {/* show Edit and Reassign only for the owner */}
+                                      {/* show Edit only for the original author, Reassign only for overall current assignee */}
                                         {(() => {
                                         const staffUser = staffUserProfile;
                                         const staffAccount_ID = staffUser ? (staffUser.staffAccount_ID || staffUser.staffAccountId || staffUser.staffAccountID || staffUser.id) : null;
-                                        const isOwner = staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID);
-                                        if (isOwner) {
+                                        
+                                        // Original author is whoever created the note
+                                        const isOriginalAuthor = staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID);
+                                        
+                                        // Determine OVERALL current assignee based on most recent reassignment across ALL notes
+                                        const reassignedNotes = counselorNotes.filter(n => n.reassignedToStaffAccount_ID);
+                                        const mostRecentReassignment = reassignedNotes.length > 0 
+                                          ? reassignedNotes.reduce((latest, current) => {
+                                              const latestDate = latest.reassignedDate ? new Date(latest.reassignedDate).getTime() : 0;
+                                              const currentDate = current.reassignedDate ? new Date(current.reassignedDate).getTime() : 0;
+                                              return currentDate > latestDate ? current : latest;
+                                            })
+                                          : null;
+                                        
+                                        // Overall current assignee: if there have been reassignments, use the latest target; otherwise
+                                        // default to the author of the first note (initial counselor) so they can still reassign.
+                                        const overallCurrentAssignee = mostRecentReassignment
+                                          ? mostRecentReassignment.reassignedToStaffAccount_ID
+                                          : (counselorNotes.length > 0 ? counselorNotes[0].staffAccount_ID : null);
+                                        const isOverallCurrentAssignee = overallCurrentAssignee && staffAccount_ID && String(staffAccount_ID) === String(overallCurrentAssignee);
+                                        // const noReassignmentYet = !mostRecentReassignment;
+                                        
+                                        // Show Edit button only for the original author
+                                        if (editingNoteId === note.id) {
+                                          // Editing mode
                                           return (
                                             <>
-                                              {editingNoteId === note.id ? (
-                                                <>
-                                                  <button onClick={() => handleSaveEdit(note.id, note.staffAccount_ID)} className="text-xs text-blue-600 hover:underline">Save</button>
-                                                  <button onClick={handleCancelEdit} className="text-xs text-gray-500 ml-2 hover:underline">Cancel</button>
-                                                </>
-                                              ) : (
-                                                <>
-                                                  <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
-                                                  {note.reassignedToName ? (
-                                                    <span className="text-xs text-gray-500 ml-2">Reassigned to {formatDisplayName(note.reassignedToName) || note.reassignedToName} counselor</span>
-                                                  ) : (
-                                                    <button onClick={() => handleReassignNote(note)} className="text-xs text-orange-600 ml-2 hover:underline">Reassign</button>
-                                                  )}
-                                                </>
-                                              )}
+                                              <button onClick={() => handleSaveEdit(note.id, note.staffAccount_ID)} className="text-xs text-blue-600 hover:underline">Save</button>
+                                              <button onClick={handleCancelEdit} className="text-xs text-gray-500 ml-2 hover:underline">Cancel</button>
                                             </>
                                           );
+                                        } else if (isOriginalAuthor) {
+                                          // Edit button for original author; if they are overall current assignee, show reassign button too
+                                          return (
+                                            <>
+                                              <button onClick={() => handleStartEdit(note)} className="text-xs text-blue-600 hover:underline">Edit</button>
+                                              {isOverallCurrentAssignee ? (
+                                                <button onClick={() => handleReassignNote(note)} className="text-xs text-orange-600 ml-2 hover:underline">Reassign</button>
+                                              ) : note.reassignedToName && String(note.reassignedToStaffAccount_ID) !== String(note.staffAccount_ID) ? (
+                                                <span className="text-xs text-gray-500 ml-2">Reassigned to {formatDisplayName(note.reassignedToName) || note.reassignedToName} counselor</span>
+                                              ) : null}
+                                            </>
+                                          );
+                                        } else if (isOverallCurrentAssignee && staffAccount_ID && String(staffAccount_ID) === String(note.staffAccount_ID)) {
+                                          // Overall current assignee and this note is their own comment
+                                          return (
+                                            <button onClick={() => handleReassignNote(note)} className="text-xs text-orange-600 hover:underline">Reassign</button>
+                                          );
                                         } else {
-                                          // Not the owner, just show reassignment status if applicable
-                                          if (note.reassignedToName) {
+                                          // Not original author and not current assignee
+                                          if (note.reassignedToName && String(note.reassignedToStaffAccount_ID) !== String(note.staffAccount_ID)) {
                                             return <span className="text-xs text-gray-500">Reassigned to {formatDisplayName(note.reassignedToName) || note.reassignedToName} counselor</span>;
                                           }
                                         }
@@ -870,21 +901,28 @@ const AdminStudentProfile = () => {
                             {(() => {
                               const currentStaffId = staffUserProfile?.staffAccount_ID || staffUserProfile?.staffAccountId || staffUserProfile?.staffAccountID || staffUserProfile?.id;
                               
-                              // Find if any note has been reassigned
-                              const reassignedNote = counselorNotes.find(n => n.reassignedToStaffAccount_ID);
+                              // Find the most recently reassigned note to determine current assignee
+                              const reassignedNotes = counselorNotes.filter(n => n.reassignedToStaffAccount_ID);
+                              const mostRecentReassignment = reassignedNotes.length > 0 
+                                ? reassignedNotes.reduce((latest, current) => {
+                                    const latestDate = latest.reassignedDate ? new Date(latest.reassignedDate).getTime() : 0;
+                                    const currentDate = current.reassignedDate ? new Date(current.reassignedDate).getTime() : 0;
+                                    return currentDate > latestDate ? current : latest;
+                                  })
+                                : null;
                               
                               let canComment = false;
                               let disabledMessage = 'This assessment has no student feedback. Counselor commenting is disabled until feedback is provided.';
                               
-                              if (reassignedNote) {
-                                // If note has been reassigned, only the reassigned counselor can comment
-                                if (String(reassignedNote.reassignedToStaffAccount_ID) === String(currentStaffId)) {
+                              if (mostRecentReassignment) {
+                                // Assessment has been reassigned; only the current assignee can comment
+                                if (String(mostRecentReassignment.reassignedToStaffAccount_ID) === String(currentStaffId)) {
                                   canComment = true;
                                 } else {
-                                  disabledMessage = `This case has been reassigned to ${formatDisplayName(reassignedNote.reassignedToName) || reassignedNote.reassignedToName || 'another counselor'}. Only they can add comments.`;
+                                  disabledMessage = `This case has been reassigned to ${formatDisplayName(mostRecentReassignment.reassignedToName) || mostRecentReassignment.reassignedToName || 'another counselor'}. Only they can add comments.`;
                                 }
                               } else {
-                                // No reassignment exists, allow commenting if student feedback exists
+                                // No reassignment exists; allow commenting if student feedback exists
                                 canComment = !!studentFeedback;
                               }
                               

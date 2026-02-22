@@ -286,7 +286,7 @@ module.exports = (db) => {
             try {
                 const staffId = req.user && req.user.id ? req.user.id : null;
                 const actionText = `Reminder sent to student ${student.email} (ID:${studentAccount_ID})`;
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffId, actionText]);
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [staffId, actionText]);
             } catch (logErr) {
                 console.warn('[remind-student] failed to insert staff log', logErr && logErr.message ? logErr.message : logErr);
             }

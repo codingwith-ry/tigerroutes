@@ -261,6 +261,24 @@ module.exports = (db) => {
             return res.status(400).json({ success: false, message: 'assessment id, staffAccount_ID and counselorNotes are required' });
           }
 
+          // Check reassignment status: can only add new notes if assessment is not reassigned away from you
+          try {
+            const [existingNotes] = await db.promise().query(
+              'SELECT DISTINCT reassignedToStaffAccount_ID FROM tbl_counselornotes WHERE studentAssessment_ID = ? AND reassignedToStaffAccount_ID IS NOT NULL LIMIT 1',
+              [assessmentId]
+            );
+            
+            // If assessment has been reassigned to someone, only that assignee can add new comments
+            if (existingNotes && existingNotes.length > 0) {
+              const reassignedTo = existingNotes[0].reassignedToStaffAccount_ID;
+              if (reassignedTo !== staffAccount_ID) {
+                return res.status(403).json({ success: false, message: 'This assessment has been reassigned to another counselor. Only they can add new comments.' });
+              }
+            }
+          } catch (checkErr) {
+            console.warn('Warning checking reassignment status:', checkErr);
+          }
+
           const insertSql = `INSERT INTO tbl_counselornotes (studentAssessment_ID, staffAccount_ID, counselorNotes, date) VALUES (?, ?, ?, NOW())`;
           const [result] = await db.promise().query(insertSql, [assessmentId, staffAccount_ID, counselorNotes]);
 
@@ -268,10 +286,10 @@ module.exports = (db) => {
           const rawSnippet = (counselorNotes || '').toString().replace(/\s+/g, ' ').trim();
           const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
 
-          // Log creation to tbl_stafflogs (store UTC and let clients render local time)
+          // Log creation to tbl_stafflogs (store timestamp)
           try {
             const actionText = `Create counselor note for assessment id:${assessmentId} (noteId:${result.insertId}) - "${snippet}"`;
-            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
+            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [staffAccount_ID || null, actionText]);
           } catch (logErr) {
             console.warn('Failed to write staff log for create counselor note:', logErr);
           }
@@ -309,10 +327,10 @@ module.exports = (db) => {
             const rawSnippet = noteContent.toString().replace(/\s+/g, ' ').trim();
             const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
 
-            // Log deletion to tbl_stafflogs (store UTC and let clients render local time)
+            // Log deletion to tbl_stafflogs (store timestamp)
             try {
               const actionText = `Delete counselor note (noteId:${noteId}) from assessment id:${assessmentId} - "${snippet}"`;
-              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
+              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [staffAccount_ID || null, actionText]);
             } catch (logErr) {
               console.warn('Failed to write staff log for delete counselor note:', logErr);
             }
@@ -340,8 +358,15 @@ module.exports = (db) => {
           }
 
           // Update only when the note belongs to the staffAccount_ID of the authenticated user
-          const updateSql = `UPDATE tbl_counselornotes SET counselorNotes = ?, edited_date = UTC_TIMESTAMP() WHERE counselorNote_ID = ? AND studentAssessment_ID = ? AND staffAccount_ID = ?`;
+          const updateSql = `
+            UPDATE tbl_counselornotes
+            SET counselorNotes = ?, edited_date = NOW()
+            WHERE counselorNote_ID = ?
+              AND studentAssessment_ID = ?
+              AND staffAccount_ID = ?
+          `;
           const [updateResult] = await db.promise().query(updateSql, [counselorNotes, noteId, assessmentId, staffAccount_ID]);
+
 
           if (updateResult.affectedRows && updateResult.affectedRows > 0) {
             // Fetch the new edited_date to return to client
@@ -353,7 +378,7 @@ module.exports = (db) => {
               const rawSnippet = (counselorNotes || '').toString().replace(/\s+/g, ' ').trim();
               const snippet = rawSnippet.length > 200 ? rawSnippet.slice(0, 200) + '...' : rawSnippet;
               const actionText = `Edit counselor note (noteId:${noteId}) on assessment id:${assessmentId} - "${snippet}"`;
-              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
+              await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [staffAccount_ID || null, actionText]);
             } catch (logErr) {
               console.warn('Failed to write staff log for edit counselor note:', logErr);
             }
@@ -401,7 +426,7 @@ module.exports = (db) => {
           }
 
           // Update note with reassignment info
-          const updateSql = `UPDATE tbl_counselornotes SET reassignedToStaffAccount_ID = ?, reassignedByStaffAccount_ID = ?, reassigned_date = UTC_TIMESTAMP() WHERE counselorNote_ID = ? AND studentAssessment_ID = ?`;
+          const updateSql = `UPDATE tbl_counselornotes SET reassignedToStaffAccount_ID = ?, reassignedByStaffAccount_ID = ?, reassigned_date = NOW() WHERE counselorNote_ID = ? AND studentAssessment_ID = ?`;
           const [updateResult] = await db.promise().query(updateSql, [reassignedToStaffAccount_ID, staffAccount_ID, noteId, assessmentId]);
           if (!updateResult.affectedRows) {
             return res.status(400).json({ success: false, message: 'Failed to reassign note' });
@@ -456,7 +481,7 @@ module.exports = (db) => {
           // Log reassignment
           try {
             const actionText = `Reassign counselor note (noteId:${noteId}) to staff id:${reassignedToStaffAccount_ID} for assessment id:${assessmentId}`;
-            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [staffAccount_ID || null, actionText]);
+            await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [staffAccount_ID || null, actionText]);
           } catch (logErr) {
             console.warn('Failed to write staff log for note reassign:', logErr);
           }

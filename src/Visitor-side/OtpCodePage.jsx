@@ -145,7 +145,7 @@ const handleSubmit = async (e) => {
           </h1>
           <p className="mt-2 text-sm text-gray-400">
             We sent a code to your email<br />
-          <span className="text-gray-400 font-semibold">example@gmail.com</span>
+          <span className="text-gray-400 font-semibold">{email}</span>
           </p>
         </div>
 

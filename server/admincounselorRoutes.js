@@ -115,8 +115,8 @@ module.exports = (db) => {
             // Log the create action to tbl_stafflogs (use Philippines time)
             try {
                 const actionText = `Create counselor ${name} (id:${accountResult.insertId})`;
-                // Store UTC timestamp in DB; clients should render to local time as needed
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminStaffAccountId || null, actionText]);
+                // Store current timestamp in DB
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [adminStaffAccountId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for create counselor:', logErr);
             }
@@ -435,8 +435,8 @@ module.exports = (db) => {
 
                 const changeSummary = changes.length ? changes.join('; ') : 'no changes';
                 const actionText = `Edit counselor ${name} (id:${id}) -- ${changeSummary}`;
-                // Store UTC timestamp in DB
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminStaffAccountId || null, actionText]);
+                // Store current timestamp in DB
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [adminStaffAccountId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for edit counselor:', logErr);
             }
@@ -525,7 +525,7 @@ module.exports = (db) => {
             try {
                 const adminId = adminUser || null;
                 const actionText = counselorName ? `Delete counselor ${counselorName} (id:${id})` : `Delete counselor (id:${id})`;
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId, actionText]);
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [adminId, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for delete counselor:', logErr);
             }
@@ -598,7 +598,7 @@ module.exports = (db) => {
                     try {
                         const adminId = req.user && (req.user.id || req.user.staffAccount_ID) ? (req.user.id || req.user.staffAccount_ID) : null;
                         const actionText = `Reveal generated temp password for ${counselor.email} (id:${counselor.staffAccount_ID})`;
-                        await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId, actionText]);
+                        await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [adminId, actionText]);
                     } catch (logErr) { console.warn('Failed to write reveal log:', logErr); }
 
                     return res.json({ success: true, data: { staffAccount_ID: counselor.staffAccount_ID, name: counselor.name, email: counselor.email, password: tempPw } });
@@ -786,7 +786,7 @@ module.exports = (db) => {
             try {
                 const adminId = adminRows && adminRows[0] ? adminRows[0].staffAccount_ID : null;
                 const actionText = `Sent counselor password to ${counselor.email} for ${counselor.name} (id:${counselor.staffAccount_ID})`;
-                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId || null, actionText]);
+                await db.promise().query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [adminId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for send-password:', logErr);
             }
@@ -860,7 +860,7 @@ module.exports = (db) => {
             try {
                 const adminId = admin && admin.staffAccount_ID ? admin.staffAccount_ID : null;
                 const actionText = `Changed counselor password for id:${counselorId}`;
-                await conn.query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, UTC_TIMESTAMP())', [adminId || null, actionText]);
+                await conn.query('INSERT INTO tbl_stafflogs (staffAccount_ID, action, date) VALUES (?, ?, NOW())', [adminId || null, actionText]);
             } catch (logErr) {
                 console.warn('Failed to write staff log for change-password:', logErr);
             }

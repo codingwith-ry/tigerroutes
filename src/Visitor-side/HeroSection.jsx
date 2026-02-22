@@ -10,6 +10,7 @@ const NumberCounter = ({ end = 0, duration = 1.6, suffix = "" }) => {
 
   // observe when the element enters the viewport and start once
   useEffect(() => {
+    
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
@@ -86,8 +87,10 @@ const HeroSection = () => {
             <p className="text-base sm:text-lg md:text-xl">UST PROGRAMS</p>
           </div>
           <div className="text-center min-w-[120px]">
-            <NumberCounter end={95} suffix="%" /> 
-            <p className="text-base sm:text-lg md:text-xl">MATCH RATE</p>
+            <p className="font-black text-yellow-400 text-4xl sm:text-5xl md:text-6xl">
+              SCORE
+            </p>
+            <p className="text-base sm:text-lg md:text-xl">DRIVEN-MATCHING</p>
           </div>
           <div className="text-center min-w-[120px]">
             <NumberCounter end={100} suffix="%" />

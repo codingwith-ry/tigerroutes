@@ -523,7 +523,7 @@ const AdminAssessment = () => {
                 <div key={student.assessmentId} className="p-4 hover:bg-gray-50">
                   <div className="flex justify-between items-center mb-2">
                     <div>
-                      <div className="font-semibold text-gray-900">{student.assessmentId}</div>
+                      <div className="font-semibold text-gray-900">{student.assessmentCode}</div>
                       <div className="text-xs text-gray-600">{formatStudentLabel(student)}</div>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStrandColors(student.strand).bgColor} ${getStrandColors(student.strand).textColor}`}>

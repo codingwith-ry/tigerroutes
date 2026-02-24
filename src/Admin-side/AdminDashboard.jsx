@@ -618,7 +618,7 @@ const StatCard = ({ title, value, subtitle, subtitleColor, icon, progress, max, 
                       <div key={s.studentAccount_ID} className="border rounded-md p-3">
                         <div className="font-medium text-gray-900">{formatDisplayName(s.name) || s.name}</div>
                         <div className="text-sm text-gray-600">{s.email}</div>
-                        <div className="text-sm">Pending: {s.pendingAssessment_ID ? s.pendingAssessment_ID : 'No'}</div>
+                        <div className="text-sm">Pending: {s.pendingAssessment_ID ? 'Yes' : 'No'}</div>
                         <div className="text-sm text-gray-600">
                           Reminded: {formatToManilaTime(s.lastReminderDate)}
                         </div>

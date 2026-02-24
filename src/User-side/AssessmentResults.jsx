@@ -624,27 +624,27 @@ const AssessmentResults = () => {
 
                 {/* Program Recommendations Section */}
                 <div className="bg-white rounded-xl shadow p-6">
-                    <div className="flex items-start justify-between text-center">
-                        <h3 className="flex items-center text-lg font-semibold mb-3">
-                            <FiFileText className="text-yellow-500 w-6 h-6 mr-2" />
-                            Program Recommendations
-                        </h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <h3 className="flex items-center text-lg font-semibold">
+                                <FiFileText className="text-yellow-500 w-6 h-6 mr-2" />
+                                <span className="text-center sm:text-left">Program Recommendations</span>
+                            </h3>
 
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <span className="inline-block w-3 h-3 bg-green-600 rounded-full" />
-                                <span>High alignment (≥ 80%)</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <span className="inline-block w-3 h-3 bg-yellow-600 rounded-full" />
-                                <span>Moderate alignment (60–79%)</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <span className="inline-block w-3 h-3 bg-red-600 rounded-full" />
-                                <span>Low alignment (&lt; 60%)</span>
+                            <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end text-sm text-gray-600">
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-block w-3 h-3 bg-green-600 rounded-full" />
+                                    <span>High alignment (≥ 80%)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-block w-3 h-3 bg-yellow-600 rounded-full" />
+                                    <span>Moderate alignment (60–79%)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-block w-3 h-3 bg-red-600 rounded-full" />
+                                    <span>Low alignment (&lt; 60%)</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
                     <p className="text-sm text-gray-500 mb-4">
                         Based on your assessment results, here are some recommended programs

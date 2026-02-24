@@ -590,7 +590,7 @@ const UserResultsHistory = () => {
                           {assessment.assessmentId.substring(0, 12)}...
                         </span>
                         <button
-                          onClick={() => copyToClipboard(assessment.assessmentId)}
+                          onClick={() => copyToClipboard(assessment.assessmentCode)}
                           className="text-gray-400 hover:text-gray-600 transition"
                           title="Copy Assessment ID"
                         >
@@ -644,7 +644,11 @@ const UserResultsHistory = () => {
 
                     {/* Action */}
                     <button
-                      onClick={() => navigate(`/assessment/results/${assessment.assessmentId}`)}
+                      onClick={() => {
+                        localStorage.setItem('currentAssessmentId', assessment.assessmentId);
+                        navigate(`/assessment/results`)
+                        }
+                      }
                       className="flex items-center gap-1 text-blue-600 hover:underline md:text-blue-600 md:hover:underline md:flex md:items-center md:gap-1 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-all duration-300 md:bg-transparent md:shadow-none md:px-0 md:py-0"
                     >
                       <FiEye className="md:text-blue-600" />

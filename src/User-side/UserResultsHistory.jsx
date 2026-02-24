@@ -587,7 +587,7 @@ const UserResultsHistory = () => {
                       <span className="font-semibold text-gray-500">Assessment ID: </span>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                          {assessment.assessmentId.substring(0, 12)}...
+                          {assessment.assessmentCode}
                         </span>
                         <button
                           onClick={() => copyToClipboard(assessment.assessmentCode)}

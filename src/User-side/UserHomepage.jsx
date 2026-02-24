@@ -258,7 +258,7 @@ const UserHomepage = () => {
                 <FiFileText className="text-yellow-600 text-2xl" />
                 <h3 className="font-bold text-lg text-gray-800">Most Recent Assessment</h3>
               </div>
-              <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              <span className="text-xs text-center text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                 {new Date(analytics.recentAssessmentData.date).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',

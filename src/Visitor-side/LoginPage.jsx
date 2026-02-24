@@ -268,6 +268,7 @@ const handleForgotPassword = () => {
           <h1 className="text-3xl md:text-4xl font-medium leading-tight text-black tracking-tight">
             Welcome back
           </h1>
+          <p className="mt-2 text-sm text-gray-600">Please sign in using your UST account.</p>
         </div>
 
         {/* Form */}

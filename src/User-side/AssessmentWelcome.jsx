@@ -172,7 +172,7 @@ const AssessmentPage = () => {
     const assessmentId = uuidv4();
     localStorage.setItem('currentAssessmentId', assessmentId);
     window.scrollTo(0, 0);
-    navigate(`/assessment/test/RIASEC`);
+    navigate(`/assessmentRIASEC`);
   };
 
   const cancelPendingAssessment = async () => {

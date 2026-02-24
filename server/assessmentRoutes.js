@@ -223,7 +223,7 @@ module.exports = (db) => {
                                                         programsResponse = await response.json();
                                                     } catch (error) {
                                                         console.error('Error fetching program recommendations:', error);
-                                                        return res.status(500).json({ message: 'Error fetching program recommendations' });
+                                                        return res.status(500).json({ message: 'Error fetching program recommendations', error: error.message });
                                                     }
 
                                                     const allRecommendations = [

@@ -173,15 +173,23 @@ module.exports = (db) => {
                                         const assessmentProfile_ID = assessmentProfileResult.insertId;
 
                                         const year = new Date().getFullYear();
-                                        const getLastAssessmentCode = `SELECT COUNT(*) AS count FROM tbl_studentassessments WHERE assessmentCode LIKE ?`;
-                                        
+                                        const getLastAssessmentCode = `SELECT assessmentCode FROM tbl_studentassessments WHERE assessmentCode LIKE ? ORDER BY CAST(SUBSTRING(assessmentCode, 6) AS UNSIGNED) DESC LIMIT 1`;
+
                                         db.query(getLastAssessmentCode, [`${year}-%`], (err, codeResult) => {
                                             if (err) {
                                                 console.error('Error fetching last assessment code:', err);
                                                 return res.status(500).json({ message: 'Error fetching last assessment code' });
                                             }
 
-                                            const nextNumber = codeResult[0].count + 1;
+                                            // Default to 1 if no previous code exists for the year
+                                            let nextNumber = 1;
+                                            if (codeResult && codeResult.length > 0 && codeResult[0].assessmentCode) {
+                                                const lastCode = codeResult[0].assessmentCode; // e.g. "2026-000123"
+                                                const parts = lastCode.split('-');
+                                                const lastNum = parseInt(parts[1], 10) || 0;
+                                                nextNumber = lastNum + 1;
+                                            }
+
                                             const assessmentCode = `${year}-${String(nextNumber).padStart(6, '0')}`;
 
                                             const assessmentQuery = `INSERT INTO tbl_studentassessments (studentAssessment_ID, assessmentCode, studentAccount_ID, assessmentProfile_ID, riasecResult_ID, bigFiveResult_ID, date) VALUES(?, ?, ?, ?, ?, ?, ?)`;

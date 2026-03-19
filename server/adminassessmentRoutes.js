@@ -91,8 +91,8 @@ module.exports = (db) => {
         FROM tbl_studentassessments sa
         LEFT JOIN tbl_studentaccounts st ON sa.studentAccount_ID = st.studentAccount_ID
         LEFT JOIN tbl_studentprofiles sp ON st.studentProfile_ID = sp.studentProfile_ID
-        LEFT JOIN tbl_strands s ON sp.strand_ID = s.strand_ID
         LEFT JOIN tbl_assessmentprofiles ap ON sa.assessmentProfile_ID = ap.assessmentProfile_ID
+        LEFT JOIN tbl_strands s ON ap.strand_ID = s.strand_ID
       `;
 
       // Build WHERE clauses and params

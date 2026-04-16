@@ -81,6 +81,27 @@ const sections = [
     ),
   },
   {
+    id: "data-retention-assessment-policy",
+    title: "Data Retention and Assessment Policy",
+    content: (
+      <>
+        <p className="mb-4 text-gray-700">
+          Student records are retained for up to four (4) years following account
+          creation for operational and statistical purposes, after which they will
+          be archived. Users may request deletion of their data prior to this
+          period, subject to applicable policies and procedures.
+        </p>
+        <p className="mb-4 text-gray-700">
+          Pending assessments may only be completed within thirty (30) days from
+          the initial date of assessment. If the assessment is not completed within
+          this period, all data related to the pending assessment will be
+          automatically deleted from the system. This policy ensures that all
+          assessment data remains current, accurate, and relevant.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "changes",
     title: "Changes to Terms",
     content: (

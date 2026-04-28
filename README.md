@@ -4,7 +4,9 @@ TigerRoutes is a React web application for delivering career-assessment and coun
 
 **This README** provides a quick overview, development setup, project layout, and pointers to important docs included in the repository.
 
-**Tech stack:** React, Node.js (Express), Tailwind CSS (config present), and small Python scoring helper.
+**Tech stack:** React, Node.js (Express), Tailwind CSS (config present), and small Python scoring helper. The Database used MySQL(MariaDB).
+
+The system was hosted using Amazon Web Services.
 
 **Apps & data:** The repo contains both the client (`src/`) and a lightweight server (`server/`) used for API routes, auth, and test fixtures.
 

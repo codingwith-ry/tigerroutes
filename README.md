@@ -1,74 +1,77 @@
-# Getting Started with Create React App
+# TigerRoutes README File
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+TigerRoutes is a React web application for delivering career-assessment and counseling UIs. It was bootstrapped with Create React App and includes server-side helpers under the `server/` folder.
 
-## Available Scripts
+**This README** provides a quick overview, development setup, project layout, and pointers to important docs included in the repository.
 
-In the project directory, you can run:
+**Tech stack:** React, Node.js (Express), Tailwind CSS (config present), and small Python scoring helper.
 
-### `npm start`
+**Apps & data:** The repo contains both the client (`src/`) and a lightweight server (`server/`) used for API routes, auth, and test fixtures.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Quick Links:**
+- **File:** [README.md](README.md)
+- **Docs folder:** [docs](docs)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Development
 
-### `npm test`
+Prerequisites:
+- Node.js 16+ and npm (or yarn)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Install dependencies:
 
-### `npm run build`
+```
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Run the app in development mode (client + hot reload) + NodeJS Backend  + Python Scoring Engine:
+**THIS IS THE COMMAND THAT WILL RUN THE SYSTEM ALTOGETHER (FRONTEND, BACKEND, SCORING ENGINE)**
+## npm run dev
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Available scripts
 
-### `npm run eject`
+- `npm run dev:frontend` — runs the React development server for the frontend (localhost:3000)
+- `npm run dev:node` — runs the NodeJS Backend
+- `npm run dev:python` — starts python server with FastAPI
+- `npm run build` — builds a production bundle into `build/`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Project structure (important parts)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- `src/` — React client application (User-side, Admin-side, Visitor-side components)
+- `public/` — static public assets
+- `build/` — production build output (generated)
+- `server/` — Express routes, middleware, tests, and helper data
+- `docs/` — project docs and troubleshooting notes (see files like `ADMIN_ROUTE_MOUNTING_ISSUE.txt`)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Notable source files:
+- `src/index.js` — app entry
+- `src/App.js` — main app shell
+- `src/utils/` and `server/middleware/` — auth helpers and middleware
 
-### `npm run dev`
+## Important docs and data
 
-Starts a live node server with nodemon. Automatically saving changes without needing to manually restart the server.
+- See the `docs/` folder for operational notes and known issues.
+- `server/ProgramProfiles.json` and `server/accurateProgramProfiles.json` contain sample program/profile data used by the app.
 
-## Learn More
+## Deployment
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Build for production and deploy the `build/` folder to any static host (Netlify, Vercel, S3, etc.) or serve via Node/Express for SSR-like behavior.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+npm run build
+```
 
-### Code Splitting
+If you're deploying the server parts, ensure environment variables used by the server (JWT secrets, DB URLs) are configured in your host environment.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Where to look next
 
-### Analyzing the Bundle Size
+- Admin routes and notes: see files under `server/` and `docs/` for common admin issues.
+- Styling: `tailwind.config.js` is present — adjust if you update Tailwind usage.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+If you'd like, I can also:
+- add a short `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`
+- run the test suite and report failures (or fix anything obvious)
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+Generated and trimmed from the original CRA README to focus on this project's specifics.
